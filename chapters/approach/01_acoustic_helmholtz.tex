@@ -1,0 +1,50 @@
+\section{Acoustic Wave Equation}\label{sec:acoustic-helmholtz}
+
+The propagation of acoustic waves in a homogeneous, inviscid fluid medium is governed by the linear wave equation for the acoustic pressure $p(\mathbf{x}, t)$:
+
+\begin{equation}
+    \nabla^2 p(\mathbf{x}, t) - \frac{1}{c^2} \frac{\partial^2 p(\mathbf{x}, t)}{\partial t^2} = 0
+    \label{eq:wave_equation}
+\end{equation}
+
+where $\mathbf{x}$ is the position vector, $t$ is time, and $c$ is the speed of sound in the medium.
+
+To derive the Helmholtz equation, we consider a time-harmonic acoustic field. We assume the pressure can be represented as a complex function oscillating with angular frequency $\omega$:
+
+\begin{equation}
+    p(\mathbf{x}, t) = P(\mathbf{x}) e^{-i \omega t}
+    \label{eq:time_harmonic}
+\end{equation}
+
+where $P(\mathbf{x})$ is the spatial component of the pressure (the phasor) and $i = \sqrt{-1}$ is the imaginary unit.
+
+Substituting Equation (\ref{eq:time_harmonic}) into the wave equation (\ref{eq:wave_equation}):
+
+\begin{equation}
+    \nabla^2 \left( P(\mathbf{x}) e^{-i \omega t} \right) - \frac{1}{c^2} \frac{\partial^2}{\partial t^2} \left( P(\mathbf{x}) e^{-i \omega t} \right) = 0
+\end{equation}
+
+Calculating the time derivatives:
+\begin{align}
+    \frac{\partial}{\partial t} \left( P(\mathbf{x}) e^{-i \omega t} \right) &= -i \omega P(\mathbf{x}) e^{-i \omega t} \\
+    \frac{\partial^2}{\partial t^2} \left( P(\mathbf{x}) e^{-i \omega t} \right) &= (-i \omega)^2 P(\mathbf{x}) e^{-i \omega t} = -\omega^2 P(\mathbf{x}) e^{-i \omega t}
+\end{align}
+
+Substituting this back into the wave equation:
+
+\begin{equation}
+    e^{-i \omega t} \nabla^2 P(\mathbf{x}) - \frac{1}{c^2} (-\omega^2 P(\mathbf{x}) e^{-i \omega t}) = 0
+\end{equation}
+
+Dividing by the common time factor $e^{-i \omega t}$ (which is non-zero) and rearranging the terms:
+
+\begin{equation}
+    \nabla^2 P(\mathbf{x}) + \frac{\omega^2}{c^2} P(\mathbf{x}) = 0
+\end{equation}
+
+Introducing the wavenumber $k = \omega / c$, we arrive at the homogeneous Helmholtz equation:
+
+\begin{equation}
+    \nabla^2 P(\mathbf{x}) + k^2 P(\mathbf{x}) = 0
+    \label{eq:helmholtz}
+\end{equation}

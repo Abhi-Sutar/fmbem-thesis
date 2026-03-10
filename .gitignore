@@ -1,6 +1,6 @@
 /build/*
 !/build/main.pdf
-
+/sources/*
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof

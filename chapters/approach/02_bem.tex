@@ -1,0 +1,56 @@
+\section{Boundary Element Method}\label{sec:bem}
+
+\subsection{Boundary Integral Formulation}
+
+The Boundary Element Method (BEM) solves the Helmholtz equation by transforming it into an integral equation defined on the boundary of the domain. This transformation is typically achieved using Green's Second Identity.
+
+Let $\Omega$ be the domain containing the fluid and $\Gamma$ be its boundary. For two scalar fields $P$ and $G$ in $\Omega$, Green's Second Identity states \cite{wu2000boundary}:
+
+\begin{equation}
+    \int_{\Omega} \left( P \nabla^2 G - G \nabla^2 P \right) d\Omega = \int_{\Gamma} \left( P \frac{\partial G}{\partial n} - G \frac{\partial P}{\partial n} \right) d\Gamma
+\end{equation}
+
+where $n$ is the outward unit normal vector to the boundary.
+
+We choose $P(\mathbf{x})$ to be the acoustic pressure, satisfying the Helmholtz equation derived in Equation (\ref{eq:helmholtz}):
+\begin{equation}
+    \nabla^2 P(\mathbf{x}) + k^2 P(\mathbf{x}) = 0
+\end{equation}
+
+We choose $G(\mathbf{x}, \mathbf{y})$ to be the fundamental solution (Green's function) of the Helmholtz equation, which satisfies the inhomogeneous equation with a point source at $\mathbf{y}$:
+\begin{equation}
+    \nabla^2 G(\mathbf{x}, \mathbf{y}) + k^2 G(\mathbf{x}, \mathbf{y}) = -\delta(\mathbf{x} - \mathbf{y})
+\end{equation}
+
+where $\delta$ is the Dirac delta function. For 3D acoustics, the free-space Green's function satisfying the Sommerfeld radiation condition is given by \cite{kirkup1998boundary}:
+
+\begin{equation}
+    G(\mathbf{x}, \mathbf{y}) = \frac{e^{ik r}}{4 \pi r} \quad \mbox{with} \quad r = |\mathbf{x} - \mathbf{y}|
+\end{equation}
+
+Substituting these into Green's Second Identity for a source point $\mathbf{y}$ inside the domain $\Omega$:
+
+\begin{equation}
+    P(\mathbf{y}) = \int_{\Gamma} \left( G(\mathbf{x}, \mathbf{y}) \frac{\partial P}{\partial n}(\mathbf{x}) - P(\mathbf{x}) \frac{\partial G}{\partial n}(\mathbf{x}, \mathbf{y}) \right) d\Gamma(\mathbf{x})
+\end{equation}
+
+As the source point $\mathbf{y}$ is moved to the boundary $\Gamma$, the integrals become singular. Evaluating the singularity using a limiting process yields the Boundary Integral Equation (BIE) \cite{marburg2002boundary}:
+
+\begin{equation}
+    C(\mathbf{y}) P(\mathbf{y}) = \int_{\Gamma} \left( G(\mathbf{x}, \mathbf{y}) \frac{\partial P}{\partial n}(\mathbf{x}) - P(\mathbf{x}) \frac{\partial G}{\partial n}(\mathbf{x}, \mathbf{y}) \right) d\Gamma(\mathbf{x})
+\end{equation}
+
+where $C(\mathbf{y})$ is the geometric coefficient (solid angle). For a smooth boundary, $C(\mathbf{y}) = 0.5$.
+
+\section{Discretization}
+
+To solve the BIE numerically, the boundary $\Gamma$ is discretized into $N$ boundary elements. The pressure $P$ and its normal derivative $q = \partial P / \partial n$ are approximated using shape functions. 
+
+Applying the collocation method at the nodes leads to a system of linear algebraic equations:
+
+\begin{equation}
+    \mathbf{H} \mathbf{P} = \mathbf{G} \mathbf{Q}
+\end{equation}
+
+where $\mathbf{H}$ and $\mathbf{G}$ are the dense, nonsymmetric influence matrices resulting from the integration of the fundamental solution and its derivative, and $\mathbf{P}$ and $\mathbf{Q}$ are vectors containing the nodal values of pressure and normal velocity, respectively.
+
