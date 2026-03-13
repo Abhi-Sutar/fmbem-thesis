@@ -1,0 +1,11 @@
+\chapter{The Fast Multipole Method Framework}\label{chapter:fmm-framework}
+
+The \ac{BEM} lends itself naturally to modelling acoustic wave propagation, allowing finite structures to be treated in an infinite exterior domain without 
+requiring special boundary conditions.
+%TODO:  bettter ending for that line please.
+However, the required mathematical 
+transformation of the problem yields a full, complex, non-Hermitian matrix \cite{chandler-wildeboundaryelementmethods2007}. As the degrees of freedom increase to model larger problem, the memory requirements to hold the large full matrix and the cost to compute the matrix coefficients themselves, scale as $\mathcal{O}(N^2)$, and the computational cost of solving the resulting linear system using direct solvers scales as $\mathcal{O}(N^3)$, where $N$ is the number of degrees of freedom \cite{liufastmultipoleboundary2009}. This makes the \ac{BEM} computationally prohibitive for large-scale problems.
+
+To overcome this computational bottleneck, we must employ a radically different numerical strategy. This chapter details the algorthmic design and the mathematical formulation of the \ac{FMM} framework. 
+
+\input{chapters/03_fmm/01_fmm.tex}
