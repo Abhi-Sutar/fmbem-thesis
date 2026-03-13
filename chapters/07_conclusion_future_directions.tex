@@ -2,5 +2,8 @@
 
 \begin{itemize}
     \item Currently Burton - Miller is highly optimized for single dof per cell and for perfectly flat panels. That is, FE\_Degree = 0 and Mapping\_Degree = 1. To support higher degrees, we need to update the hypersingular calculation in the near field operator and the main assemble system method.
-    \item There is some basic parallelization in the code for computing the translation matrices and for the matrix-vector multiplication done with OpenMP pragmas. But, Deal.ii has its native parallelization support using its native datatypes. The FMM also lends itself to parallelization where each node of the FMM tree may reside in an individual process and maintain its own near field matrix, with only the far-off node dipoles having to be passed around.
+    \item There is some basic parallelization in the code for computing the translation matrices and for the matrix-vector multiplication done with OpenMP pragmas. But, Deal.ii has its native parallelization support using its native datatypes. The FMM also lends itself to parallelization where each node of the FMM tree may reside in an individual process and maintain its own near field matrix, with only the far-off node dipoles having to be passed around.\
+    \item The current implementation of the computation of the external field uses drect computations of the green's function. This can be upgraded to use the FMM approximation in the future, which will be faster for large problems.
+    \item The current implementation is strictly for scattering off of sound hard objects. The next step would be to implment the option to set an arbitrary impedance boundary condition.
+    \item The current implementation is strictly for a  stationary mesh.
 \end{itemize}
