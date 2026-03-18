@@ -64,6 +64,57 @@
   langid = {english}
 }
 
+@article{chappellchoicecouplingparameter2009,
+  title = {On {{The Choice}} of {{Coupling Parameter}} in {{The Time Domain Burton-Miller Formulation}}},
+  author = {Chappell, D. J. and Harris, P. J.},
+  date = {2009-11-01},
+  journaltitle = {The Quarterly Journal of Mechanics and Applied Mathematics},
+  shortjournal = {The Quarterly Journal of Mechanics and Applied Mathematics},
+  volume = {62},
+  number = {4},
+  pages = {431--450},
+  issn = {0033-5614, 1464-3855},
+  doi = {10.1093/qjmam/hbp018},
+  url = {https://academic.oup.com/qjmam/article-lookup/doi/10.1093/qjmam/hbp018},
+  urldate = {2026-03-18},
+  abstract = {A Burton–Miller-type integral equation for time domain exterior acoustic radiation and scattering problems is considered as a way of overcoming the well-known stability problems associated with collocation-based time domain boundary element methods. The stability of the method is considered and justified using an argument based on the associated frequency domain integral equation. This allows for the justification of a choice of coupling coefficient that is in some sense optimal for the time domain formulation for acoustic radiation and scattering by spheres. Finally, computational results are given in support of these observations and the impact of choosing the optimal parameter in the computations is discussed. Results for non-spherical bodies are also considered to see whether the results may be more widely applicable.},
+  langid = {english}
+}
+
+@article{chenformulationboundaryelement2007,
+  title = {A {{FORMULATION OF THE BOUNDARY ELEMENT METHOD FOR ACOUSTIC RADIATION AND SCATTERING FROM TWO-DIMENSIONAL STRUCTURES}}},
+  author = {Chen, Z.-S. and Waubke, H.},
+  date = {2007-09},
+  journaltitle = {Journal of Computational Acoustics},
+  shortjournal = {J. Comp. Acous.},
+  volume = {15},
+  number = {03},
+  pages = {333--352},
+  issn = {0218-396X, 1793-6489},
+  doi = {10.1142/S0218396X07003305},
+  url = {https://www.worldscientific.com/doi/abs/10.1142/S0218396X07003305},
+  urldate = {2026-03-18},
+  abstract = {A code for the boundary element method (BEM) for two-dimensional acoustic radiation and scattering problems is developed. To overcome the singularity problem of the integral equations at characteristic frequencies, the Burton–Miller method is employed in the formulation. The integral equations are then discretized by using the two-nodal constant elements and a collocation procedure. The hyper and weakly singular integrals in each element containing the collocation points are computed analytically and numerically respectively (stark singularity does not appear).             In outdoor acoustic, the ground surface can be seen occasionally as an infinite surface with a given constant impedance. In this case the ground surface can either be discretized by using finite and infinite boundary elements or simulated by using the Green functions for impedance half space. The method to compute such Green functions presented in Ref. 1, is improved and used in the code. A formulation of the infinite boundary element is proposed. The two BEM approaches for the impedance half space problems are tested by means of examples and the agreement is found to be good.},
+  langid = {english}
+}
+
+@article{chengwidebandfastmultipole2006,
+  title = {A Wideband Fast Multipole Method for the {{Helmholtz}} Equation in Three Dimensions},
+  author = {Cheng, Hongwei and Crutchfield, William Y. and Gimbutas, Zydrunas and Greengard, Leslie F. and Ethridge, J. Frank and Huang, Jingfang and Rokhlin, Vladimir and Yarvin, Norman and Zhao, Junsheng},
+  date = {2006-07},
+  journaltitle = {Journal of Computational Physics},
+  shortjournal = {Journal of Computational Physics},
+  volume = {216},
+  number = {1},
+  pages = {300--325},
+  issn = {00219991},
+  doi = {10.1016/j.jcp.2005.12.001},
+  url = {https://linkinghub.elsevier.com/retrieve/pii/S002199910500553X},
+  urldate = {2026-03-15},
+  abstract = {We describe a wideband version of the Fast Multipole Method for the Helmholtz equation in three dimensions. It unifies previously existing versions of the FMM for high and low frequencies into an algorithm which is accurate and efficient for any frequency, having a CPU time of O(N) if low-frequency computations dominate, or O(N log N) if high-frequency computations dominate. The performance of the algorithm is illustrated with numerical examples.},
+  langid = {english}
+}
+
 @book{chewfastefficientalgorithms2001,
   title = {Fast and Efficient Algorithms in Computational Electromagnetics},
   editor = {Chew, Weng Cho},
@@ -134,6 +185,22 @@
 @unpublished{fischerfastmultipolebem,
   title = {Fast {{Multipole BEM}} for {{Structural}}–{{Acoustics Simulation}}},
   author = {Fischer, Matthias and Gaul, Lothar},
+  langid = {english}
+}
+
+@article{greengardfastalgorithmparticle1987,
+  title = {A Fast Algorithm for Particle Simulations},
+  author = {Greengard, L and Rokhlin, V},
+  date = {1987-12},
+  journaltitle = {Journal of Computational Physics},
+  shortjournal = {Journal of Computational Physics},
+  volume = {73},
+  number = {2},
+  pages = {325--348},
+  issn = {00219991},
+  doi = {10.1016/0021-9991(87)90140-9},
+  url = {https://linkinghub.elsevier.com/retrieve/pii/0021999187901409},
+  urldate = {2026-03-16},
   langid = {english}
 }
 
@@ -294,6 +361,22 @@
   keywords = {Mathematics - Numerical Analysis}
 }
 
+@article{langrennesolvinghypersingularboundary2015,
+  title = {Solving the Hypersingular Boundary Integral Equation for the {{Burton}} and {{Miller}} Formulation},
+  author = {Langrenne, Christophe and Garcia, Alexandre and Bonnet, Marc},
+  date = {2015-11-01},
+  journaltitle = {The Journal of the Acoustical Society of America},
+  volume = {138},
+  number = {5},
+  pages = {3332--3340},
+  issn = {0001-4966, 1520-8524},
+  doi = {10.1121/1.4935134},
+  url = {https://pubs.aip.org/jasa/article/138/5/3332/690342/Solving-the-hypersingular-boundary-integral},
+  urldate = {2026-03-18},
+  abstract = {This paper presents an easy numerical implementation of the Burton and Miller (BM) formulation, where the hypersingular Helmholtz integral is regularized by identities from the associated Laplace equation and thus needing only the evaluation of weakly singular integrals. The Helmholtz equation and its normal derivative are combined directly with combinations at edge or corner collocation nodes not used when the surface is not smooth. The hypersingular operators arising in this process are regularized and then evaluated by an indirect procedure based on discretized versions of the Calderón identities linking the integral operators for associated Laplace problems. The method is valid for acoustic radiation and scattering problems involving arbitrarily shaped three-dimensional bodies. Unlike other approaches using direct evaluation of hypersingular integrals, collocation points still coincide with mesh nodes, as is usual when using conforming elements. Using higher-order shape functions (with the boundary element method model size kept fixed) reduces the overall numerical integration effort while increasing the solution accuracy. To reduce the condition number of the resulting BM formulation at low frequencies, a regularized version α\,=\,ik/(k2\,+\,λ) of the classical BM coupling factor α\,=\,i/k is proposed. Comparisons with the combined Helmholtz integral equation Formulation method of Schenck are made for four example configurations, two of them featuring non-smooth surfaces.},
+  langid = {english}
+}
+
 @book{latex,
   title = {{{LaTeX}} : A Documentation Preparation System User's Guide and Reference Manual},
   author = {Lamport, Leslie},
@@ -436,4 +519,35 @@
   date = {2000},
   publisher = {WIT Press},
   location = {Southampton, UK}
+}
+
+@article{wunumericalimplementationcauchy1991,
+  title = {On the Numerical Implementation of a {{Cauchy}} Principal Value Integral to Insure a Unique Solution for Acoustic Radiation and Scattering},
+  author = {Wu, T. W. and Seybert, A. F. and Wan, G. C.},
+  date = {1991-07-01},
+  journaltitle = {The Journal of the Acoustical Society of America},
+  volume = {90},
+  number = {1},
+  pages = {554--560},
+  issn = {0001-4966, 1520-8524},
+  doi = {10.1121/1.401283},
+  url = {https://pubs.aip.org/jasa/article/90/1/554/893868/On-the-numerical-implementation-of-a-Cauchy},
+  urldate = {2026-03-18},
+  abstract = {In this paper, the boundary integral formulation proposed by Burton and Miller [Proc. R. Soc. London Ser. A 323, 201–210 (1971)] to insure a unique solution for all frequencies is implemented in an isoparametric element environment. A regularized normal derivative integral equation, originally derived by Maue [Z. Phys. 126, 601–618 (1949)], is used in the formulation to form a linear combination with the conventional Helmholtz integral equation. This regularized normal derivative integral equation converges in the Cauchy principal value sense rather than only in the finite-part sense. The Cauchy principal value integral can be further transformed into an integral that converges in the normal sense. The C° continuous isoparametric elements are used in the formulation. Collocation points are placed inside each element to insure a unique normal direction and continuity of tangential derivatives of the acoustic pressure. Through a systematic collocation point generation scheme, the number of collocation points is always greater than the number of nodal points. The overdetermined system is then solved by a least-squares procedure. Numerical examples are given for several radiation and scattering problems.},
+  langid = {english}
+}
+
+@online{zhaofastmultipolemethod2016,
+  title = {A {{Fast Multipole Method}} Based on {{Band-limited Approximations}} for {{Radial Basis Functions}}},
+  author = {Zhao, Wei and Stoll, Martin},
+  date = {2016-06-24},
+  eprint = {1606.07652},
+  eprinttype = {arXiv},
+  eprintclass = {math},
+  doi = {10.48550/arXiv.1606.07652},
+  url = {http://arxiv.org/abs/1606.07652},
+  urldate = {2026-03-16},
+  abstract = {The meshless/meshfree radial basis function (RBF) method is a powerful technique for interpolating scattered data. But, solving large RBF interpolation problems without fast summation methods is computationally expensive. For RBF interpolation with N points, using a direct method requires O(N 2) operations. As a fast summation method, the fast multipole method (FMM) has been implemented in speeding up the matrix-vector multiply, which reduces the complexity from O(N 2) to O(N 1.5) and even to O(N logN ) for the multilevel fast multipole method (MLFMM). In this paper, we present a novel kernel-independent fast multipole method for RBF interpolation, which is used in combination with the evaluation of point-to-point interactions by RBF and the fast matrix-vector multiplication. This approach is based on band-limited approximation and quadrature rules, which extends the range of applicability of FMM.},
+  pubstate = {prepublished},
+  keywords = {Mathematics - Numerical Analysis}
 }
