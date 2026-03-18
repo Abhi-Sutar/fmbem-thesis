@@ -1,0 +1,210 @@
+=
+=
+=
+
+SCHOOL OF COMPUTATION, INFORMATION AND TECHNOLOGY — INFORMATICS
+
+TECHNISCHE UNIVERSITÄT MÜNCHEN
+
+Master’s Thesis in Computational Science and Engineering
+
+Fast Multipole Boundary Element Method for Finite Periodic Structures
+
+Abhijeet Abhay Sutar
+
+SCHOOL OF COMPUTATION, INFORMATION AND TECHNOLOGY — INFORMATICS
+
+TECHNISCHE UNIVERSITÄT MÜNCHEN
+
+Master’s Thesis in Computational Science and Engineering
+
+Fast Multipole Boundary Element Method for Finite Periodic Structures
+
+Titel der Abschlussarbeit
+
+  ------------------ ----------------------------
+  Author:            Abhijeet Abhay Sutar
+  Examiner:          Steffen Marburg, Prof. Dr.
+  Supervisor:        Arne Hildenbrand, M.Sc.
+  Submission Date:   Submission date
+  ------------------ ----------------------------
+
+I confirm that this master’s thesis is my own work and I have documented all sources and material used.
+
+Munich, Submission date Abhijeet Abhay Sutar
+
+Acknowledgments
+
+Abstract
+
+Introduction
+
+Section
+
+Citation test .
+
+Acronyms must be added in main.tex and are referenced using macros. The first occurrence is automatically replaced with the long version of the acronym, while all subsequent usages use the abbreviation.
+
+For more details, see the documentation of the acronym package[1].
+
+Subsection
+
+See 2.1, 2.1, 2.2, 2.3.
+
+  A   B   C   D
+  --- --- --- ---
+  1   2   1   2
+  2   3   2   3
+
+  : An example for a simple table.
+
++:-------------------------------------------:+
+|     SELECT * FROM tbl WHERE tbl.str = "str" |
++---------------------------------------------+
+
+Mathematical Formulation of BEM
+
+Before we discus the implementation of the BEM for the Acoustic Helmholtz equation, we first need
+
+Acoustic Wave Equation
+
+The propagation of acoustic waves in a homogeneous, inviscid fluid medium is governed by the linear wave equation for the acoustic pressure p(x, t):
+
+$$\begin{equation}
+    \nabla^2 p(\mathbf{x}, t) - \frac{1}{c^2} \frac{\partial^2 p(\mathbf{x}, t)}{\partial t^2} = 0
+    \label{eq:wave_equation}
+\end{equation}$$
+
+where x is the position vector, t is time, and c is the speed of sound in the medium.
+
+To derive the Helmholtz equation, we consider a time-harmonic acoustic field. We assume the pressure can be represented as a complex function oscillating with angular frequency ω:
+
+p(x, t) = P(x)e^(−iωt)
+
+where P(x) is the spatial component of the pressure (the phasor) and $i = \sqrt{-1}$ is the imaginary unit.
+
+Substituting Equation ([eq:time_harmonic]) into the wave equation ([eq:wave_equation]):
+
+$$\begin{equation}
+    \nabla^2 \left( P(\mathbf{x}) e^{-i \omega t} \right) - \frac{1}{c^2} \frac{\partial^2}{\partial t^2} \left( P(\mathbf{x}) e^{-i \omega t} \right) = 0
+\end{equation}$$
+
+Calculating the time derivatives:
+$$\begin{align}
+    \frac{\partial}{\partial t} \left( P(\mathbf{x}) e^{-i \omega t} \right) &= -i \omega P(\mathbf{x}) e^{-i \omega t} \\
+    \frac{\partial^2}{\partial t^2} \left( P(\mathbf{x}) e^{-i \omega t} \right) &= (-i \omega)^2 P(\mathbf{x}) e^{-i \omega t} = -\omega^2 P(\mathbf{x}) e^{-i \omega t}
+\end{align}$$
+
+Substituting this back into the wave equation:
+
+$$\begin{equation}
+    e^{-i \omega t} \nabla^2 P(\mathbf{x}) - \frac{1}{c^2} (-\omega^2 P(\mathbf{x}) e^{-i \omega t}) = 0
+\end{equation}$$
+
+Dividing by the common time factor e^(−iωt) (which is non-zero) and rearranging the terms:
+
+$$\begin{equation}
+    \nabla^2 P(\mathbf{x}) + \frac{\omega^2}{c^2} P(\mathbf{x}) = 0
+\end{equation}$$
+
+Introducing the wavenumber k = ω/c, we arrive at the homogeneous Helmholtz equation:
+
+∇²P(x) + k²P(x) = 0
+
+Boundary Element Method
+
+Boundary Integral Formulation
+
+The Boundary Element Method (BEM) solves the Helmholtz equation by transforming it into an integral equation defined on the boundary of the domain. This transformation is typically achieved using Green’s Second Identity.
+
+Let Ω be the domain containing the fluid and Γ be its boundary. For two scalar fields P and G in Ω, Green’s Second Identity states :
+
+$$\begin{equation}
+    \int_{\Omega} \left( P \nabla^2 G - G \nabla^2 P \right) d\Omega = \int_{\Gamma} \left( P \frac{\partial G}{\partial n} - G \frac{\partial P}{\partial n} \right) d\Gamma
+\end{equation}$$
+
+where n is the outward unit normal vector to the boundary.
+
+We choose P(x) to be the acoustic pressure, satisfying the Helmholtz equation derived in Equation ([eq:helmholtz]):
+∇²P(x) + k²P(x) = 0
+
+We choose G(x, y) to be the fundamental solution (Green’s function) of the Helmholtz equation, which satisfies the inhomogeneous equation with a point source at y:
+∇²G(x, y) + k²G(x, y) = −δ(x − y)
+
+where δ is the Dirac delta function. For 3D acoustics, the free-space Green’s function satisfying the Sommerfeld radiation condition is given by :
+
+$$\begin{equation}
+    G(\mathbf{x}, \mathbf{y}) = \frac{e^{ik r}}{4 \pi r} \quad \mbox{with} \quad r = |\mathbf{x} - \mathbf{y}|
+\end{equation}$$
+
+Substituting these into Green’s Second Identity for a source point y inside the domain Ω:
+
+$$\begin{equation}
+    P(\mathbf{y}) = \int_{\Gamma} \left( G(\mathbf{x}, \mathbf{y}) \frac{\partial P}{\partial n}(\mathbf{x}) - P(\mathbf{x}) \frac{\partial G}{\partial n}(\mathbf{x}, \mathbf{y}) \right) d\Gamma(\mathbf{x})
+\end{equation}$$
+
+As the source point y is moved to the boundary Γ, the integrals become singular. Evaluating the singularity using a limiting process yields the Boundary Integral Equation (BIE) :
+
+$$\begin{equation}
+    C(\mathbf{y}) P(\mathbf{y}) = \int_{\Gamma} \left( G(\mathbf{x}, \mathbf{y}) \frac{\partial P}{\partial n}(\mathbf{x}) - P(\mathbf{x}) \frac{\partial G}{\partial n}(\mathbf{x}, \mathbf{y}) \right) d\Gamma(\mathbf{x})
+\end{equation}$$
+
+where C(y) is the geometric coefficient (solid angle). For a smooth boundary, C(y) = 0.5.
+
+Discretization
+
+To solve the BIE numerically, the boundary Γ is discretized into N boundary elements. The pressure P and its normal derivative q = ∂P/∂n are approximated using shape functions.
+
+Applying the collocation method at the nodes leads to a system of linear algebraic equations:
+
+HP = GQ
+
+where H and G are the dense, nonsymmetric influence matrices resulting from the integration of the fundamental solution and its derivative, and P and Q are vectors containing the nodal values of pressure and normal velocity, respectively.
+
+Burton-Miller Formulation
+
+The Boundary Element Method (BEM) offers a highly elegant, mathematically rigorous, and computationally efficient alternative by reformulating the volumetric partial differential equation into a Boundary Integral Equation (BIE) mapped strictly over the surface of the scattering or radiating body. This approach intrinsically satisfies the Sommerfeld radiation condition at infinity, thereby reducing the dimensionality of the problem by one—transforming a three-dimensional volumetric domain into a two-dimensional surface mesh, or a two-dimensional problem into a one-dimensional contour .
+
+However, as showed, the standard BEM approach for exterior problems, gives rise to non-existence of unique solutions at wavenumbers coinciding with the resonances of the corresponding interior problem.
+
+At these critical frequencies, also sometime referred to as fictitious or irregular frequencies, the matrix system resulting from the discretization of the BIE becomes ill-conditioned, leading to numerical instability and a spike in the error of the computed solution.
+
+It must be noted that the original exterior problem does have a unique solution at these frequencies and that the connection to the interior problem has no physical significance. The non-uniqueness arises solely from the formulation of the problem in terms of a BIE.
+
+The Fast Multipole Method Framework
+
+The BEM lends itself naturally to modelling acoustic wave propagation. Transforming the volumetric governing differential equations into boundary integral equations allows finite structures to be treated in an infinite exterior domain without requiring special boundary conditions.
+However, the required mathematical
+transformation of the problem yields a full, complex, non-Hermitian matrix . As the degrees of freedom increase to model larger problem, the memory requirements to hold the large full matrix and the cost to compute the matrix coefficients themselves, scale as 𝒪(N²), and the computational cost of solving the resulting linear system using direct solvers scales as 𝒪(N³), where N is the number of degrees of freedom . This makes the BEM computationally prohibitive for large-scale problems.
+
+To overcome this computational bottleneck, we must employ a radically different numerical strategy. This chapter details the algorithmic design and the mathematical formulation of the FMM framework. The FMM decouples far-field interactions through hierarchical spatial decomposition, truncated analytical basis expansions, and the application of complex mathematical translation operators .
+
+This chapter focuses on the mathematical and algorithmic design of the FMM implemented as a part of this thesis. It details the division of the mesh space into a topological tree data structure, the mathematics of the multi-stage multipole translations, and the implementation of near-field interactions.
+
+Fast Multipole Method
+
+The FMM was introduced in 1987 by Greengard and Rokhlin to accelerate large-scale particle simulations involving long-range pairwise potential interactions. Later, it was extended to other problems, including the BEM for Acoustic Scattering . The FMM handles short-range interactions with direct computation, and uses multipole expansions to compute potentials for long-range interactions. By providing a method for the rapid computation of the matrix-vector product between the system matrix any arbitrary vector, the FMM enables the use of iterative solvers for solving the linear systems arising from the BEM discretization, reducing the computational complexity from 𝒪(N²) to $\mathcal{O}(N^{\frac{3}{2}})$ or even 𝒪(Nlog N) for a multilevel implementation .
+
+Software Architecture and HPC Optimizations
+
+Performance Analysis and Validation
+
+Conclusion and Future Directions
+
+- Currently Burton - Miller is highly optimized for single dof per cell and for perfectly flat panels. That is, FE_Degree = 0 and Mapping_Degree = 1. To support higher degrees, we need to update the hypersingular calculation in the near field operator and the main assemble system method.
+
+- There is some basic parallelization in the code for computing the translation matrices and for the matrix-vector multiplication done with OpenMP pragmas. But, Deal.ii has its native parallelization support using its native datatypes. The FMM also lends itself to parallelization where each node of the FMM tree may reside in an individual process and maintain its own near field matrix, with only the far-off node dipoles having to be passed around. 
+
+- The current implementation of the computation of the external field uses drect computations of the green’s function. This can be upgraded to use the FMM approximation in the future, which will be faster for large problems.
+
+- The current implementation is strictly for scattering off of sound hard objects. The next step would be to implment the option to set an arbitrary impedance boundary condition.
+
+- The current implementation is strictly for a stationary mesh.
+
+[TUM]Technical University of Munich
+[BEM]Boundary Element Method
+[FMM]Fast Multipole Method
+[BIE]Boundary Integral Equation
+[HBIE]Hypersingular Boundary Integral Equation
+
+[1] https://ctan.org/pkg/acronym
