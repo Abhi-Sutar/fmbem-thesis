@@ -185,6 +185,10 @@ Fast Multipole Method
 
 The FMM was introduced in 1987 by Greengard and Rokhlin to accelerate large-scale particle simulations involving long-range pairwise potential interactions. Later, it was extended to other problems, including the BEM for Acoustic Scattering . The FMM handles short-range interactions with direct computation, and uses multipole expansions to compute potentials for long-range interactions. By providing a method for the rapid computation of the matrix-vector product between the system matrix any arbitrary vector, the FMM enables the use of iterative solvers for solving the linear systems arising from the BEM discretization, reducing the computational complexity from 𝒪(N²) to $\mathcal{O}(N^{\frac{3}{2}})$ or even 𝒪(Nlog N) for a multilevel implementation .
 
+Mathematical Identities
+
+The basic FMM relies on several mathematical identities to efficiently compute the interactions between particles. These identities allow for the translation of multipole expansions between different coordinate systems and the computation of the interactions between distant particle groups.
+
 Software Architecture and HPC Optimizations
 
 Performance Analysis and Validation
