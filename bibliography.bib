@@ -28,6 +28,15 @@
   langid = {english}
 }
 
+@online{bittwiddlinghacks,
+  title = {Bit {{Twiddling Hacks}}},
+  author = {Anderson, Sean Eron},
+  date = {2005-05-05},
+  url = {https://graphics.stanford.edu/~seander/bithacks.html#InterleaveBMN},
+  urldate = {2026-03-21},
+  organization = {Bit Twiddling Hacks}
+}
+
 @online{boostmath1900,
   title = {Boost.{{Math}} (1.90.0)},
   url = {https://www.boost.org/library/latest/math/},
@@ -456,6 +465,24 @@
   author = {Liu, Yijun},
   date = {2009},
   publisher = {CAMBRIDGE UNIVERSITY PRESS},
+  langid = {english}
+}
+
+@article{malhotrapvfmmparallelkernel2015,
+  title = {{{PVFMM}}: {{A Parallel Kernel Independent FMM}} for {{Particle}} and {{Volume Potentials}}},
+  shorttitle = {{{PVFMM}}},
+  author = {Malhotra, Dhairya and Biros, George},
+  date = {2015-09},
+  journaltitle = {Communications in Computational Physics},
+  shortjournal = {Commun. Comput. Phys.},
+  volume = {18},
+  number = {3},
+  pages = {808--830},
+  issn = {1815-2406, 1991-7120},
+  doi = {10.4208/cicp.020215.150515sw},
+  url = {https://www.cambridge.org/core/product/identifier/S181524061500081X/type/journal_article},
+  urldate = {2026-03-21},
+  abstract = {We describe our implementation of a parallel fast multipole method for evaluating potentials for discrete and continuous source distributions. The first requires summation over the source points and the second requiring integration over a continuous source density. Both problems require O(N2) complexity when computed directly; however, can be accelerated to O(N) time using FMM. In our PVFMM software library, we use kernel independent FMM and this allows us to compute potentials for a wide range of elliptic kernels. Our method is high order, adaptive and scalable. In this paper, we discuss several algorithmic improvements and performance optimizations including cache locality, vectorization, shared memory parallelism and use of coprocessors. Our distributed memory implementation uses space-filling curve for partitioning data and a hypercube communication scheme. We present convergence results for Laplace, Stokes and Helmholtz (low wavenumber) kernels for both particle and volume FMM. We measure efficiency of our method in terms of CPU cycles per unknown for different accuracies and different kernels. We also demonstrate scalability of our implementation up to several thousand processor cores on the Stampede platform at the Texas Advanced Computing Center.},
   langid = {english}
 }
 
