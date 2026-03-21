@@ -41,7 +41,7 @@ Introduction
 
 Section
 
-Citation test .
+Citation test (Lamport 1994).
 
 Acronyms must be added in main.tex and are referenced using macros. The first occurrence is automatically replaced with the long version of the acronym, while all subsequent usages use the abbreviation.
 
@@ -117,7 +117,7 @@ Boundary Integral Formulation
 
 The Boundary Element Method (BEM) solves the Helmholtz equation by transforming it into an integral equation defined on the boundary of the domain. This transformation is typically achieved using Green’s Second Identity.
 
-Let Ω be the domain containing the fluid and Γ be its boundary. For two scalar fields P and G in Ω, Green’s Second Identity states :
+Let Ω be the domain containing the fluid and Γ be its boundary. For two scalar fields P and G in Ω, Green’s Second Identity states (Wu 2000):
 
 $$\begin{equation}
     \int_{\Omega} \left( P \nabla^2 G - G \nabla^2 P \right) d\Omega = \int_{\Gamma} \left( P \frac{\partial G}{\partial n} - G \frac{\partial P}{\partial n} \right) d\Gamma
@@ -131,7 +131,7 @@ We choose P(x) to be the acoustic pressure, satisfying the Helmholtz equation de
 We choose G(x, y) to be the fundamental solution (Green’s function) of the Helmholtz equation, which satisfies the inhomogeneous equation with a point source at y:
 ∇²G(x, y) + k²G(x, y) = −δ(x − y)
 
-where δ is the Dirac delta function. For 3D acoustics, the free-space Green’s function satisfying the Sommerfeld radiation condition is given by :
+where δ is the Dirac delta function. For 3D acoustics, the free-space Green’s function satisfying the Sommerfeld radiation condition is given by (Kirkup 1998):
 
 $$\begin{equation}
     G(\mathbf{x}, \mathbf{y}) = \frac{e^{ik r}}{4 \pi r} \quad \mbox{with} \quad r = |\mathbf{x} - \mathbf{y}|
@@ -143,7 +143,7 @@ $$\begin{equation}
     P(\mathbf{y}) = \int_{\Gamma} \left( G(\mathbf{x}, \mathbf{y}) \frac{\partial P}{\partial n}(\mathbf{x}) - P(\mathbf{x}) \frac{\partial G}{\partial n}(\mathbf{x}, \mathbf{y}) \right) d\Gamma(\mathbf{x})
 \end{equation}$$
 
-As the source point y is moved to the boundary Γ, the integrals become singular. Evaluating the singularity using a limiting process yields the Boundary Integral Equation (BIE) :
+As the source point y is moved to the boundary Γ, the integrals become singular. Evaluating the singularity using a limiting process yields the Boundary Integral Equation (BIE) (Marburg 2008):
 
 $$\begin{equation}
     C(\mathbf{y}) P(\mathbf{y}) = \int_{\Gamma} \left( G(\mathbf{x}, \mathbf{y}) \frac{\partial P}{\partial n}(\mathbf{x}) - P(\mathbf{x}) \frac{\partial G}{\partial n}(\mathbf{x}, \mathbf{y}) \right) d\Gamma(\mathbf{x})
@@ -163,31 +163,69 @@ where H and G are the dense, nonsymmetric influence matrices resulting from the 
 
 Burton-Miller Formulation
 
-The Boundary Element Method (BEM) offers a highly elegant, mathematically rigorous, and computationally efficient alternative by reformulating the volumetric partial differential equation into a Boundary Integral Equation (BIE) mapped strictly over the surface of the scattering or radiating body. This approach intrinsically satisfies the Sommerfeld radiation condition at infinity, thereby reducing the dimensionality of the problem by one—transforming a three-dimensional volumetric domain into a two-dimensional surface mesh, or a two-dimensional problem into a one-dimensional contour .
+The Boundary Element Method (BEM) offers a highly elegant, mathematically rigorous, and computationally efficient alternative by reformulating the volumetric partial differential equation into a Boundary Integral Equation (BIE) mapped strictly over the surface of the scattering or radiating body. This approach intrinsically satisfies the Sommerfeld radiation condition at infinity, thereby reducing the dimensionality of the problem by one—transforming a three-dimensional volumetric domain into a two-dimensional surface mesh, or a two-dimensional problem into a one-dimensional contour (Lamport 1994; Wu 2000; Marburg 2008; Kirkup 1998).
 
-However, as showed, the standard BEM approach for exterior problems, gives rise to non-existence of unique solutions at wavenumbers coinciding with the resonances of the corresponding interior problem.
+However, as (Burton and Miller 1971) showed, the standard BEM approach for exterior problems, gives rise to non-existence of unique solutions at wavenumbers coinciding with the resonances of the corresponding interior problem.
 
 At these critical frequencies, also sometime referred to as fictitious or irregular frequencies, the matrix system resulting from the discretization of the BIE becomes ill-conditioned, leading to numerical instability and a spike in the error of the computed solution.
 
-It must be noted that the original exterior problem does have a unique solution at these frequencies and that the connection to the interior problem has no physical significance. The non-uniqueness arises solely from the formulation of the problem in terms of a BIE.
+It must be noted that the original exterior problem does have a unique solution at these frequencies and that the connection to the interior problem has no physical significance. The non-uniqueness arises solely from the formulation of the problem in terms of a BIE.(Burton and Miller 1971)
 
 The Fast Multipole Method Framework
 
 The BEM lends itself naturally to modelling acoustic wave propagation. Transforming the volumetric governing differential equations into boundary integral equations allows finite structures to be treated in an infinite exterior domain without requiring special boundary conditions.
 However, the required mathematical
-transformation of the problem yields a full, complex, non-Hermitian matrix . As the degrees of freedom increase to model larger problem, the memory requirements to hold the large full matrix and the cost to compute the matrix coefficients themselves, scale as 𝒪(N²), and the computational cost of solving the resulting linear system using direct solvers scales as 𝒪(N³), where N is the number of degrees of freedom . This makes the BEM computationally prohibitive for large-scale problems.
+transformation of the problem yields a full, complex, non-Hermitian matrix (Chandler-Wilde and Langdon 2007). As the degrees of freedom increase to model larger problem, the memory requirements to hold the large full matrix and the cost to compute the matrix coefficients themselves, scale as 𝒪(N²), and the computational cost of solving the resulting linear system using direct solvers scales as 𝒪(N³), where N is the number of degrees of freedom (Liu 2009). This makes the BEM computationally prohibitive for large-scale problems.
 
-To overcome this computational bottleneck, we must employ a radically different numerical strategy. This chapter details the algorithmic design and the mathematical formulation of the FMM framework. The FMM decouples far-field interactions through hierarchical spatial decomposition, truncated analytical basis expansions, and the application of complex mathematical translation operators .
+To overcome this computational bottleneck, we must employ a radically different numerical strategy. This chapter details the algorithmic design and the mathematical formulation of the FMM framework. The FMM decouples far-field interactions through hierarchical spatial decomposition, truncated analytical basis expansions, and the application of complex mathematical translation operators (Coifman et al. 1993).
 
 This chapter focuses on the mathematical and algorithmic design of the FMM implemented as a part of this thesis. It details the division of the mesh space into a topological tree data structure, the mathematics of the multi-stage multipole translations, and the implementation of near-field interactions.
 
 Fast Multipole Method
 
-The FMM was introduced in 1987 by Greengard and Rokhlin to accelerate large-scale particle simulations involving long-range pairwise potential interactions. Later, it was extended to other problems, including the BEM for Acoustic Scattering . The FMM handles short-range interactions with direct computation, and uses multipole expansions to compute potentials for long-range interactions. By providing a method for the rapid computation of the matrix-vector product between the system matrix any arbitrary vector, the FMM enables the use of iterative solvers for solving the linear systems arising from the BEM discretization, reducing the computational complexity from 𝒪(N²) to $\mathcal{O}(N^{\frac{3}{2}})$ or even 𝒪(Nlog N) for a multilevel implementation .
+The FMM was introduced in 1987 by Greengard and Rokhlin (Greengard and Rokhlin 1987) to accelerate large-scale particle simulations involving long-range pairwise potential interactions. Later, it was extended to other problems, including the BEM for Acoustic Scattering (Rokhlin 1990). The FMM handles short-range interactions with direct computation, and uses analytical multipole expansions to compute potentials for long-range interactions. By providing a method for the rapid computation of the matrix-vector product between the system matrix any arbitrary vector, the FMM enables the use of iterative solvers for solving the linear systems arising from the BEM discretization, reducing the computational complexity from 𝒪(N²) to $\mathcal{O}(N^{\frac{3}{2}})$ or even 𝒪(Nlog N) for a multilevel implementation (Coifman et al. 1993).
 
-Mathematical Identities
+The FMM algorithm
 
-The basic FMM relies on several mathematical identities to efficiently compute the interactions between particles. These identities allow for the translation of multipole expansions between different coordinate systems and the computation of the interactions between distant particle groups.
+The FMM follows these basic steps:
+
+1.  Discretization Any problem begins with discretizing the boundary, as is done for conventional BEM. We use constant elements.
+
+2.  Initializing the Octree For a 3D problem, we consider a cube that contains the entire geometry. This cube is repeatedly subdivided into 8 smaller cubes, called its child nodes, creating an octree structure. The subdivision continues until the number of elements in a cube falls below a defined threshold.
+
+3.  Upward Pass Beginning from the bottom of the tree, at the deepest level called the leaf nodes, we compute the moments of each node, tracing the tree structure upwards till we are two levels below the root node. Using the M2M translation operator, the moments of the child nodes are translated and aggregated to the parent node.
+
+4.  Downward Pass Starting from the second level of the tree, we compute the local expansions for each node. This consists of the contribution of nodes in the interaction list of the current node, and from the far-off nodes. The interaction list nodes are the ones not directly adjacent to the current node, but whose parent node is adjacent to the parent node of the current node. The contribution from the interaction list nodes is computed using the M2L translation operator, while the contribution from the far-off nodes is computed using the L2L translation operator for the parent node, with the expansion point being shifted from te centroid of the parent node to the centroid of the current node. At level 2, the nodes only have contribution from the interaction list nodes, as there are no far-off nodes at this level, hence we use the M2L operator to get the local expansion’s coefficients.
+
+5.  Evaluating of the Integrals The contributions of all the collocation points in the current node and thed nodes directly adjacent to it are computed using direct BEM. The contributions of all nodes in the interaction list and the far-off are computed using the local expansion coefficients of the current node and shifting the expansion point to the collocation point using the L2P translation operator.
+
+6.  Iterative Solver We update the unknown vector, in this case the phi vector in the system of equations Aϕ = b, using an iterative solver, such as GMRES, and repeat from steps 3 until convergence is achieved.
+
+Octree
+
+The spatial domain can be subdivided into a hierarchical tree structure in many ways. For 3D problems, the most common approach is to use an octree, as it opens many opprtunities to optimize the efficieny of the algorithm. An octree is a tree data structure where eachnode is subdivided into 8 equal child nodes, and these child nodes are then further subdivided into 8 nodes until a certain threshold is reached.
+
+We define a FMMNode data structure to represent each node in the octree, which contains the following information:
+
+- Node geometry: The struct keeps track of the node’s bounding box, its center, and its radius. It also stores the integer grid coordinates that represent the node’s position in the octree.
+
+- Tree Hierarchy: Each node is assigned a node index which serves as the node’s unique identifier within a global list of all the nodes. The node also stores what level of the tree it is at, as well as the index of its parent node. Most importantly, it also stores the indices of its 8 child nodes, which are used to navigate the tree structure.
+
+- Mesh and Interaction data The node stores an iterator for the particles contained within it. It maintains a neighbor list that contains the indices of neighboring nodes. These interactions must be computed directly. It also stores a list of far-field nodes, which are the nodes that are sufficiently far away to be approximated using multipole expansions.
+
+- Mathematical expansion data The node stores Pm which is the order used for the mutlitpole expansion, and the number of coefficients required based on the order. It also stores the multipole and local expansion coefficients, which are used to approximate the potential and forces from distant nodes.
+
+- FMM Translation Operators: The node stores the necessary translation operators for the FMM algorithm.
+
+  - P2M Matrix Translates raw particles (mesh sources) to a node’s Multipole expansion.
+
+  - M2M Matrix: Translates a child’s Multipole expansion up to its parent’s Multipole expansion.
+
+  - M2L Matrices: Converts a distant node’s Multipole expansion into this node’s Local expansion.
+
+  - L2L Matrix: Translates a parent’s Local expansion down to its child’s Local expansion.
+
+  - L2P Matrix: Evaluates the Local expansion directly onto the target particles (mesh cells).
 
 Software Architecture and HPC Optimizations
 
@@ -210,5 +248,32 @@ Conclusion and Future Directions
 [FMM]Fast Multipole Method
 [BIE]Boundary Integral Equation
 [HBIE]Hypersingular Boundary Integral Equation
+[M2M]Multipole-to-Multipole
+[M2L]Multipole-to-Local
+[L2L]Local-to-Local
+[L2P]Local-to-Particle
+[P2M]Particle-to-Multipole
+[P2P]Particle-to-Particle
+[GMRES]Generalized Minimal Residual Method
+
+Burton, A. J., and G. F. Miller. 1971. “The Application of Integral Equation Methods to the Numerical Solution of Some Exterior Boundary-Value Problems.” Proceedings of the Royal Society of London. A. Mathematical and Physical Sciences 323 (1553): 201–10. https://doi.org/10.1098/rspa.1971.0097.
+
+Chandler-Wilde, Simon, and Steve Langdon. 2007. Boundary Element Methods for Acoustics. July 18.
+
+Coifman, R., V. Rokhlin, and S. Wandzura. 1993. “The Fast Multipole Method for the Wave Equation: A Pedestrian Prescription.” IEEE Antennas and Propagation Magazine 35 (3): 7–12. https://doi.org/10.1109/74.250128.
+
+Greengard, L, and V Rokhlin. 1987. “A Fast Algorithm for Particle Simulations.” Journal of Computational Physics 73 (2): 325–48. https://doi.org/10.1016/0021-9991(87)90140-9.
+
+Kirkup, Stephen. 1998. The Boundary Element Method in Acoustics: A Development in Fortran. Integral Equation Methods in Engineering 1. Integrated Sound Software.
+
+Lamport, Leslie. 1994. LaTeX : A Documentation Preparation System User’s Guide and Reference Manual. Addison-Wesley Professional.
+
+Liu, Yijun. 2009. Fast Multipole Boundary Element Method: THEORY AND APPLICATIONS IN ENGINEERING. CAMBRIDGE UNIVERSITY PRESS.
+
+Marburg, S. 2008. “Boundary Element Method for Time-Harmonic Acoustic Problems.” In Computational Acoustics of Noise Propagation in Fluids, edited by S. Marburg and B. Nolte. Springer.
+
+Rokhlin, V. 1990. “Rapid Solution of Integral Equations of Scattering Theory in Two Dimensions.” Journal of Computational Physics 86 (2): 414–39. https://doi.org/10.1016/0021-9991(90)90107-C.
+
+Wu, T. W. 2000. Boundary Element Acoustics: Fundamentals and Computer Codes. WIT Press.
 
 [1] https://ctan.org/pkg/acronym
