@@ -11,6 +11,13 @@
   keywords = {Mathematical physics,Mathematics}
 }
 
+@article{arndtdealiilibraryversion,
+  title = {The Deal.{{II Library}}, {{Version}} 9.7, 2025},
+  author = {Arndt, Daniel and Bangerth, Wolfgang and Bergbauer, Maximilian and Blais, Bruno and Fehling, Marc and Gassmöller, Rene and Heister, Timo and Heltai, Luca and Kronbichler, Martin and Maier, Matthias and Munch, Peter and Scheuerman, Sam and Turcksin, Bruno and Uzunbajakau, Siarhei and Wells, David and Wichrowski, Michał},
+  abstract = {This paper provides an overview of the new features of the finite element library deal.II, version 9.7.},
+  langid = {english}
+}
+
 @online{bangerthwolfgangbangerthsvideo,
   title = {Wolfgang {{Bangerth}}'s Video Lectures},
   author = {Bangerth, Wolfgang},
@@ -210,6 +217,23 @@
   date = {2011-11-01},
   langid = {english},
   venue = {Boston University}
+}
+
+@article{daysolvingcomplexvaluedlinear2001,
+  title = {Solving {{Complex-Valued Linear Systems}} via {{Equivalent Real Formulations}}},
+  author = {Day, David and Heroux, Michael A.},
+  date = {2001-01},
+  journaltitle = {SIAM Journal on Scientific Computing},
+  shortjournal = {SIAM J. Sci. Comput.},
+  volume = {23},
+  number = {2},
+  pages = {480--498},
+  issn = {1064-8275, 1095-7197},
+  doi = {10.1137/S1064827500372262},
+  url = {http://epubs.siam.org/doi/10.1137/S1064827500372262},
+  urldate = {2026-03-22},
+  abstract = {Most preconditioned iterative methods apply to both real- and complex-valued linear systems. At the same time, most iterative linear solver packages available today focus exclusively on real-valued systems or deal with complex-valued systems as an afterthought. By recasting the complex problem in a real formulation, a real-valued solver can be applied to the equivalent real system.},
+  langid = {english}
 }
 
 @article{eptonmultipoletranslationtheory1995,
@@ -563,6 +587,24 @@
   langid = {english}
 }
 
+@article{saadgmresgeneralizedminimal1986,
+  title = {{{GMRES}}: {{A Generalized Minimal Residual Algorithm}} for {{Solving Nonsymmetric Linear Systems}}},
+  shorttitle = {{{GMRES}}},
+  author = {Saad, Youcef and Schultz, Martin H.},
+  date = {1986-07},
+  journaltitle = {SIAM Journal on Scientific and Statistical Computing},
+  shortjournal = {SIAM J. Sci. and Stat. Comput.},
+  volume = {7},
+  number = {3},
+  pages = {856--869},
+  issn = {0196-5204, 2168-3417},
+  doi = {10.1137/0907058},
+  url = {http://epubs.siam.org/doi/10.1137/0907058},
+  urldate = {2026-03-22},
+  abstract = {We present an iterative method for solving linear systems, which has the property of minimizing at every step the norm of the residual vector over a Krylov subspace. The algorithm is derived from the Arnoldi process for constructing an /2-orthogonal basis of Krylov subspaces. It can be considered as a generalization of Paige and Saunders’ MINRES algorithm and is theoretically equivalent to the Generalized Conjugate Residual (GCR) method and to ORTHODIR. The new algorithm presents several advantages over GCR and ORTHODIR.},
+  langid = {english}
+}
+
 @article{tadeu3dacousticwave2012,
   title = {{{3D}} Acoustic Wave Simulation Using {{BEM}} Formulations: {{Closed}} Form Integration of Singular and Hypersingular Integrals},
   shorttitle = {{{3D}} Acoustic Wave Simulation Using {{BEM}} Formulations},
@@ -650,4 +692,21 @@
   abstract = {The meshless/meshfree radial basis function (RBF) method is a powerful technique for interpolating scattered data. But, solving large RBF interpolation problems without fast summation methods is computationally expensive. For RBF interpolation with N points, using a direct method requires O(N 2) operations. As a fast summation method, the fast multipole method (FMM) has been implemented in speeding up the matrix-vector multiply, which reduces the complexity from O(N 2) to O(N 1.5) and even to O(N logN ) for the multilevel fast multipole method (MLFMM). In this paper, we present a novel kernel-independent fast multipole method for RBF interpolation, which is used in combination with the evaluation of point-to-point interactions by RBF and the fast matrix-vector multiplication. This approach is based on band-limited approximation and quadrature rules, which extends the range of applicability of FMM.},
   pubstate = {prepublished},
   keywords = {Mathematics - Numerical Analysis}
+}
+
+@article{zhutwoblocksplitting2024,
+  title = {Two {{Block Splitting Iteration Methods}} for {{Solving Complex Symmetric Linear Systems}} from {{Complex Helmholtz Equation}}},
+  author = {Zhu, Yanan and Zhang, Naimin and Chao, Zhen},
+  date = {2024-06-18},
+  journaltitle = {Mathematics},
+  shortjournal = {Mathematics},
+  volume = {12},
+  number = {12},
+  pages = {1888},
+  issn = {2227-7390},
+  doi = {10.3390/math12121888},
+  url = {https://www.mdpi.com/2227-7390/12/12/1888},
+  urldate = {2026-03-22},
+  abstract = {In this paper, we study the improved block splitting (IBS) iteration method and its accelerated variant, the accelerated improved block splitting (AIBS) iteration method, for solving linear systems of equations stemming from the discretization of the complex Helmholtz equation. We conduct a comprehensive convergence analysis and derive optimal iteration parameters aimed at minimizing the spectral radius of the iteration matrix. Through numerical experiments, we validate the efficiency of both iteration methods.},
+  langid = {english}
 }
