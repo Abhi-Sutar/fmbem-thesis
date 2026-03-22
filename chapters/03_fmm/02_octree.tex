@@ -26,6 +26,8 @@ The underlying spatial data-structue sets the stage for the computational effici
 
 
 % The octree is constructed by a top-down recursive subdivision of the spatial domain. 
-\subsubsection{Space-Filling Curves and Morton Encoding}
+\subsubsection{Space-Filling Curves and Morton Encoding} \label{z-order-curves}
 
 To facilitate efficient hierarchical clustering and rapid neighborhood queries within the computational grid, the geometric centers of the boundary elements are mapped from three-dimensional space into a one-dimensional array using a space-filling curve, specifically, the Morton Z-curve. This encoding sorts mesh elements by their spatial coordinates so that elements that are close in space remain close in memory, improving cache locality. While the Morton Z-order curve is not the optimum space-filling curve for 3D problems, its simplicity of implementation via bitwise operations lends itself to efficient execution \cite{malhotrapvfmmparallelkernel2015}.
+
+Morton encoding converts the 3D coordinated of each mesh element into single integer by interleaving the bits of the binary representations of the $x$, $y$, and $z$ coordinates, generating that element's Morton key. This ordering assigns numerically adjacent Morton keys to spatially adjacent elements, inherently preserving spatial locality. This allows us to then sort the elements into a linearly ordered array, where adjacent elements are already clustered together, which helps us efficiently assign elements to the octree's nodes.

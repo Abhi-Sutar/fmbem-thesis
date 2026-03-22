@@ -1,3 +1,27 @@
 \chapter{Software Architecture and HPC Optimizations}\label{chapter:software-arch-and-hpc-optimizations}
 
+
+
+\section{Bitwise operations for Morton Encoding} \label{sec:bitwise-operations-for-morton-encoding}
+As detailed in Section \ref{subsubsec:z-order-curves}, the Morton Z-order curve is used to map the 3D coordinates of the mesh elements for a more effient octree construction. To optimize this process without relying on expensive looping, we use a series of bitwise operations that interleave the bits of the binary representations of the $x$, $y$, and $z$ coordinates.
+
+The basic algorithm that we use to compute the Morton key for a given 3D coordinate is as follows:
+\begin{enumerate} [label=\textbf{Step \arabic*.}, leftmargin=*]
+    \item \textbf{Grid Quantization:} We define a discrete grid across the global bounding box. With a 64 bit integer, we can divide each spatial dimension into $2^{20} \left(1,048,576\right)$ bins, which allows us to represent up to $2^{60}$ unique spatial locations, more than enough for our problem size.
+    \item \textbf{Coordinate Normalization:} We normalize the $x$, $y$, and $z$ coordinates of each mesh element to fit within $[0, 1]$ relative to the global bounding box, and then multiply by the number of bins to get the quantized integer coordinates.
+    \item \textbf{Bit Truncation:} We truncate the quantized coordinates to fit within 21 bits, ensuring that they can be interleaved into a single 64-bit integer without overflow. This is achieved by applying a bitwise AND operation with a mask that retains only the lower 21 bits of each coordinate.
+    \item \textbf{Bit Expansion:} We use a sequence of bitwise shifts and bitwise operations with bit masks to add two zero bits between each bit of the quantized coordinates. This process is repeated for each coordinate.
+    \item \textbf{Bit Interleaving:} Finally, we combine the expanded bits of each coordinate by shifting the expanded $y$ bits by one, and the expanded $z$ bits by two, and then performing a bitwise OR operation to interleave the bits together, resulting in the final Morton key for that mesh element.
+\end{enumerate} 
+The basics algorithm of this process is shown for the 2D case in \cite{bittwiddlinghacks}
+\section{Caching the Matrices} \label{sec:caching-the-matrices}
+
+\lipsum[1-1]
+
+\section{OpenMP speed up} \label{sec:openmp-speed-up}
+
+\lipsum[1-1]
+
+\section{Solving the system - vmult + GMRES + The Real-Equivalent system} \label{sec:solving-the-system}
+
 \lipsum[1-1]
