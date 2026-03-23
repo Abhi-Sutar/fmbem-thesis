@@ -1,0 +1,114 @@
+\begin{tikzpicture}[
+    scale=1.2,
+    % Define a style that places an arrowhead exactly halfway along the path
+    mid arrow/.style={
+        postaction={
+            decorate,
+            decoration={
+                markings,
+                mark=at position 0.67 with {\arrow{Stealth[scale=2.2, fill=black]}}
+            }
+        }
+    }
+]
+
+    % Securely define the green/olive/white mix once before rendering anything
+    \colorlet{MyLightOlive}{green!50!olive!62!white}
+
+    % Central point of the grid
+    \coordinate (Center) at (0.5, 0.5);
+
+    % --- PASS 1: Draw the background grid (Bottom Layer) ---
+
+    % Level 1: Draw ALL 49 squares as GREEN by default
+    \foreach \x in {-3,...,3} {
+        \foreach \y in {-3,...,3} {
+            \filldraw[fill=MyLightOlive, draw=black] (\x,\y) rectangle ++(1,1);
+        }
+    }
+    
+    % Level 2: Draw the inner 3x3 (9 squares) as WHITE on top of the green
+    \foreach \x in {-1,0,1} {
+        \foreach \y in {-1,0,1} {
+            \filldraw[fill=white, draw=black] (\x,\y) rectangle ++(1,1);
+        }
+    }
+    
+    % Level 3: Draw the single center square as GRAY on top of the white
+    \filldraw[fill=lightgray, draw=black] (0,0) rectangle ++(1,1);
+
+    % --- PASS 2: Draw the circles (Middle Layer) ---
+    \foreach \x in {-3,...,3} {
+        \foreach \y in {-3,...,3} {
+            
+            \coordinate (SquareCenter) at (\x+0.5, \y+0.5);
+            \pgfmathsetmacro{\CircleRadius}{sqrt(2)/2}
+            
+            \ifthenelse{\x=0 \AND \y=0}{
+                % Draw solid circle on the center gray square
+                \draw[black, thin] (SquareCenter) circle (\CircleRadius);
+            }{
+                \ifthenelse{\x>1 \OR \x<-1 \OR \y>1 \OR \y<-1}{
+                     % Draw solid circle on the outer green squares
+                    \draw[black, thin] (SquareCenter) circle (\CircleRadius);
+                }{}
+            }
+        }
+    }
+
+    % --- PASS 3: Draw the spindles, arrows, and dots (Top Layer) ---
+    \foreach \x in {-3,...,3} {
+        \foreach \y in {-3,...,3} {
+            
+            \coordinate (SquareCenter) at (\x+0.5, \y+0.5);
+            
+            % Only draw dots and lines for the green squares (outside the 3x3 ring)
+            \ifthenelse{\x>1 \OR \x<-1 \OR \y>1 \OR \y<-1}{
+                
+                % We draw the dot  
+                \filldraw[black] (SquareCenter) circle (1.5pt);
+                
+                % Draw the TRUE spindle shape for ALL green squares, making it fully black
+                \path (SquareCenter) -- (Center) coordinate[pos=0.5] (Mid);
+                \fill[black, draw=black, line width=0.1pt] 
+                    (SquareCenter) 
+                    -- ($ (Mid)!0.8pt!90:(Center) $) 
+                    -- (Center) 
+                    -- ($ (Mid)!0.8pt!-90:(Center) $) 
+                    -- cycle;
+                
+                % Check if the current square is one of the 8 specific outer squares
+                \pgfmathsetmacro{\isCorner}{abs(\x)==3 && abs(\y)==3 ? 1 : 0}
+                \pgfmathsetmacro{\isEdgeCenter}{(abs(\x)==3 && \y==0) || (\x==0 && abs(\y)==3) ? 1 : 0}
+                
+                \pgfmathparse{\isCorner + \isEdgeCenter > 0 ? 1 : 0}
+                \ifnum\pgfmathresult=1
+                    % Draw an invisible path using the 'mid arrow' style to place the arrowhead
+                    \path[mid arrow] (SquareCenter) -- (Center);
+                \fi
+            }{}
+        }
+    }
+    
+    % Re-draw the central dot on the very top so it isn't covered by the lines
+    \filldraw[black] (Center) circle (2.5pt);
+
+    % --- PASS 4: Custom Legend ---
+    \begin{scope}[shift={(0, -6)}]
+        \pgfmathsetmacro{\CircleRadius}{sqrt(2)/2}
+        
+        % Legend Item 1: Multipoles (Green cell, circle, dot) using pre-defined safe color
+        \filldraw[fill=MyLightOlive, draw=black] (-2.5,-0.5) rectangle ++(1,1);
+        \draw[black, thin] (-2,0) circle (\CircleRadius);
+        \filldraw[black] (-2,0) circle (2pt);
+        \node[right, align=left] at (-1.2, 0) {Multipole\\moments};
+
+        % Legend Item 2: Local Moment (Gray cell, circle, dot)
+        \filldraw[fill=lightgray, draw=black] (1.0,-0.5) rectangle ++(1,1);
+        \draw[black, thin] (1.5,0) circle (\CircleRadius);
+        \filldraw[black] (1.5,0) circle (3pt);
+        \node[right, align=left] at (2.3, 0) {Local\\moments};
+
+    \end{scope}
+
+\end{tikzpicture}

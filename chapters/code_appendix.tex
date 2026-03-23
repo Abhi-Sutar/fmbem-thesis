@@ -1,0 +1,25 @@
+\chapter{Appendix: Code} \label{chapter:code-appendix}
+
+\section{Morton Encoding} \label{sec:appendix-morton-encoding}
+
+\begin{figure}[htpb]
+  \centering
+  \begin{tabular}{c}
+  \begin{lstlisting}[language=C++]
+    // Expands a 21 bit integer into 63 bits by inserting 2 zeros between each bit
+    inline uint64_t expand_bits_3d(uint32_t v) {
+        uint64_t x = v & 0x1FFFFF;
+        x = (x | (x << 32)) & 0x1F00000000FFFF;
+        x = (x | (x << 16)) & 0x1F0000FF0000FF;
+        x = (x | (x <<  8)) & 0x100F00F00F00F00F;
+        x = (x | (x <<  4)) & 0x10c30c30c30c30c3;
+        x = (x | (x <<  2)) & 0x1249249249249249;
+        return x;
+    }
+    inline uint64_t morton_code_3d(uint32_t x, uint32_t y, uint32_t z) {
+        return expand_bits_3d(x) | (expand_bits_3d(y) << 1) | (expand_bits_3d(z) << 2);
+    }
+  \end{lstlisting}
+  \end{tabular}
+  \caption[Morton Encoding 3D]{Morton Encoding for 3D}\label{lst:morton-encoding-3d}
+\end{figure}

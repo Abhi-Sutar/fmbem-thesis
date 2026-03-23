@@ -219,6 +219,23 @@
   venue = {Boston University}
 }
 
+@article{dagumopenmpindustrystandard1998,
+  title = {{{OpenMP}}: An Industry Standard {{API}} for Shared-Memory Programming},
+  shorttitle = {{{OpenMP}}},
+  author = {Dagum, L. and Menon, R.},
+  date = {1998-01},
+  journaltitle = {IEEE Computational Science and Engineering},
+  volume = {5},
+  number = {1},
+  pages = {46--55},
+  issn = {1558-190X},
+  doi = {10.1109/99.660313},
+  url = {https://ieeexplore.ieee.org/document/660313/},
+  urldate = {2026-03-23},
+  abstract = {At its most elemental level, OpenMP is a set of compiler directives and callable runtime library routines that extend Fortran (and separately, C and C++ to express shared memory parallelism. It leaves the base language unspecified, and vendors can implement OpenMP in any Fortran compiler. Naturally, to support pointers and allocatables, Fortran 90 and Fortran 95 require the OpenMP implementation to include additional semantics over Fortran 77. OpenMP leverages many of the X3H5 concepts while extending them to support coarse grain parallelism. The standard also includes a callable runtime library with accompanying environment variables.},
+  keywords = {ANSI standards,Coherence,Computer architecture,Hardware,Message passing,Parallel processing,Parallel programming,Power system modeling,Scalability,Software systems}
+}
+
 @article{daysolvingcomplexvaluedlinear2001,
   title = {Solving {{Complex-Valued Linear Systems}} via {{Equivalent Real Formulations}}},
   author = {Day, David and Heroux, Michael A.},
@@ -400,6 +417,38 @@
   keywords = {Condensed Matter - Quantum Gases,Nuclear Theory,Physics - Atomic Physics,Physics - Computational Physics}
 }
 
+@online{kailasam2ltranslationoperators2025,
+  title = {{{M2L Translation Operators}} for {{Kernel Independent Fast Multipole Methods}} on {{Modern Architectures}}},
+  author = {Kailasa, Srinath and Betcke, Timo and Kazdadi, Sarah El},
+  date = {2025-05-28},
+  eprint = {2408.07436},
+  eprinttype = {arXiv},
+  eprintclass = {cs},
+  doi = {10.48550/arXiv.2408.07436},
+  url = {http://arxiv.org/abs/2408.07436},
+  urldate = {2026-03-22},
+  abstract = {Current and future trends in computer hardware, in which the disparity between available flops and memory bandwidth continues to grow, favour algorithm implementations which minimise data movement even at the cost of more flops. In this study we review the requirements for high performance implementations of the kernel independent Fast Multipole Method (kiFMM), a variant of the crucial FMM algorithm for the rapid evaluation of N -body potential problems. Performant implementations of the kiFMM typically rely on Fast Fourier Transforms for the crucial M2L (Multipole-to-Local) operation. However, in recent years for other FMM variants such as the black-box FMM also BLAS based M2L translation operators have become popular that rely on direct matrix compression techniques. In this paper we present algorithmic improvements for BLAS based M2L translation operator and benchmark them against FFT based M2L translation operators. In order to allow a fair comparison we have implemented our own high-performance kiFMM algorithm in Rust that performs competitively against other implementations, and allows us to flexibly switch between BLAS and FFT based translation operators.},
+  pubstate = {prepublished},
+  keywords = {Computer Science - Computational Engineering Finance and Science}
+}
+
+@inproceedings{khawajaperformanceanalysishpc2014,
+  title = {Performance Analysis of {{HPC}} Applications with Irregular Tree Data Structures},
+  booktitle = {2014 20th {{IEEE International Conference}} on {{Parallel}} and {{Distributed Systems}} ({{ICPADS}})},
+  author = {Khawaja, Ahmed and Wang, Jiajun and Gerstlauer, Andreas and John, Lizy K. and Malhotra, Dhairya and Biros, George},
+  date = {2014-12},
+  pages = {418--425},
+  publisher = {IEEE},
+  location = {Hsinchu, Taiwan},
+  doi = {10.1109/PADSW.2014.7097837},
+  url = {http://ieeexplore.ieee.org/document/7097837/},
+  urldate = {2026-03-23},
+  abstract = {Adaptive mesh refinement (AMR) numerical methods utilizing octree data structures are an important class of HPC applications, in particular the solution of partial differential equations. Much effort goes into the implementation of efficient versions of these types of programs, where the emphasis is often on increasing multi-node performance when utilizing GPUs and coprocessors. By contrast, our analysis aims to characterize these workloads on traditional CPUs, as we believe that singlethreaded intra-node performance of critical kernels is still a key factor for achieving performance at scale. Especially irregular workloads such as AMR methods, however, exhibit severe underutilization on general purpose processors.},
+  eventtitle = {2014 20th {{IEEE International Conference}} on {{Parallel}} and {{Distributed Systems}} ({{ICPADS}})},
+  isbn = {978-1-4799-7615-7},
+  langid = {english}
+}
+
 @book{kirkupboundaryelementmethod1998,
   title = {The Boundary Element Method in Acoustics: A Development in {{Fortran}}},
   shorttitle = {The Boundary Element Method in Acoustics},
@@ -412,6 +461,23 @@
   isbn = {978-0-9534031-0-3},
   langid = {english},
   pagetotal = {136}
+}
+
+@article{kohnkecudafastmultipole2021,
+  title = {A {{CUDA}} Fast Multipole Method with Highly Efficient {{M2L}} Far Field Evaluation},
+  author = {Kohnke, Bartosz and Kutzner, Carsten and Beckmann, Andreas and Lube, Gert and Kabadshow, Ivo and Dachsel, Holger and Grubmüller, Helmut},
+  date = {2021-01},
+  journaltitle = {The International Journal of High Performance Computing Applications},
+  shortjournal = {The International Journal of High Performance Computing Applications},
+  volume = {35},
+  number = {1},
+  pages = {97--117},
+  issn = {1094-3420, 1741-2846},
+  doi = {10.1177/1094342020964857},
+  url = {https://journals.sagepub.com/doi/10.1177/1094342020964857},
+  urldate = {2026-03-22},
+  abstract = {Solving an N-body problem, electrostatic or gravitational, is a crucial task and the main computational bottleneck in many scientific applications. Its direct solution is an ubiquitous showcase example for the compute power of graphics processing units (GPUs). However, the naı¨ve pairwise summation has OðN 2Þ computational complexity. The fast multipole method (FMM) can reduce runtime and complexity to OðN Þ for any specified precision. Here, we present a CUDA-accelerated, Cþþ FMM implementation for multi particle systems with r 1 potential that are found, e.g. in biomolecular simulations. The algorithm involves several operators to exchange information in an octree data structure. We focus on the Multipoleto-Local (M2L) operator, as its runtime is limiting for the overall performance. We propose, implement and benchmark three different M2L parallelization approaches. Approach (1) utilizes Unified Memory to minimize programming and porting efforts. It achieves decent speedups for only little implementation work. Approach (2) employs CUDA Dynamic Parallelism to significantly improve performance for high approximation accuracies. The presorted list-based approach (3) fits periodic boundary conditions particularly well. It exploits FMM operator symmetries to minimize both memory access and the number of complex multiplications. The result is a compute-bound implementation, i.e. performance is limited by arithmetic operations rather than by memory accesses. The complete CUDA parallelized FMM is incorporated within the GROMACS molecular dynamics package as an alternative Coulomb solver.},
+  langid = {english}
 }
 
 @online{kreuzerburtonmillerfactorlow2024,
@@ -441,6 +507,23 @@
   abstract = {The calculation of the acoustic field in or around objects is an important task in acoustic engineering. The open-source project Mesh2HRTF and its BEM core NumCalc provide users with a collection of free tools for acoustic simulations without the need of having an in-depth knowledge into numerical methods. However, we feel that users should have a basic understanding with respect to the methods behind the software they are using. We are convinced that this basic understanding helps in avoiding common mistakes and also helps to understand the requirements to use the software. To provide this background is the first motivation for this article. A second motivation for this article is to demonstrate the accuracy of NumCalc when solving benchmark problems. Thus, users can obtain an idea about the accuracy as well as requirements on the memory and CPU requirements when using NumCalc. Finally, this article provides detailed information about some aspects of the actual implementation of BEM that are usually not mentioned in literature, e.g., the specific version of the fast multipole method and its clustering process or how to use frequency-dependent admittance boundary conditions.},
   langid = {english},
   keywords = {Mathematics - Numerical Analysis}
+}
+
+@article{kurzakfastmultipolemethods2006,
+  title = {Fast Multipole Methods for Particle Dynamics},
+  author = {Kurzak, J. and Pettitt, B. M.},
+  date = {2006-09},
+  journaltitle = {Molecular Simulation},
+  shortjournal = {Molecular Simulation},
+  volume = {32},
+  number = {10--11},
+  pages = {775--790},
+  issn = {0892-7022, 1029-0435},
+  doi = {10.1080/08927020600991161},
+  url = {http://www.tandfonline.com/doi/abs/10.1080/08927020600991161},
+  urldate = {2026-03-22},
+  abstract = {The growth of simulations of particle systems has been aided by advances in computer speed and algorithms. The adoption of O(N) algorithms to solve N-body simulation problems has been less rapid due to the fact that such scaling was only competitive for relatively large N. Our work seeks to find algorithmic modifications and practical implementations for intermediate values of N in typical use for molecular simulations. This article reviews fast multipole techniques for calculation of electrostatic interactions in molecular systems. The basic mathematics behind fast summations applied to long ranged forces is presented along with advanced techniques for accelerating the solution, including our most recent developments. The computational efficiency of the new methods facilitates both simulations of large systems as well as longer and therefore more realistic simulations of smaller systems.},
+  langid = {english}
 }
 
 @article{langrennesolvinghypersingularboundary2015,
@@ -489,6 +572,22 @@
   author = {Liu, Yijun},
   date = {2009},
   publisher = {CAMBRIDGE UNIVERSITY PRESS},
+  langid = {english}
+}
+
+@article{maciaautomatedgenerationhighperformance2022,
+  title = {Automated Generation of {{High-Performance Computational Fluid Dynamics Codes}}},
+  author = {Macià, Sandra and Martínez-Ferrer, Pedro J. and Ayguadé, Eduard and Beltran, Vicenç},
+  date = {2022-05},
+  journaltitle = {Journal of Computational Science},
+  shortjournal = {Journal of Computational Science},
+  volume = {61},
+  pages = {101664},
+  issn = {18777503},
+  doi = {10.1016/j.jocs.2022.101664},
+  url = {https://linkinghub.elsevier.com/retrieve/pii/S1877750322000758},
+  urldate = {2026-03-23},
+  abstract = {Domain-Specific Languages (DSLs) improve programmers productivity by decoupling problem descriptions from algorithmic implementations. However, DSLs for High-Performance Computing (HPC) have two additional critical requirements: performance and scalability. This paper presents the automated process of generating, from abstract mathematical specifications of Computational Fluid Dynamics (CFD) problems, optimised parallel codes that perform and scale as manually optimised ones. We consciously combine within Saiph, a DSL for solving CFD problems, low-level optimisations and parallelisation strategies, enabling high-performance single-core executions which effectively scale to multi-core and distributed environments. Our results demonstrate how high-level DSLs can offer competitive performance by transparently leveraging state-of-the-art HPC techniques.},
   langid = {english}
 }
 
@@ -546,6 +645,22 @@
   venue = {TUM}
 }
 
+@article{mauezurformulierungallgemeinen1949,
+  title = {Zur Formulierung eines allgemeinen Beugungs-problems durch eine Integralgleichung},
+  author = {Maue, A. -W.},
+  date = {1949-07},
+  journaltitle = {Zeitschrift f�r Physik},
+  shortjournal = {Z. Physik},
+  volume = {126},
+  number = {7--9},
+  pages = {601--618},
+  issn = {1434-6001, 1434-601X},
+  doi = {10.1007/BF01328780},
+  url = {http://link.springer.com/10.1007/BF01328780},
+  urldate = {2026-03-22},
+  langid = {german}
+}
+
 @online{modelingpressureacoustics,
   title = {Modeling {{Pressure Acoustics}} with the {{Boundary Element Method}}},
   url = {https://www.comsol.com/support/learning-center/article/modeling-pressure-acoustics-with-the-boundary-element-method-15171/92},
@@ -553,6 +668,29 @@
   abstract = {Learn how to use the boundary element method (BEM) to model pressure acoustics in COMSOL~Multiphysics®. Watch Part 6 of the 9-part course here.},
   langid = {english},
   organization = {COMSOL}
+}
+
+@article{olivieropenmptaskscheduling2012,
+  title = {{{OpenMP}} Task Scheduling Strategies for Multicore {{NUMA}} Systems},
+  author = {Olivier, Stephen L and Porterfield, Allan K and Wheeler, Kyle B and Spiegel, Michael and Prins, Jan F},
+  date = {2012-05},
+  journaltitle = {The International Journal of High Performance Computing Applications},
+  shortjournal = {The International Journal of High Performance Computing Applications},
+  volume = {26},
+  number = {2},
+  pages = {110--124},
+  issn = {1094-3420, 1741-2846},
+  doi = {10.1177/1094342011434065},
+  url = {https://journals.sagepub.com/doi/10.1177/1094342011434065},
+  urldate = {2026-03-23},
+  abstract = {The recent addition of task parallelism to the OpenMP shared memory API allows programmers to express concurrency at a high level of abstraction and places the burden of scheduling parallel execution on the OpenMP run-time system. Efficient scheduling of tasks on modern multi-socket multicore shared memory systems requires careful consideration of an increasingly complex memory hierarchy, including shared caches and non-uniform memory access (NUMA) characteristics. In order to evaluate scheduling strategies, we extended the open source Qthreads threading library to implement different scheduler designs, accepting OpenMP programs through the ROSE compiler. Our comprehensive performance study of diverse OpenMP task-parallel benchmarks compares seven different task-parallel run-time scheduler implementations on an Intel Nehalem multi-socket multicore system: our proposed hierarchical work-stealing scheduler, a per-core work-stealing scheduler, a centralized scheduler, and LIFO and FIFO versions of the Qthreads round-robin scheduler. In addition, we compare our results against the Intel and GNU OpenMP implementations.},
+  langid = {english}
+}
+
+@online{pragmaspreprocessor,
+  title = {Pragmas ({{The C Preprocessor}})},
+  url = {https://gcc.gnu.org/onlinedocs/cpp/Pragmas.html},
+  urldate = {2026-03-23}
 }
 
 @article{rokhlindiagonalformstranslation1993,
@@ -647,6 +785,26 @@
   langid = {english},
   pubstate = {prepublished},
   keywords = {Mathematics - Numerical Analysis,Physics - Computational Physics}
+}
+
+@article{watschingerparallelfastmultipole2022,
+  title = {A Parallel Fast Multipole Method for a Space-Time Boundary Element Method for the Heat Equation},
+  author = {Watschinger, Raphael and Merta, Michal and Of, Günther and Zapletal, Jan},
+  date = {2022-08},
+  journaltitle = {SIAM Journal on Scientific Computing},
+  shortjournal = {SIAM J. Sci. Comput.},
+  volume = {44},
+  number = {4},
+  eprint = {2106.15911},
+  eprinttype = {arXiv},
+  eprintclass = {math},
+  pages = {C320-C345},
+  issn = {1064-8275, 1095-7197},
+  doi = {10.1137/21M1430157},
+  url = {http://arxiv.org/abs/2106.15911},
+  urldate = {2026-03-23},
+  abstract = {We present a novel approach to the parallelization of the parabolic fast multipole method for a space-time boundary element method for the heat equation. We exploit the special temporal structure of the involved operators to provide an efficient distributed parallelization with respect to time and with a one-directional communication pattern. On top, we apply a task-based shared memory parallelization and SIMD vectorization. In the numerical tests we observe high efficiencies of our parallelization approach.},
+  keywords = {Computer Science - Distributed Parallel and Cluster Computing,Mathematics - Numerical Analysis}
 }
 
 @article{winternitzgrafsadditiontheorem,

@@ -191,11 +191,11 @@ The FMM follows these basic steps:
 
 1.  Discretization Any problem begins with discretizing the boundary, as is done for conventional BEM. We use constant elements.
 
-2.  Initializing the Octree For a 3D problem, we consider a cube that contains the entire geometry. This cube is repeatedly subdivided into 8 smaller cubes, called its child nodes, creating an octree structure. The subdivision continues until the number of elements in a cube falls below a defined threshold.
+2.  Initializing the Octree For a 3D problem, we consider a cube that contains the entire geometry. This cube is repeatedly subdivided into 8 smaller cubes, called its child nodes, creating an Octree structure. The subdivision continues until the number of elements in a cube falls below a defined threshold.
 
 3.  Upward Pass Beginning from the bottom of the tree, at the deepest level called the leaf nodes, we compute the moments of each node, tracing the tree structure upwards till we are two levels below the root node. Using the M2M translation operator, the moments of the child nodes are translated and aggregated to the parent node.
 
-4.  Downward Pass Starting from the second level of the tree, we compute the local expansions for each node. This consists of the contribution of nodes in the interaction list of the current node, and from the far-off nodes. The interaction list nodes are the ones not directly adjacent to the current node, but whose parent node is adjacent to the parent node of the current node. The contribution from the interaction list nodes is computed using the M2L translation operator, while the contribution from the far-off nodes is computed using the L2L translation operator for the parent node, with the expansion point being shifted from te centroid of the parent node to the centroid of the current node. At level 2, the nodes only have contribution from the interaction list nodes, as there are no far-off nodes at this level, hence we use the M2L operator to get the local expansion’s coefficients.
+4.  Downward Pass Starting from the second level of the tree, we compute the local expansions for each node. This consists of contributions from the current node’s interaction list and from far-off nodes. The interaction list nodes are those not directly adjacent to the current node, but whose parent node is adjacent to the current node’s parent. The contribution from the interaction list nodes is computed using the M2L translation operator, while the contribution from the far-off nodes is computed using the L2L translation operator for the parent node, with the expansion point being shifted from the centroid of the parent node to the centroid of the current node. At level 2, the nodes only have contributions from the interaction list nodes. Since there are no far-off nodes at this level, we use the M2L operator to get the local expansion’s coefficients.
 
 5.  Evaluating of the Integrals The contributions of all the collocation points in the current node and thed nodes directly adjacent to it are computed using direct BEM. The contributions of all nodes in the interaction list and the far-off are computed using the local expansion coefficients of the current node and shifting the expansion point to the collocation point using the L2P translation operator.
 
@@ -203,31 +203,81 @@ The FMM follows these basic steps:
 
 Octree
 
-The spatial domain can be subdivided into a hierarchical tree structure in many ways. For 3D problems, the most common approach is to use an octree, as it opens many opprtunities to optimize the efficieny of the algorithm. An octree is a tree data structure where eachnode is subdivided into 8 equal child nodes, and these child nodes are then further subdivided into 8 nodes until a certain threshold is reached.
+The spatial domain can be subdivided into a hierarchical tree structure in many ways. For 3D problems, the most common approach is to use an Octree, which offers many opportunities to optimize algorithmic efficiency. An Octree is a tree data structure where each node is bisected along the Cartesian x, y, and z axes, producing 8 equally sized child nodes, and these child nodes are then further subdivided into 8 nodes until a certain threshold is reached.
 
-We define a FMMNode data structure to represent each node in the octree, which contains the following information:
+Nodes of the Octree
 
-- Node geometry: The struct keeps track of the node’s bounding box, its center, and its radius. It also stores the integer grid coordinates that represent the node’s position in the octree.
+We define an FMMNode data structure to represent each node in the Octree, which contains the following information:
 
-- Tree Hierarchy: Each node is assigned a node index which serves as the node’s unique identifier within a global list of all the nodes. The node also stores what level of the tree it is at, as well as the index of its parent node. Most importantly, it also stores the indices of its 8 child nodes, which are used to navigate the tree structure.
+Node geometry:
 
-- Mesh and Interaction data The node stores an iterator for the particles contained within it. It maintains a neighbor list that contains the indices of neighboring nodes. These interactions must be computed directly. It also stores a list of far-field nodes, which are the nodes that are sufficiently far away to be approximated using multipole expansions.
+    The struct keeps track of the node’s bounding box, its center, and its radius. It also stores the integer grid coordinates that represent the node’s position in the Octree.
 
-- Mathematical expansion data The node stores Pm which is the order used for the mutlitpole expansion, and the number of coefficients required based on the order. It also stores the multipole and local expansion coefficients, which are used to approximate the potential and forces from distant nodes.
+Tree Hierarchy:
 
-- FMM Translation Operators: The node stores the necessary translation operators for the FMM algorithm.
+    Each node is assigned a node index, which serves as the node’s unique identifier within a global list of all the nodes. The node also stores its tree level and the index of its parent node. Most importantly, it stores the indices of its 8 child nodes, which are used to navigate the tree.
 
-  - P2M Matrix Translates raw particles (mesh sources) to a node’s Multipole expansion.
+Mesh and Interaction data:
 
-  - M2M Matrix: Translates a child’s Multipole expansion up to its parent’s Multipole expansion.
+    The node stores an iterator for the particles contained within it. It maintains a neighbor list that contains the indices of neighboring nodes. These interactions must be computed directly. It also stores a list of far-field nodes, which are sufficiently far away to be approximated by multipole expansions.
 
-  - M2L Matrices: Converts a distant node’s Multipole expansion into this node’s Local expansion.
+Mathematical expansion data:
 
-  - L2L Matrix: Translates a parent’s Local expansion down to its child’s Local expansion.
+    The node stores Pm which is the order used for the mutlitpole expansion, and the number of coefficients required based on the order. It also stores the multipole and local expansion coefficients, which are used to approximate the potential and forces from distant nodes.
 
-  - L2P Matrix: Evaluates the Local expansion directly onto the target particles (mesh cells).
+FMM Translation Operators:
+
+    The node stores the necessary translation operators for the FMM algorithm.
+
+    1.  P2M Matrix: Translates raw particles (mesh sources) to a node’s Multipole expansion.
+
+    2.  M2M Matrix: Translates a child’s Multipole expansion up to its parent’s Multipole expansion.
+
+    3.  M2L Matrices: Converts a distant node’s Multipole expansion into this node’s Local expansion.
+
+    4.  L2L Matrix: Translates a parent’s Local expansion down to its child’s Local expansion.
+
+    5.  L2P Matrix: Evaluates the Local expansion directly onto the target particles (mesh cells).
+
+Splitting the domain to make an Octree
+
+The underlying spatial data-structue sets the stage for the computational efficiency of the FMM algorithm. It dictates how the source-target interactions are categorized as either near-field, needing direct computation, or far-field, and thus suitable for approximation via multipole expansions. An adaptive, heirarchical Octree allows for a systematic way to manage these interactions.
+
+Space-Filling Curves and Morton Encoding
+
+We map the geometric centers of the boundary elements from three-dimensional space into a one-dimensional array using a space-filling curve, specifically, the Morton Z-curve. Morton encoding converts the 3D coordinates of each mesh element into a single integer by interleaving the bits of the binary representations of the x, y, and z coordinates, generating that element’s Morton key. This ordering assigns numerically adjacent Morton keys to spatially adjacent elements. This allows us to sort the elements into a linearly ordered array, where adjacent elements get clustered together, improving cache locality. This cache locality helps reduce the overhead of assigning the elements to the Octree’s nodes. While the Morton Z-order curve may not be the optimum space-filling curve for 3D problems, its simplicity of implementation via bitwise operations lends itself to efficient execution (Malhotra and Biros 2015).
 
 Software Architecture and HPC Optimizations
+
+Bitwise operations for Morton Encoding
+
+As detailed in Section 4.2.2.1, the Morton Z-order curve is used to map the 3D coordinates of the mesh elements for a more efficient Octree construction. To optimize this process without relying on expensive looping, we use a series of bitwise operations that interleave the bits of the binary representations of the x, y, and z coordinates.
+
+The basic algorithm that we use to compute the Morton key for a given 3D coordinate is as follows:
+
+1.  Grid Quantization: We define a discrete grid across the global bounding box. We define a discrete grid across the global bounding box. With a 64-bit integer, we can divide each spatial dimension into 2²⁰(1, 048, 576) bins, which allows us to represent up to 2⁶⁰ unique spatial locations, more than enough for our problem size.
+
+2.  Coordinate Normalization: We normalize the x, y, and z coordinates of each mesh element to fit within [0, 1] relative to the global bounding box, and then multiply by the number of bins to get the quantized integer coordinates.
+
+3.  Bit Truncation:We ensure that the quantized coordinates fit within 21 bits, ensuring that they can be interleaved into a single 64-bit integer without overflow. This is achieved by applying a bitwise AND operation with a mask that retains only the lower 21 bits of each coordinate.
+
+4.  Bit Expansion: We use a sequence of bitwise shifts and bitwise operations with bit masks to add two zero bits between each bit of the quantized coordinates. This process is repeated for each coordinate.
+
+5.  Bit Interleaving: Finally, we combine the expanded bits of each coordinate by shifting the expanded y bits by one, and the expanded z bits by two, and then performing a bitwise OR operation to interleave the bits together, resulting in the final Morton key for that mesh element.
+
+The basic algorithm of this process is shown for the 2D case in (Anderson 2005). The exact implementation for the 3D case is shown in the appendix 8.1
+
+Caching the Matrices
+
+The FMM requires us to compute a lot of translations matrices, such as the P2M, M2M, M2L, L2L, and L2P matrices. The computation of all these matrices, and especially the M2L matrices, is highly compute-bound. This stems from the fact that calculating the M2L operators requires evaluating the spherical harmonics, associted Legendre polynomials, Wigner 3-j symbols, and the Gaunt coefficients, which make heavy use of recursive branching and high-latency floating point division. This causes both, low arithmetic intenstity and severe pipeline stalls, representing a significant bottleneck in the FMM algorithm.
+
+We mitigate this by exploiting the strict geometric symmetry of our uniform Octree. If we consider the geometry of the Octree, we can see that at a particular level, the boundaries of the interaction domain form a localized 7x7x7 grid of
+
+(Kohnke et al. 2021)
+
+OpenMP speed up
+
+Solving the system - vmult + GMRES + The Real-Equivalent system
 
 Performance Analysis and Validation
 
@@ -256,6 +306,28 @@ Conclusion and Future Directions
 [P2P]Particle-to-Particle
 [GMRES]Generalized Minimal Residual Method
 
+Appendix: Code
+
+Morton Encoding
+
++:-------------------------------------------------------------------------------------------:+
+|     // Expands a 21 bit integer into 63 bits by inserting 2 zeros between each bit          |
+|         inline uint64_t expand_bits_3d(uint32_t v) {                                        |
+|             uint64_t x = v & 0x1FFFFF;                                                      |
+|             x = (x | (x << 32)) & 0x1F00000000FFFF;                                         |
+|             x = (x | (x << 16)) & 0x1F0000FF0000FF;                                         |
+|             x = (x | (x <<  8)) & 0x100F00F00F00F00F;                                       |
+|             x = (x | (x <<  4)) & 0x10c30c30c30c30c3;                                       |
+|             x = (x | (x <<  2)) & 0x1249249249249249;                                       |
+|             return x;                                                                       |
+|         }                                                                                   |
+|         inline uint64_t morton_code_3d(uint32_t x, uint32_t y, uint32_t z) {                |
+|             return expand_bits_3d(x) | (expand_bits_3d(y) << 1) | (expand_bits_3d(z) << 2); |
+|         }                                                                                   |
++---------------------------------------------------------------------------------------------+
+
+Anderson, Sean Eron. 2005. “Bit Twiddling Hacks.” Bit Twiddling Hacks, May 5. https://graphics.stanford.edu/~seander/bithacks.html#InterleaveBMN.
+
 Burton, A. J., and G. F. Miller. 1971. “The Application of Integral Equation Methods to the Numerical Solution of Some Exterior Boundary-Value Problems.” Proceedings of the Royal Society of London. A. Mathematical and Physical Sciences 323 (1553): 201–10. https://doi.org/10.1098/rspa.1971.0097.
 
 Chandler-Wilde, Simon, and Steve Langdon. 2007. Boundary Element Methods for Acoustics. July 18.
@@ -266,9 +338,13 @@ Greengard, L, and V Rokhlin. 1987. “A Fast Algorithm for Particle Simulations.
 
 Kirkup, Stephen. 1998. The Boundary Element Method in Acoustics: A Development in Fortran. Integral Equation Methods in Engineering 1. Integrated Sound Software.
 
+Kohnke, Bartosz, Carsten Kutzner, Andreas Beckmann, et al. 2021. “A CUDA Fast Multipole Method with Highly Efficient M2L Far Field Evaluation.” The International Journal of High Performance Computing Applications 35 (1): 97–117. https://doi.org/10.1177/1094342020964857.
+
 Lamport, Leslie. 1994. LaTeX : A Documentation Preparation System User’s Guide and Reference Manual. Addison-Wesley Professional.
 
 Liu, Yijun. 2009. Fast Multipole Boundary Element Method: THEORY AND APPLICATIONS IN ENGINEERING. CAMBRIDGE UNIVERSITY PRESS.
+
+Malhotra, Dhairya, and George Biros. 2015. “PVFMM: A Parallel Kernel Independent FMM for Particle and Volume Potentials.” Communications in Computational Physics 18 (3): 808–30. https://doi.org/10.4208/cicp.020215.150515sw.
 
 Marburg, S. 2008. “Boundary Element Method for Time-Harmonic Acoustic Problems.” In Computational Acoustics of Noise Propagation in Fluids, edited by S. Marburg and B. Nolte. Springer.
 

@@ -1,11 +1,11 @@
 \section{Octree} \label{sec:octree}
-The spatial domain can be subdivided into a hierarchical tree structure in many ways. For 3D problems, the most common approach is to use an octree, which offers many opportunities to optimize algorithmic efficiency. An octree is a tree data structure where each node is bisected along the Cartesian $x$, $y$, and $z$ axes, producing 8 equally sized child nodes, and these child nodes are then further subdivided into 8 nodes until a certain threshold is reached.
+The spatial domain can be subdivided into a hierarchical tree structure in many ways. For 3D problems, the most common approach is to use an Octree, which offers many opportunities to optimize algorithmic efficiency. An Octree is a tree data structure where each node is bisected along the Cartesian $x$, $y$, and $z$ axes, producing 8 equally sized child nodes, and these child nodes are then further subdivided into 8 nodes until a certain threshold is reached.
 
 \subsection{Nodes of the Octree} \label{subsec:node}
 
-We define an \texttt{FMMNode} data structure to represent each node in the octree, which contains the following information:
+We define an \texttt{FMMNode} data structure to represent each node in the Octree, which contains the following information:
 \begin{description}
-    \item [\textbf{Node geometry}:] The struct keeps track of the node's bounding box, its center, and its radius. It also stores the integer grid coordinates that represent the node's position in the octree.
+    \item [\textbf{Node geometry}:] The struct keeps track of the node's bounding box, its center, and its radius. It also stores the integer grid coordinates that represent the node's position in the Octree.
     \item [\textbf{Tree Hierarchy}:] Each node is assigned a node index, which serves as the node's unique identifier within a global list of all the nodes. The node also stores its tree level and the index of its parent node. Most importantly, it stores the indices of its 8 child nodes, which are used to navigate the tree.
     \item [\textbf{Mesh and Interaction data}:] The node stores an iterator for the particles contained within it. It maintains a neighbor list that contains the indices of neighboring nodes. These interactions must be computed directly. It also stores a list of far-field nodes, which are sufficiently far away to be approximated by multipole expansions.
     \item [\textbf{Mathematical expansion data}:] The node stores \texttt{P}m which is the order used for the mutlitpole expansion, and the number of coefficients required based on the order. It also stores the multipole and local expansion coefficients, which are used to approximate the potential and forces from distant nodes.
@@ -19,15 +19,15 @@ We define an \texttt{FMMNode} data structure to represent each node in the octre
     \end{enumerate}
 \end{description}
 
-% TODO: add a figure of octree
+\todo{add a figure of Octree}
 
 \subsection{Splitting the domain to make an Octree} \label{subsec:octree_splitting}
-The underlying spatial data-structue sets the stage for the computational efficiency of the FMM algorithm. It dictates how the source-target interactions are categorized as either near-field, needing direct computation, or far-field, and thus suitable for approximation via multipole expansions. An adaptive, heirarchical octree allows for a systematic way to manage these interactions.
+The underlying spatial data-structue sets the stage for the computational efficiency of the FMM algorithm. It dictates how the source-target interactions are categorized as either near-field, needing direct computation, or far-field, and thus suitable for approximation via multipole expansions. An adaptive, heirarchical Octree allows for a systematic way to manage these interactions.
 
 
-% The octree is constructed by a top-down recursive subdivision of the spatial domain. 
-\subsubsection{Space-Filling Curves and Morton Encoding} \label{z-order-curves}
+% The Octree is constructed by a top-down recursive subdivision of the spatial domain. 
+\subsubsection{Space-Filling Curves and Morton Encoding} \label{subsubsec:morton-encoding}
 
-To facilitate efficient hierarchical clustering and rapid neighborhood queries within the computational grid, the geometric centers of the boundary elements are mapped from three-dimensional space into a one-dimensional array using a space-filling curve, specifically, the Morton Z-curve. This encoding sorts mesh elements by their spatial coordinates so that elements that are close in space remain close in memory, improving cache locality. While the Morton Z-order curve is not the optimum space-filling curve for 3D problems, its simplicity of implementation via bitwise operations lends itself to efficient execution \cite{malhotrapvfmmparallelkernel2015}.
+We map the geometric centers of the boundary elements from three-dimensional space into a one-dimensional array using a space-filling curve, specifically, the Morton Z-curve.  Morton encoding converts the 3D coordinates of each mesh element into a single integer by interleaving the bits of the binary representations of the x, y, and z coordinates, generating that element's Morton key. This ordering assigns numerically adjacent Morton keys to spatially adjacent elements. This allows us to sort the elements into a linearly ordered array,  where adjacent elements get clustered together, improving cache locality. This cache locality helps reduce the overhead of assigning the elements to the Octree's nodes. While the Morton Z-order curve may not be the optimum space-filling curve for 3D problems, its simplicity of implementation via bitwise operations lends itself to efficient execution \cite{malhotrapvfmmparallelkernel2015}.
 
-Morton encoding converts the 3D coordinated of each mesh element into single integer by interleaving the bits of the binary representations of the $x$, $y$, and $z$ coordinates, generating that element's Morton key. This ordering assigns numerically adjacent Morton keys to spatially adjacent elements, inherently preserving spatial locality. This allows us to then sort the elements into a linearly ordered array, where adjacent elements are already clustered together, which helps us efficiently assign elements to the octree's nodes.
+
