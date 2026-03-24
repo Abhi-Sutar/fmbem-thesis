@@ -287,6 +287,13 @@
   organization = {University of Texas at Austin}
 }
 
+@article{fogvclvectorclass,
+  title = {{{VCL C}}++ Vector Class Library Manual},
+  author = {Fog, Agner},
+  date = {2022-08-07},
+  langid = {english}
+}
+
 @article{greengardfastalgorithmparticle1987,
   title = {A Fast Algorithm for Particle Simulations},
   author = {Greengard, L and Rokhlin, V},
@@ -526,6 +533,15 @@
   langid = {english}
 }
 
+@online{kylekloberdanzsblog,
+  type = {Blog},
+  title = {{{OpenMP}} - {{Static}} or {{Dynamic Scheduling}}?},
+  author = {Kloberdanz, Kyle},
+  date = {2020-05-10},
+  url = {https://kkloberdanz.github.io/2020-05-10.html},
+  urldate = {2026-03-24}
+}
+
 @article{langrennesolvinghypersingularboundary2015,
   title = {Solving the Hypersingular Boundary Integral Equation for the {{Burton}} and {{Miller}} Formulation},
   author = {Langrenne, Christophe and Garcia, Alexandre and Bonnet, Marc},
@@ -743,6 +759,22 @@
   langid = {english}
 }
 
+@online{shanevaluationprogrammingmodels2024,
+  title = {Evaluation of {{Programming Models}} and {{Performance}} for {{Stencil Computation}} on {{Current GPU Architectures}}},
+  author = {Shan, Baodi and Araya-Polo, Mauricio},
+  date = {2024-08-12},
+  eprint = {2404.04441},
+  eprinttype = {arXiv},
+  eprintclass = {cs},
+  doi = {10.48550/arXiv.2404.04441},
+  url = {http://arxiv.org/abs/2404.04441},
+  urldate = {2026-03-24},
+  abstract = {Accelerated computing is widely used in highperformance computing. Therefore, it is crucial to experiment and discover how to better utilize GPUGPUs latest generations on relevant applications. In this paper, we present results and share insights about highly tuned stencil-based kernels for NVIDIA Ampere (A100) and Hopper (GH200) architectures. Performance results yield useful insights into the behavior of this type of algorithms for these new accelerators. This knowledge can be leveraged by many scientific applications which involve stencils computations. Further, evaluation of three different programming models: CUDA, OpenACC, and OpenMP target offloading is conducted on aforementioned accelerators. We extensively study the performance and portability of various kernels under each programming model and provide corresponding optimization recommendations. Furthermore, we compare the performance of different programming models on the mentioned architectures. Up to 58\% performance improvement was achieved against the previous GPGPU’s architecture generation for an highly optimized kernel of the same class, and up to 42\% for all classes. In terms of programming models, and keeping portability in mind, optimized OpenACC implementation outperforms OpenMP implementation by 33\%. If portability is not a factor, our best tuned CUDA implementation outperforms the optimized OpenACC one by 2.1×.},
+  langid = {english},
+  pubstate = {prepublished},
+  keywords = {Computer Science - Distributed Parallel and Cluster Computing}
+}
+
 @article{tadeu3dacousticwave2012,
   title = {{{3D}} Acoustic Wave Simulation Using {{BEM}} Formulations: {{Closed}} Form Integration of Singular and Hypersingular Integrals},
   shorttitle = {{{3D}} Acoustic Wave Simulation Using {{BEM}} Formulations},
@@ -834,6 +866,23 @@
   url = {https://pubs.aip.org/jasa/article/90/1/554/893868/On-the-numerical-implementation-of-a-Cauchy},
   urldate = {2026-03-18},
   abstract = {In this paper, the boundary integral formulation proposed by Burton and Miller [Proc. R. Soc. London Ser. A 323, 201–210 (1971)] to insure a unique solution for all frequencies is implemented in an isoparametric element environment. A regularized normal derivative integral equation, originally derived by Maue [Z. Phys. 126, 601–618 (1949)], is used in the formulation to form a linear combination with the conventional Helmholtz integral equation. This regularized normal derivative integral equation converges in the Cauchy principal value sense rather than only in the finite-part sense. The Cauchy principal value integral can be further transformed into an integral that converges in the normal sense. The C° continuous isoparametric elements are used in the formulation. Collocation points are placed inside each element to insure a unique normal direction and continuity of tangential derivatives of the acoustic pressure. Through a systematic collocation point generation scheme, the number of collocation points is always greater than the number of nodal points. The overdetermined system is then solved by a least-squares procedure. Numerical examples are given for several radiation and scattering problems.},
+  langid = {english}
+}
+
+@article{xievectorizationprogrammingbased2023,
+  title = {Vectorization {{Programming Based}} on {{HR DSP Using SIMD}}},
+  author = {Xie, Chunhu and Wu, Huachun and Zhou, Jian},
+  date = {2023-07-03},
+  journaltitle = {Electronics},
+  shortjournal = {Electronics},
+  volume = {12},
+  number = {13},
+  pages = {2922},
+  issn = {2079-9292},
+  doi = {10.3390/electronics12132922},
+  url = {https://www.mdpi.com/2079-9292/12/13/2922},
+  urldate = {2026-03-24},
+  abstract = {Single instruction multiple data (SIMD) vector extension has become an essential feature of high-performance processors. Architectures such as x86, ARM, MIPS, and PowerPC have specific vector extension instruction sets and SIMD micro-architectures. Using SIMD vectorization programming can significantly improve the performance of application algorithms while keeping the hardware overhead low. In addition, other methods can enhance algorithm performance, such as selecting the best SIMD vectorization model for algorithms, ensuring sufficient instruction streams, implementing reasonable and effective cache data prefetching, and aligning data access and storage addresses according to instruction characteristics. The goal of this paper is three-fold. First, we introduce the basic structural characteristics of a general RISC processor, Hua Rui (HR) DSP, with a custom vector instruction set based on compatibility with an MIPS64 fixed-point and floating-point instruction set, as well as a Fei Teng (FT) processor compatible with an ARMv8 instruction set. Second, we summarize the fundamental principles of SIMD vectorization programming design for the HR DSP, which provides ideas for other scholars or engineering and technical personnel to study the algorithm performance using SIMD vectorization optimization. Third, we implement representative typical algorithms based on the HR and FT platforms and obtain experimental results that show improvement in algorithm SIMD vectorization optimization according to the vector programming design principles summarized in this article can improve the single-core performance of scalar implementation without vectorization, instruction streams, and cache data prefetching by 4–22 times for mean filter, accumulation, and matrix–matrix multiplication, which is significantly better than the performance improvement of 3–13 times for the FT platform. Moreover, the performance of matrix–matrix multiplication using the best vectorization model on the HR platform is about 84\% higher than that of the common SIMD vectorization model.},
   langid = {english}
 }
 

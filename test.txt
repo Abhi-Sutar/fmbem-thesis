@@ -271,25 +271,36 @@ Caching the Matrices
 
 The FMM requires us to compute a lot of translations matrices, such as the P2M, M2M, M2L, L2L, and L2P matrices. The computation of all these matrices, and especially the M2L matrices, is highly compute-bound. This stems from the fact that calculating the M2L operators requires evaluating the spherical harmonics, associated Legendre polynomials, Wigner 3-j symbols, and the Gaunt coefficients, which make heavy use of recursive branching and high-latency floating point division. This causes both, low arithmetic intenstity and severe pipeline stalls, representing a significant bottleneck in the FMM algorithm.
 
-We mitigate this by exploiting the strict geometric symmetry of our uniform Octree. If we consider the geometry of the Octree, we can see that at a particular level, the boundaries of the interaction domain form a localized 7x7x7 grid of uniform boxes around the target node, as shown in Figure 5.1. Discounting the center box, which is the target node itself, and the 26 boxes that are direct neighbors of the target node, which are handled by direct computation, we are left with 7³ − 1 − 26 = 316 possible M2L translation operators that we need to compute per tree level.
+We mitigate this by exploiting the strict geometric symmetry of our uniform Octree. If we consider the geometry of the Octree, we can see that at a particular level, the boundaries of the interaction domain form a localized 7 × 7 × 7 grid of uniform boxes around the target node, as shown in Figure [fig:m2l-$7x$-grid]. Discounting the center box, which is the target node itself, and the 26 boxes that are direct neighbors of the target node, which are handled by direct computation, we are left with 7³ − 1 − 26 = 316 possible M2L translation operators that we need to compute per tree level.
 
 (Kohnke et al. 2021)
 
 (Kohnke et al. 2021)
 
-Since the number of unique M2L operators is limited to 318 per tree level, this makes it practically feasible for us to precompute and store these matrices. We further optimize this by generating a lookup table that maps each M2L matrix to a transfer ID. To index this lookup table, we rely on the fact that with our 7x7x7 interaction grid, the relative coordinate offsets in 3D space is strictly bounded by the integer range [−3, 3] in each dimension. By shifting this coordinate range by +3, we can build our transfer ID Like so:
+Since the number of unique M2L operators is limited to 318 per tree level, this makes it practically feasible for us to precompute and store these matrices. We further optimize this by generating a lookup table that maps each M2L matrix to a transfer ID. To index this lookup table, we rely on the fact that with our 7 × 7 × 7 interaction grid, the relative coordinate offsets in 3D space is strictly bounded by the integer range [−3, 3] in each dimension. By shifting this coordinate range by +3, we can build our transfer ID Like so:
 Transfer ID = (δx + 3) + 7((δy + 3) * 7 + (δz + 3))
 While we allocate memory for all 342 possible M2L matrices, we only compute and store the 316 matrices that correspond to the interaction list. This allows us to seamlessly use the transfer ID as an index into the lookup table, without needing costly floating point comparisons to check if a particular M2L interaction is valid or not. This optimization allows us to skip the extremely expensive computation of the M2L matrices, turning the requirement of performing complex mathematical operations into a trivial 𝒪(1) lookup.
 
-OpenMP speed up
+OpenMP Speed Up
 
-Modern CPUs, even consumer-grade ones, are equipped with multiple cores, and can execute multiple threads in parallel. On top of that, they support Single Instruction Multiple Data (SIMD) operations, which allows them to perform the same operation on multiple data points simultaneously. The OpenMP API provides a simple and effective way to parallelize code to take advantage of these features. We leverage OpenMP by setting #pragma directives in the region of our code where we want parallelism. These directives instruct the compiler to generate code that can be executed in parallel across multiple threads. OpenMP allows to control parallelism at both, the coarse-grained thread-level parallelism, and the fine-grained instruction level parallelism. The particular strategies we have used in the code are as follows:
+Modern CPUs are equipped with multiple cores and can execute multiple threads in parallel. On top of that, they support SIMD operations, which allows them to perform the same operation on multiple data points simultaneously. The OpenMP API provides a simple and effective way to parallelize code to take advantage of these features. We leverage OpenMP by setting #pragma directives in the region of our code where we want parallelism. These directives instruct the compiler to generate code that can be executed in parallel across multiple threads. OpenMP allows us to control parallelism at both the coarse-grained thread-level and the fine-grained CPU instruction level. The particular strategies we have used in the code are as follows:
 
 Loop Collapsing
 
+Building the global M2L cache as detailed in the previous section helps us bypass particularly troublesome bottleneck. However, there is still more performance to be wrung out of the M2L phase. Computing the global M2L cache requires iterating over the 7 × 7 × 7 grid of possible interactions for each level. This uses three nested loops, which when naïvely parallelized with the standard #pragma omp parallel for directive, would only result in a maximum parallel iteration space of 7. Modern CPUs with many more threads available would end up being underutilized. To solve this, and maximize the workload distribution across all cores, we use the #pragma omp parallel for collapse(3) directive.
+
+The collapse(3) clause tells the compiler to collapse the three hierarchically nested loops into a single loop with a larger iteration space of 7 × 7 × 7 = 343. Each thread then gets assigned a chunk of this larger iteration space, allowing us to fully utilize the available threads and achieve better load balancing.
+
 Dynamic Scheduling
 
+While a highly structured, uniform iteration workload would fit perfectly with OpenMP’s default static scheduling, the FMM Octree’s workload is inherently irregular. The number of mesh elements in each node can vary widely, especially higher up in the tree where some nodes have stopped subdividing due to a lack of elements. Also, the size of each node’s interaction list varies, depending on its spatial location. This leads to a highly imbalanced workload across the nodes, which can cause significant load imbalance when naïvely calling the #pragma omp parallel for directive on the Octree traversal loops. The default static scheduling, when called over the total_nodes, would divide the total number of nodes by the number of worker threads, resulting in considerable load imbalance.
+
+Using the #pragma omp parallel for schedule(dynamic) directive is the perfect counter to this. Dynamic scheduling instructs the OpenMP runtime to initialize a centralized work queue, and as worker threads become idle, they pull the next available chunk of iterations from the queue. This dynamic load balancing ensures that no thread sits idle while the work queue is not empty (Kloberdanz 2020).
+
 SIMD Vectorization
+
+Leveraging thread-level parallelism with OpenMP is a great way to speed up the FMM algorithm, but we can take this one step further with instruction-level parallelism. Modern CPUs are equipped with SIMD vector units that enable them to perform the same operation on multiple data points simultaneously (Xie et al. 2023). Instruction sets like the AVX-256 or AVX-512 (Advanced Vector Extensions) use large hardware registers, in the case of the AVX-512, 512 bits wide, which can hold four std::complex<double>(64 bits each for the real and imaginary parts) values at once.
+OpenMP’s #pragma omp simd allows us to instruct the compiler to generate these specific hardware-level instructions needed to take advantage of these vector units. The general rule for where we can apply this directive is to look for innermost loops that perform simple, predictable arithmetic (especially reductions like sum += ...) without branching (if/else), function calls, or memory allocations. We use this directive in the innermost loops of the compute_upward_pass, compute_horizontal_pass, and compute_downward_pass functions, which perform the core arithmetic of the FMM algorithm. All these inner loops are of the type sum += A[i] * B[i]. These get compiled to the hardware-level FMA instruction, which performs multiplication and addition in a single step, reducing latency and improving performance (Fog 2022).
 
 Atomic Operations
 
@@ -321,6 +332,10 @@ Conclusion and Future Directions
 [P2M]Particle-to-Multipole
 [P2P]Particle-to-Particle
 [GMRES]Generalized Minimal Residual Method
+[CPU]Central Processing Unit
+[API]Application Programming Interface
+[SIMD]Single Instruction Multiple Data
+[FMA]Fused Multiply-Add
 
 Appendix: Code
 
@@ -350,9 +365,13 @@ Chandler-Wilde, Simon, and Steve Langdon. 2007. Boundary Element Methods for Aco
 
 Coifman, R., V. Rokhlin, and S. Wandzura. 1993. “The Fast Multipole Method for the Wave Equation: A Pedestrian Prescription.” IEEE Antennas and Propagation Magazine 35 (3): 7–12. https://doi.org/10.1109/74.250128.
 
+Fog, Agner. 2022. VCL C++ Vector Class Library Manual. August 7.
+
 Greengard, L, and V Rokhlin. 1987. “A Fast Algorithm for Particle Simulations.” Journal of Computational Physics 73 (2): 325–48. https://doi.org/10.1016/0021-9991(87)90140-9.
 
 Kirkup, Stephen. 1998. The Boundary Element Method in Acoustics: A Development in Fortran. Integral Equation Methods in Engineering 1. Integrated Sound Software.
+
+Kloberdanz, Kyle. 2020. “OpenMP - Static or Dynamic Scheduling?” Blog. May 10. https://kkloberdanz.github.io/2020-05-10.html.
 
 Kohnke, Bartosz, Carsten Kutzner, Andreas Beckmann, et al. 2021. “A CUDA Fast Multipole Method with Highly Efficient M2L Far Field Evaluation.” The International Journal of High Performance Computing Applications 35 (1): 97–117. https://doi.org/10.1177/1094342020964857.
 
@@ -367,5 +386,7 @@ Marburg, S. 2008. “Boundary Element Method for Time-Harmonic Acoustic Problems
 Rokhlin, V. 1990. “Rapid Solution of Integral Equations of Scattering Theory in Two Dimensions.” Journal of Computational Physics 86 (2): 414–39. https://doi.org/10.1016/0021-9991(90)90107-C.
 
 Wu, T. W. 2000. Boundary Element Acoustics: Fundamentals and Computer Codes. WIT Press.
+
+Xie, Chunhu, Huachun Wu, and Jian Zhou. 2023. “Vectorization Programming Based on HR DSP Using SIMD.” Electronics 12 (13): 2922. https://doi.org/10.3390/electronics12132922.
 
 [1] https://ctan.org/pkg/acronym
