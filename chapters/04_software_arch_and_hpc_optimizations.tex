@@ -31,8 +31,19 @@ Since the number of unique \ac{M2L} operators is limited to 318 per tree level, 
    \textbf{Transfer ID} = (\delta x + 3) + 7 \left( (\delta y + 3) * 7 + (\delta z + 3)\right)
 \end{equation*}
 While we allocate memory for all 342 possible \ac{M2L} matrices, we only compute and store the 316 matrices that correspond to the interaction list. This allows us to seamlessly use the transfer ID as an index into the lookup table, without needing costly floating point comparisons to check if a particular \ac{M2L} interaction is valid or not. This optimization allows us to skip the extremely expensive computation of the \ac{M2L} matrices, turning the requirement of performing complex mathematical operations into a trivial $\mathcal{O}(1)$ lookup.
-\section{OpenMP speed up} \label{sec:openmp-speed-up}
-Modern CPUs, even consumer-grade ones, are equipped with multiple cores, and can execute multiple threads in parallel. On top of that, they support Single Instruction Multiple Data (SIMD) operations, which allow them to perform the same operation on multiple data points simultaneously. The OpenMP API provides a simple and effective way to parallelize code to take advantage of these features.
+\section{OpenMP Speed Up} \label{sec:openmp-speed-up}
+Modern \ac{CPU}s are equipped with multiple cores and can execute multiple threads in parallel. On top of that, they support \ac{SIMD} operations, which allows them to perform the same operation on multiple data points simultaneously. The OpenMP \ac{API} provides a simple and effective way to parallelize code to take advantage of these features. We leverage OpenMP by setting \texttt{\#pragma} directives in the region of our code where we want parallelism. These directives instruct the compiler to generate code that can be executed in parallel across multiple threads. OpenMP allows us to control parallelism at both the coarse-grained thread-level and the fine-grained \ac{CPU} instruction level. The particular strategies we have used in the code are as follows:
+
+\subsection{Loop Collapsing} \label{sec:loop-collapsing}
+Building the global \ac{M2L} cache as detailed in the previous section helps us bypass particularly troublesome bottleneck. However, there is still more performance to be wrung out of the \ac{M2L} phase. Computing the global \ac{M2L} cache requires iterating over the $7x7x7$ grid of possible interactions for each level. This uses three nested loops, which when na\"ively parallelized with the standard \texttt{\#pragma omp parallel for} directive, would only result in a maximum parallel iteration space of 7. Modern \ac{CPU}s with many more threads available would end up being underutilized. To solve this, and maximize the workload distribution across all cores, we use the \texttt{\#pragma omp parallel for collapse(3)} directive. 
+
+The \texttt{collapse(3)} clause tells the compiler to collapse the three hierarchically nested loops into a single loop with a larger iteration space of $7x7x7 = 343$. Each thread then gets assigned a chunk of this larger iteration space, allowing us to fully utilize the available threads and achieve better load balancing.
+\subsection{Dynamic Scheduling} \label{sec:dynamic-scheduling}
+\lipsum[1]
+\subsection{SIMD Vectorization} \label{sec:simd-vectorization}
+\lipsum[1]
+\subsection{Atomic Operations} \label{sec:atomic-operations}
+\lipsum[1]
 
 \section{Solving the system - vmult + \ac{GMRES} + The Real-Equivalent system} \label{sec:solving-the-system}
 
