@@ -265,7 +265,7 @@ The basic algorithm that we use to compute the Morton key for a given 3D coordin
 
 5.  Bit Interleaving: Finally, we combine the expanded bits of each coordinate by shifting the expanded y bits by one, and the expanded z bits by two, and then performing a bitwise OR operation to interleave the bits together, resulting in the final Morton key for that mesh element.
 
-The basic algorithm of this process is shown for the 2D case in (Anderson 2005). The exact implementation for the 3D case is shown in the appendix 8.1
+The basic algorithm of this process is shown for the 2D case in (Anderson 2005). The exact implementation for the 3D case is shown in the appendix [lst:morton-encoding-3d]
 
 Caching the Matrices
 
@@ -304,7 +304,21 @@ OpenMP’s #pragma omp simd allows us to instruct the compiler to generate these
 
 Solving the system - vmult + GMRES + The Real-Equivalent system
 
-The BEM discretization leads to a dense, complex-valued linear system that is complex symmetric but not Hermitian, and therefore cannot be solved by methods like the Conjugate Gradient (Shirron and BabGkab, n.d.). While a direct solver can be used, it scales as 𝒪(N³), which quickly becomes infeasible for large systems. Iterative solvers offer a great alternative, reducing computational cost to 𝒪(N_(i)terN²), especially when combined with the FMM’s shift to matrix-free operator evaluations that does not require storing all N² matrix elements (Gumerov and Duraiswami 2009).
+The BEM discretization leads to a dense, complex-valued linear system that is complex symmetric but not Hermitian, and therefore cannot be solved by methods like the Conjugate Gradient (Shirron and Babuska, n.d.). While a direct solver can be used, it scales as 𝒪(N³), which quickly becomes infeasible for large systems. Iterative solvers offer a great alternative, reducing computational cost to 𝒪(N_(i)terN²), especially when combined with the FMM’s shift to matrix-free operator evaluations that does not require storing all N² matrix elements (Gumerov and Duraiswami 2009).
+
+We chose to use the deal.II library (Arndt et al., n.d.) to implement our BEM and FMM algorithms as it provided robust and optimized linear algebra and mesh management infrastructure. The deal.II library provides a built-in implementation of the GMRES iterative solver, it is unfortunately only intended for real-valued systems (Bangerth and Cai, n.d.). This limitation is fundamentally a part of the deal.II implementation of its SolverGMRES (“The Deal.II Library,” n.d.).
+
+We get around this limitation by formulating our complex-valued system as its equivalent real-valued system (Day and Heroux 2001). The breakdown of our approach is as follows:
+
+1.  Vector Splitting: We split our complex vectors like system_rhs and phi, which are of size N, into real Vector<double>s of size 2N, with the first N elements being their real components, and the next N elements being their imaginary parts.
+
+2.  Matrix-Free Wrapper: We implement a struct RealFMMOperator that inherits from dealii::Subscriptor and the implements a real-valued vmult function that the solver expects. It is important to inherit from dealii::Subscriptor to ensure that the internal pointers to the FMM data are properly reference-counted and do not lead to memory leaks or dangling pointers.
+
+3.  vmult Translations: Inside our custom vmult method, it takes the 2N-sized real vector and reconstructs the original size N complex vector. It then calls the original complex-valued vmult method of our FMM implementation, which performs the matrix-free matrix-vector multiplication. Finally, it takes the resulting complex vector and splits it back int o size 2N real vector to be returned to the iterative solver.
+
+4.  Post-Processing: After the GMRES solver converges, we take the resulting size 2N real solution vector and reconstruct the complex N-sized phi vector, which contains the values of the potential at the collocation points.
+
+Our implementation of the RealFMMOperator struct is shown in the appendix 8.2.
 
 Performance Analysis and Validation
 
@@ -357,13 +371,55 @@ Morton Encoding
 |         }                                                                                   |
 +---------------------------------------------------------------------------------------------+
 
+Real-Equivalent System
+
+    struct RealFMMOperator : public Subscriptor
+            {
+                const FMMBEMOperator<dim - 1, dim> &complex_op;
+                mutable Vector<std::complex<double>> c_src;
+                mutable Vector<std::complex<double>> c_dst;
+
+                RealFMMOperator(const FMMBEMOperator<dim - 1, dim> &op)
+                    : complex_op(op) {}
+
+                void vmult(Vector<double> &dst, const Vector<double> &src) const
+                {
+                    const unsigned int n_dofs = src.size() / 2;
+                    
+                    if (c_src.size() != n_dofs)
+                    {
+                        c_src.reinit(n_dofs);
+                        c_dst.reinit(n_dofs);
+                    }
+
+                    for (unsigned int i = 0; i < n_dofs; ++i)
+                    {
+                        c_src[i] = std::complex<double>(src[i], src[i + n_dofs]);
+                    }
+
+                    complex_op.vmult(c_dst, c_src);
+
+                    for (unsigned int i = 0; i < n_dofs; ++i)
+                    {
+                        dst[i] = c_dst[i].real();
+                        dst[i + n_dofs] = c_dst[i].imag();
+                    }
+                }
+            } real_fmm_operator(fmm_operator);
+
 Anderson, Sean Eron. 2005. “Bit Twiddling Hacks.” Bit Twiddling Hacks, May 5. https://graphics.stanford.edu/~seander/bithacks.html#InterleaveBMN.
+
+Arndt, Daniel, Wolfgang Bangerth, Maximilian Bergbauer, et al. n.d. The Deal.II Library, Version 9.7, 2025.
+
+Bangerth, Wolfgang, and Yong-Yong Cai. n.d. “The Deal.II Library: The Step-58 Tutorial Program.” Documentation. The deal.II Library. Accessed March 24, 2026. https://dealii.org/current/doxygen/deal.II/step_58.html.
 
 Burton, A. J., and G. F. Miller. 1971. “The Application of Integral Equation Methods to the Numerical Solution of Some Exterior Boundary-Value Problems.” Proceedings of the Royal Society of London. A. Mathematical and Physical Sciences 323 (1553): 201–10. https://doi.org/10.1098/rspa.1971.0097.
 
 Chandler-Wilde, Simon, and Steve Langdon. 2007. Boundary Element Methods for Acoustics. July 18.
 
 Coifman, R., V. Rokhlin, and S. Wandzura. 1993. “The Fast Multipole Method for the Wave Equation: A Pedestrian Prescription.” IEEE Antennas and Propagation Magazine 35 (3): 7–12. https://doi.org/10.1109/74.250128.
+
+Day, David, and Michael A. Heroux. 2001. “Solving Complex-Valued Linear Systems via Equivalent Real Formulations.” SIAM Journal on Scientific Computing 23 (2): 480–98. https://doi.org/10.1137/S1064827500372262.
 
 Fog, Agner. 2022. VCL C++ Vector Class Library Manual. August 7.
 
@@ -387,7 +443,9 @@ Marburg, S. 2008. “Boundary Element Method for Time-Harmonic Acoustic Problems
 
 Rokhlin, V. 1990. “Rapid Solution of Integral Equations of Scattering Theory in Two Dimensions.” Journal of Computational Physics 86 (2): 414–39. https://doi.org/10.1016/0021-9991(90)90107-C.
 
-Shirron, Joseph J, and Ivo BabGkab. n.d. A Comparison of Approximate Boundary Conditions and Infinite Methods for Exterior Helmholtz Problems.
+Shirron, Joseph J, and Ivo Babuska. n.d. A Comparison of Approximate Boundary Conditions and Infinite Methods for Exterior Helmholtz Problems.
+
+“The Deal.II Library: SolverGMRES< VectorType > Class Template Reference.” n.d. Accessed March 25, 2026. https://dealii.org/9.4.1/doxygen/deal.II/classSolverGMRES.html.
 
 Wu, T. W. 2000. Boundary Element Acoustics: Fundamentals and Computer Codes. WIT Press.
 

@@ -5,7 +5,7 @@
 \begin{figure}[htpb]
   \centering
   \begin{tabular}{c}
-  \begin{lstlisting}[language=C++]
+  \begin{lstlisting}[language=C++, caption={[Morton Encoding 3D]Morton Encoding for 3D}, label={lst:morton-encoding-3d}]
     // Expands a 21 bit integer into 63 bits by inserting 2 zeros between each bit
     inline uint64_t expand_bits_3d(uint32_t v) {
         uint64_t x = v & 0x1FFFFF;
@@ -21,5 +21,95 @@
     }
   \end{lstlisting}
   \end{tabular}
-  \caption[Morton Encoding 3D]{Morton Encoding for 3D}\label{lst:morton-encoding-3d}
+%   \caption[Morton Encoding 3D]{Morton Encoding for 3D}\label{lst:morton-encoding-3d}
 \end{figure}
+
+
+\pagebreak
+\section{Real-Equivalent System} \label{sec:appendix-real-equivalent-system}
+% \begin{figure}[htpb]
+%   \centering
+%   \begin{tabular}{c}
+  \begin{lstlisting}[language=C++, caption={[Real-Equivalent System]Conversion to Real-Equivalent System}, label={lst:real-equivalent-system}]
+    struct RealFMMOperator : public Subscriptor
+        {
+            const FMMBEMOperator<dim - 1, dim> &complex_op;
+            mutable Vector<std::complex<double>> c_src;
+            mutable Vector<std::complex<double>> c_dst;
+
+            RealFMMOperator(const FMMBEMOperator<dim - 1, dim> &op)
+                : complex_op(op) {}
+
+            void vmult(Vector<double> &dst, const Vector<double> &src) const
+            {
+                const unsigned int n_dofs = src.size() / 2;
+                
+                if (c_src.size() != n_dofs)
+                {
+                    c_src.reinit(n_dofs);
+                    c_dst.reinit(n_dofs);
+                }
+
+                for (unsigned int i = 0; i < n_dofs; ++i)
+                {
+                    c_src[i] = std::complex<double>(src[i], src[i + n_dofs]);
+                }
+
+                complex_op.vmult(c_dst, c_src);
+
+                for (unsigned int i = 0; i < n_dofs; ++i)
+                {
+                    dst[i] = c_dst[i].real();
+                    dst[i + n_dofs] = c_dst[i].imag();
+                }
+            }
+        } real_fmm_operator(fmm_operator);
+  \end{lstlisting}
+%   \end{tabular}
+%   \caption[Real-Equivalent System]{Conversion to Real-Equivalent System}\label{lst:real-equivalent-system}
+% \end{figure}
+
+\section{Preconditioning for \ac{GMRES}}\label{sec:preconditioning-gmres}
+\begin{lstlisting}[language=C++, caption={[Preconditioning for GMRES]Preconditioning for GMRES}, label={lst:preconditioning-gmres}]
+    class RealDiagonalPreconditioner : public Subscriptor
+    {
+    private:
+        unsigned int N;
+        std::vector<std::complex<double>> inv_diag;
+
+    public:
+        RealDiagonalPreconditioner(const SparseMatrix<std::complex<double>> &mat)
+        {
+            N = mat.m();
+            inv_diag.resize(N);
+            for (unsigned int i = 0; i < N; ++i)
+            {
+                // Extract the exact diagonal element from our near-field matrix
+                std::complex<double> diag_val = mat(i, i);
+                
+                // Prevent division by zero
+                if (std::abs(diag_val) < 1e-14)
+                {
+                    inv_diag[i] = 1.0;
+                }
+                else
+                {
+                    inv_diag[i] = 1.0 / diag_val;
+                }
+            }
+        }
+
+        void vmult(Vector<double> &dst, const Vector<double> &src) const
+        {
+            // Apply the inverse diagonal block to the 2N vector
+            for (unsigned int i = 0; i < N; ++i)
+            {
+                std::complex<double> val(src[i], src[i + N]);
+                std::complex<double> precond_val = val * inv_diag[i];
+                
+                dst[i] = precond_val.real();
+                dst[i + N] = precond_val.imag();
+            }
+        }
+    };
+\end{lstlisting}
