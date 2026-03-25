@@ -249,7 +249,7 @@ We map the geometric centers of the boundary elements from three-dimensional spa
 
 Software Architecture and HPC Optimizations
 
-Bitwise operations for Morton Encoding
+Bitwise Operations for Morton Encoding
 
 As detailed in Section 4.2.2.1, the Morton Z-order curve is used to map the 3D coordinates of the mesh elements for a more efficient Octree construction. To optimize this process without relying on expensive looping, we use a series of bitwise operations that interleave the bits of the binary representations of the x, y, and z coordinates.
 
@@ -293,7 +293,7 @@ The collapse(3) clause tells the compiler to collapse the three hierarchically n
 
 Dynamic Scheduling
 
-While a highly structured, uniform iteration workload would fit perfectly with OpenMP’s default static scheduling, the FMM Octree’s workload is inherently irregular. The number of mesh elements in each node can vary widely, especially higher up in the tree where some nodes have stopped subdividing due to a lack of elements. Also, the size of each node’s interaction list varies, depending on its spatial location. This leads to a highly imbalanced workload across the nodes, which can cause significant load imbalance when naïvely calling the #pragma omp parallel for directive on the Octree traversal loops. The default static scheduling, when called over the total_nodes, would divide the total number of nodes by the number of worker threads, resulting in considerable load imbalance.
+While a highly structured, uniform iteration workload would fit perfectly with OpenMP’s default static scheduling, the FMM Octree’s workload is inherently irregular. The number of mesh elements in each node can vary widely, especially higher up in the tree where some nodes have stopped subdividing due to a lack of elements. Also, the size of each node’s interaction list varies, depending on its spatial location. This leads to a highly imbalanced workload across the nodes, which can cause significant load imbalance when naïvely calling the #pragma omp parallel for directive on the Octree traversal loops. The default static scheduling, when called over the total_nodes, would divide the total number of nodes by the number of worker threads, would result in considerable load imbalance.
 
 Using the #pragma omp parallel for schedule(dynamic) directive is the perfect counter to this. Dynamic scheduling instructs the OpenMP runtime to initialize a centralized work queue, and as worker threads become idle, they pull the next available chunk of iterations from the queue. This dynamic load balancing ensures that no thread sits idle while the work queue is not empty (Kloberdanz 2020).
 
@@ -302,9 +302,9 @@ SIMD Vectorization
 Leveraging thread-level parallelism with OpenMP is a great way to speed up the FMM algorithm, but we can take this one step further with instruction-level parallelism. Modern CPUs are equipped with SIMD vector units that enable them to perform the same operation on multiple data points simultaneously (Xie et al. 2023). Instruction sets like the AVX-256 or AVX-512 (Advanced Vector Extensions) use large hardware registers, in the case of the AVX-512, 512 bits wide, which can hold four std::complex<double>(64 bits each for the real and imaginary parts) values at once.
 OpenMP’s #pragma omp simd allows us to instruct the compiler to generate these specific hardware-level instructions needed to take advantage of these vector units. The general rule for where we can apply this directive is to look for innermost loops that perform simple, predictable arithmetic (especially reductions like sum += ...) without branching (if/else), function calls, or memory allocations. We use this directive in the innermost loops of the compute_upward_pass, compute_horizontal_pass, and compute_downward_pass functions, which perform the core arithmetic of the FMM algorithm. All these inner loops are of the type sum += A[i] * B[i]. These get compiled to the hardware-level FMA instruction, which performs multiplication and addition in a single step, reducing latency and improving performance (Fog 2022).
 
-Atomic Operations
-
 Solving the system - vmult + GMRES + The Real-Equivalent system
+
+The BEM discretization leads to a dense, complex-valued linear system that is complex symmetric but not Hermitian, and therefore cannot be solved by methods like the Conjugate Gradient (Shirron and BabGkab, n.d.). While a direct solver can be used, it scales as 𝒪(N³), which quickly becomes infeasible for large systems. Iterative solvers offer a great alternative, reducing computational cost to 𝒪(N_(i)terN²), especially when combined with the FMM’s shift to matrix-free operator evaluations that does not require storing all N² matrix elements (Gumerov and Duraiswami 2009).
 
 Performance Analysis and Validation
 
@@ -369,6 +369,8 @@ Fog, Agner. 2022. VCL C++ Vector Class Library Manual. August 7.
 
 Greengard, L, and V Rokhlin. 1987. “A Fast Algorithm for Particle Simulations.” Journal of Computational Physics 73 (2): 325–48. https://doi.org/10.1016/0021-9991(87)90140-9.
 
+Gumerov, Nail A., and Ramani Duraiswami. 2009. “A Broadband Fast Multipole Accelerated Boundary Element Method for the Three Dimensional Helmholtz Equation.” The Journal of the Acoustical Society of America 125 (1): 191–205. https://doi.org/10.1121/1.3021297.
+
 Kirkup, Stephen. 1998. The Boundary Element Method in Acoustics: A Development in Fortran. Integral Equation Methods in Engineering 1. Integrated Sound Software.
 
 Kloberdanz, Kyle. 2020. “OpenMP - Static or Dynamic Scheduling?” Blog. May 10. https://kkloberdanz.github.io/2020-05-10.html.
@@ -384,6 +386,8 @@ Malhotra, Dhairya, and George Biros. 2015. “PVFMM: A Parallel Kernel Independe
 Marburg, S. 2008. “Boundary Element Method for Time-Harmonic Acoustic Problems.” In Computational Acoustics of Noise Propagation in Fluids, edited by S. Marburg and B. Nolte. Springer.
 
 Rokhlin, V. 1990. “Rapid Solution of Integral Equations of Scattering Theory in Two Dimensions.” Journal of Computational Physics 86 (2): 414–39. https://doi.org/10.1016/0021-9991(90)90107-C.
+
+Shirron, Joseph J, and Ivo BabGkab. n.d. A Comparison of Approximate Boundary Conditions and Infinite Methods for Exterior Helmholtz Problems.
 
 Wu, T. W. 2000. Boundary Element Acoustics: Fundamentals and Computer Codes. WIT Press.
 
