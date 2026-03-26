@@ -6,4 +6,5 @@
     \item The current implementation of the computation of the external field uses drect computations of the green's function. This can be upgraded to use the FMM approximation in the future, which will be faster for large problems.
     \item The current implementation is strictly for scattering off of sound hard objects. The next step would be to implment the option to set an arbitrary impedance boundary condition.
     \item The current implementation is strictly for a  stationary mesh.
+    \item Some researchers have proposed using a low-accuracy \ac{FMM} pass as a precondtionerfor the iterative solver. This can be implemented via \texttt{deal.II::SolverFGMRES}, the flexible variant of \ac{GMRES} that allows for a different preconditioner at each iteration. 
 \end{itemize}

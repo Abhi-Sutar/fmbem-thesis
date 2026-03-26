@@ -320,9 +320,40 @@ We get around this limitation by formulating our complex-valued system as its eq
 
 Our implementation of the RealFMMOperator struct is shown in Appendix 8.2.
 
-While iterative Krylov space solvers like GMRES are quite robust in their convergence, convergence depends on the matrix’s spectral properties and condition number (Saad and Schultz 1986). The real-equivalent formulations can, in theory, produce eigenvalue distributions that are unfavorable for the convergence of GMRES. To ensure fast convergence, we employ a preconditioner to improve the system’s spectral properties. The Jacobi-block-diagonal preconditioner (Day and Heroux 2001) we implement extracts the complex-scalar diagonal from the near-field sparse matrix we assembled for the FMM and applies its inverse to the equivalent real 2N × 2N matrix. The exact implementation of this preconditioner is shown in Appendix 8.3.
+While iterative Krylov space solvers like GMRES are quite robust in their convergence, convergence depends on the matrix’s spectral properties and condition number (Saad and Schultz 1986). The real-equivalent formulations can, in theory, produce eigenvalue distributions that are unfavorable for the convergence of GMRES. To ensure fast convergence, we employ a preconditioner to improve the system’s spectral properties. The Jacobi-block-diagonal preconditioner (Day and Heroux 2001) we implement extracts the complex-scalar diagonal from the near-field sparse matrix we assembled for the FMM and stores its inverse. Deal.II’s GMRES, which by default uses left preconditioning, then applies this to the residuals which it tries to minimize. The exact implementation of this preconditioner is shown in Appendix 8.3.
 
 Performance Analysis and Validation
+
+We have thus far discussed the step by step implemenation of a FMM based solver for the BEM formulation of the acoustic scattering problem. In this chapter we present the results of the validation of our implementation against analytical solutions, show the effect of using the Burton-Miller formulation, and analyze the performance of our implementation in terms of computational time against the performance of a traditional BEM solver.
+
+Validation against Analytical Solution
+
+When implementing a new solver, it is critical to validate the implementation against known solutions to ensure that the solver is correctly implemented and produces accurate results. The acoustic scattering from sound-hard boundaries problem that we have implement our solver for, has a known analytical solution for the case of a single spherical scatterer in a medium excited by a plane wave.
+The plane wave is given by:
+
+$$\begin{equation*}
+    p_{\mathrm{b}}\,=\,p_{0}e^{-i(\mathbf{k}\cdot\mathbf{x})}\,=\,p_{0}e^{-i k_{s}\left({\frac{\mathbf{x}\cdot\mathbf{e}_{k}}{\left|\left|\mathbf{e}_{k}\right|\right|}}\right)}
+\end{equation*}$$
+
+where p₀ is the amplitude of the plane wave, k is the wave vector with amplitude k_(s), e_(k) is the unit vector in the direction of wave propagation, and x is the position vector.
+
+The analytical solution for the scattered pressure field is given as a a series expansion in terms of spherical harmonics and spherical Bessel functions, as follows:
+
+$$\begin{equation*}
+    p_{s}=p_{0}\left\{\sum_{n=0}^{\infty}\mathrm{i}^{n}(2n+1)\frac{j_{n}^{\prime}(k R)}{h_{n}^{\prime}(k R)}P_{n}(\cos\theta)h_{n}(k r)\right\}
+\end{equation*}$$
+
+where p₀ is the amplitude of the incident plane wave, j_(n) and h_(n) are the spherical Bessel and Hankel functions of the first kind, respectively, R is the radius of the spherical scatterer, P_(n) is the Legendre polynomial of degree n, θ is the angle between the direction of wave propagation and the position vector of the external point x we are computing the scattered field at, and r is defined as the distance r = |x − x₀|. with x₀ being the center of the spherical scatterer (Marburg 2016).
+
+While the series expansion is infinite, in practice we can truncate the series at a finite number of terms, N, to get an approximation of the scattered field.
+
+Effect of the Burton Miller Formulation
+
+esewetwe
+
+Performance Analysis
+
+rgrseem
 
 Conclusion and Future Directions
 
@@ -335,6 +366,8 @@ Conclusion and Future Directions
 - The current implementation is strictly for scattering off of sound hard objects. The next step would be to implment the option to set an arbitrary impedance boundary condition.
 
 - The current implementation is strictly for a stationary mesh.
+
+- Some researchers have proposed using a low-accuracy FMM pass as a precondtionerfor the iterative solver. This can be implemented via deal.II::SolverFGMRES, the flexible variant of GMRES that allows for a different preconditioner at each iteration.
 
 [TUM]Technical University of Munich
 [BEM]Boundary Element Method
@@ -486,6 +519,8 @@ Liu, Yijun. 2009. Fast Multipole Boundary Element Method: THEORY AND APPLICATION
 Malhotra, Dhairya, and George Biros. 2015. “PVFMM: A Parallel Kernel Independent FMM for Particle and Volume Potentials.” Communications in Computational Physics 18 (3): 808–30. https://doi.org/10.4208/cicp.020215.150515sw.
 
 Marburg, S. 2008. “Boundary Element Method for Time-Harmonic Acoustic Problems.” In Computational Acoustics of Noise Propagation in Fluids, edited by S. Marburg and B. Nolte. Springer.
+
+Marburg, Steffen. 2016. “The Burton and Miller Method: Unlocking Another Mystery of Its Coupling Parameter.” Journal of Computational Acoustics 24 (01): 1550016. https://doi.org/10.1142/S0218396X15500162.
 
 Rokhlin, V. 1990. “Rapid Solution of Integral Equations of Scattering Theory in Two Dimensions.” Journal of Computational Physics 86 (2): 414–39. https://doi.org/10.1016/0021-9991(90)90107-C.
 
