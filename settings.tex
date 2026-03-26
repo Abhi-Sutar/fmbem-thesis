@@ -37,6 +37,16 @@
 \usetikzlibrary{arrows.meta}
 \usetikzlibrary{decorations.markings}
 
+
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+       \step[fieldsource=entrykey, match={dealiilibrarysolvergmres}, final]
+        \step[fieldset=shorthand, fieldvalue={DII:GMRES}]
+    }
+  }
+}
+
 \hypersetup{hidelinks} % removes colored boxes around references and links
 
 % for fachschaft_print.pdf
