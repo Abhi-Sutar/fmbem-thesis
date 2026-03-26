@@ -324,11 +324,11 @@ While iterative Krylov space solvers like GMRES are quite robust in their conver
 
 Performance Analysis and Validation
 
-We have thus far discussed the step by step implemenation of a FMM based solver for the BEM formulation of the acoustic scattering problem. In this chapter we present the results of the validation of our implementation against analytical solutions, show the effect of using the Burton-Miller formulation, and analyze the performance of our implementation in terms of computational time against the performance of a traditional BEM solver.
+We have thus far discussed the step-by-step implementation of an FMM-based solver for the BEM formulation of the acoustic scattering problem. In this chapter, we present the results of validating our implementation against analytical solutions, show the effect of using the Burton-Miller formulation, and analyze the performance of our implementation in terms of computational time compared with a traditional BEM solver.
 
 Validation against Analytical Solution
 
-When implementing a new solver, it is critical to validate the implementation against known solutions to ensure that the solver is correctly implemented and produces accurate results. The acoustic scattering from sound-hard boundaries problem that we have implement our solver for, has a known analytical solution for the case of a single spherical scatterer in a medium excited by a plane wave.
+When implementing a new solver, it is critical to validate it against known solutions to ensure it is correctly implemented and produces accurate results. The "acoustic scattering from sound-hard boundaries" problem that we have implemented our solver for has a known analytical solution for a single spherical scatterer in a medium excited by a plane wave.
 The plane wave is given by:
 
 $$\begin{equation*}
@@ -337,23 +337,80 @@ $$\begin{equation*}
 
 where p₀ is the amplitude of the plane wave, k is the wave vector with amplitude k_(s), e_(k) is the unit vector in the direction of wave propagation, and x is the position vector.
 
-The analytical solution for the scattered pressure field is given as a a series expansion in terms of spherical harmonics and spherical Bessel functions, as follows:
+The analytical solution for the scattered pressure field is given as a series expansion in terms of spherical harmonics and spherical Bessel functions, as follows:
 
 $$\begin{equation*}
     p_{s}=p_{0}\left\{\sum_{n=0}^{\infty}\mathrm{i}^{n}(2n+1)\frac{j_{n}^{\prime}(k R)}{h_{n}^{\prime}(k R)}P_{n}(\cos\theta)h_{n}(k r)\right\}
 \end{equation*}$$
 
-where p₀ is the amplitude of the incident plane wave, j_(n) and h_(n) are the spherical Bessel and Hankel functions of the first kind, respectively, R is the radius of the spherical scatterer, P_(n) is the Legendre polynomial of degree n, θ is the angle between the direction of wave propagation and the position vector of the external point x we are computing the scattered field at, and r is defined as the distance r = |x − x₀|. with x₀ being the center of the spherical scatterer (Marburg 2016).
+where p₀ is the amplitude of the incident plane wave, j_(n) and h_(n) are the spherical Bessel and Hankel functions of the first kind, respectively, R is the radius of the spherical scatterer, P_(n) is the Legendre polynomial of degree n, θ is the angle between the direction of wave propagation and the position vector of the external point x we are computing the scattered field at, and r is defined as the distance r = |x − x₀|, with x₀ being the center of the spherical scatterer (Marburg 2016).
 
-While the series expansion is infinite, in practice we can truncate the series at a finite number of terms, N, to get an approximation of the scattered field.
+While the series is infinite, in practice we can truncate it at a finite number of terms, N, to obtain an approximation of the scattered field. We use a slightly modified version of an empirical formula as shown by (Wiscombe 1980) to determine the number of terms we use:
+$$\begin{equation*}
+    N_{\text{max}} = \left[r ka + 4(ka)^{\frac{1}{3}} + 10 \right]
+\end{equation*}$$
+
+where ka is the size parameter, defined as the product of the wavenumber k and the radius of the scatterer a.
+
+We compare the results of our implementation with the analytical solution using a python script that computes the analytical solution for all the collocation points on the surface of the scatterer and then compares these analytical values with the numerical solution obtained from our FMM implementation.
+We run our solver for a single spherical scatterer with the following parameters:
+
+- Radius a: 0.1 m
+
+- Number of elements N: 1533 quad elements
+
+- Frequency f: 500 Hz
+
+- Speed of sound c: 343 m/s
+
+- Wave direction e_(k): [1, 0, 0], i.e., the wave is propagating in the positive x-direction.
+
+This results in a size parameter of ka = 9.159162  ×  10⁻⁰¹, which gives us N_(max) = 14 using our particular empirical criterion. We find that the results from our implementation match the analytical solution with a relative L₂ error, calculated as $\frac{\| p_{\mathrm{num}} - p_{\mathrm{ana}} \|_2}{\| p_{\mathrm{ana}} \|_2}$ of 1.062840  ×  10⁻⁰² for the absolute pressure values at the collocation points.
+
+  Domain            L₂ Relative Error    Max Absolute Error (L_(∞))   Mean Magnitude Error
+  --------------- --------------------- ---------------------------- ----------------------
+  Surface          1.06 × 10⁻² (1.06%)          2.66 × 10⁻²               6.30 × 10⁻³
+  Slice (z = 0)    5.61 × 10⁻⁴ (0.05%)          7.24 × 10⁻³               2.22 × 10⁻⁴
+
+  : Error metrics for scattering from a rigid sphere (a = 0.1 m, f = 500 Hz, ka ≈ 0.92).
+
+[]
+
+[]
+
+[]
+
+[]
 
 Effect of the Burton Miller Formulation
 
-esewetwe
+As we have discussed in 3.4, the BM formulation is used to mitigate the non-existence of unique solutions at certain characteristic frequencies. To demostrate the effect of using the BM formulation, we imlplemented the BM formulation in our code to be toggled on and off via a command line flag at runtime. We ran the solver for a sweep of frquencies from 100Hz to 3000Hz for a single spherical scatterer with the same parameters as in 6.1, and compared the results with the analytical solution. We especially include the characteristic frequencies, which for a sound-hard sphere are the Dirichlet Resonances, given by the roots of the spherical Bessel function of the first kind, j_(n)(ka) = 0. Our test script hardcodes the ka values corresponding to the resonances present within the range of our frequency sweep. These fictitious values lying within 100Hz to 3000Hz are:
+
+1.  f = 1715Hz which corresponds to first harmonic of a 0.1m radius sphere.
+
+2.  f = 2453Hz which is the first dipole resonance corresponding to a wavenumber ka = 4.49341.
+
+(Klaseboer et al. 2019).
+
+[]
+
+[]
+
+The non BM frequency sweep 6.6 shows the spikes at the characteristic frequencies, while the one with BM 6.7 shows that the error at these frequencies is in line with errors at neighbouring frequencies, demonstrating the effectiveness of the BM formulation in eliminating the non-uniqueness issue at the characteristic frequencies. We can also see that the overall error with the BM formulation is slightly higher than without. This is expected, as the BM introduce the HBIE to the system. As the HBIE has a stronger singularity than the BIE, the numerical quadrature errors arising from the singlarity of the HBIE kernel are higher than those arising from the CBIE kernel, leading to a higher overall error for the BM formulation compared to the non-BM formulation.
 
 Performance Analysis
 
-rgrseem
+The main motivation for implementing the FMM is that it offers much better scaling as compared to the traditional BEM approach. Traditional BEM with direct solvers has a computational complexity of 𝒪(N³), while FMM, even with the additional overheads of managing the hierarchical structure, has a computational complexity of $\mathcal{O}(N^{\frac{3}{2}})$ or even 𝒪(Nlog N) for a multilevel implementation with iterative solvers. To test the scaling of or FMM implementation, we run both the FMM and a traditional BEM solver for a series of meshes containing a grid of identical spherical scatterers, with the number of spheres increasing from 1 to 169. We plot the time take to set up the system matrix for the traditional BEM, as compared to the time taken to set up the FMM data structures precompute the translation operators. We compare the time taken by the direct solver for the traditional BEM with the time taken by the GMRES solver for the FMM. Lastly, we plot the total time taken by each method as a whole.
+
+[]
+
+[]
+
+[]
+
+In all these timing plots 6.8, 6.9, and 6.10, we have included guidelines corresponding to the closest asymptotic complexity for each timing curve.
+Let us consider the traditional BEM first. The time taken to set up the system matrix scales as 𝒪(N²), which is expected as we have to compute the interaction between every pair of elements. The time taken to solve the system scales as 𝒪(N³), but considering the solving time makes up the bulk of the total time needed for the traditional BEM, the total time also scales as 𝒪(N³).
+The FMM build time scales as 𝒪(N) This time is dominated by the time taken to compute the M2L translation operators, the number of which scales somewhat linearly with N elements. The solution time taken by the Real-Equivalent system with GMRES scales as $\mathcal{O}(N^{\frac{3}{2}})$. As the amoutn of overhead needed to setup the FMM data structures and precompute the translation operators goes down as a percentage of the total time taken as N increases, the total time taken by the FMM scales as 𝒪(NlogN).
 
 Conclusion and Future Directions
 
@@ -373,6 +430,8 @@ Conclusion and Future Directions
 [BEM]Boundary Element Method
 [FMM]Fast Multipole Method
 [BIE]Boundary Integral Equation
+[BM]Burton-Miller
+[CBIE]Conventional Boundary Integral Equation
 [HBIE]Hypersingular Boundary Integral Equation
 [M2M]Multipole-to-Multipole
 [M2L]Multipole-to-Local
@@ -508,6 +567,8 @@ Gumerov, Nail A., and Ramani Duraiswami. 2009. “A Broadband Fast Multipole Acc
 
 Kirkup, Stephen. 1998. The Boundary Element Method in Acoustics: A Development in Fortran. Integral Equation Methods in Engineering 1. Integrated Sound Software.
 
+Klaseboer, Evert, Florian D. E. Charlet, Boo-Cheong Khoo, Qiang Sun, and Derek Y. C. Chan. 2019. “Eliminating the Fictitious Frequency Problem in BEM Solutions of the External Helmholtz Equation.” Engineering Analysis with Boundary Elements 109 (December): 106–16. https://doi.org/10.1016/j.enganabound.2019.06.021.
+
 Kloberdanz, Kyle. 2020. “OpenMP - Static or Dynamic Scheduling?” Blog. May 10. https://kkloberdanz.github.io/2020-05-10.html.
 
 Kohnke, Bartosz, Carsten Kutzner, Andreas Beckmann, et al. 2021. “A CUDA Fast Multipole Method with Highly Efficient M2L Far Field Evaluation.” The International Journal of High Performance Computing Applications 35 (1): 97–117. https://doi.org/10.1177/1094342020964857.
@@ -529,6 +590,8 @@ Saad, Youcef, and Martin H. Schultz. 1986. “GMRES: A Generalized Minimal Resid
 Shirron, Joseph J, and Ivo Babuska. n.d. A Comparison of Approximate Boundary Conditions and Infinite Methods for Exterior Helmholtz Problems.
 
 “The Deal.II Library: SolverGMRES< VectorType > Class Template Reference.” n.d. Accessed March 25, 2026. https://dealii.org/9.4.1/doxygen/deal.II/classSolverGMRES.html.
+
+Wiscombe, W. J. 1980. “Improved Mie Scattering Algorithms.” Applied Optics 19 (9): 1505. https://doi.org/10.1364/AO.19.001505.
 
 Wu, T. W. 2000. Boundary Element Acoustics: Fundamentals and Computer Codes. WIT Press.
 

@@ -122,7 +122,7 @@ The non \ac{BM} frequency sweep \autoref{fig:frequency_sweep_no_bm} shows the sp
 \section{Performance Analysis} \label{sec:performance-analysis}
 The main motivation for implementing the \ac{FMM} is that it offers much better scaling as compared to the traditional \ac{BEM} approach. Traditional \ac{BEM} with direct solvers has a computational complexity of $\mathcal{O}(N^3)$, while \ac{FMM}, even with the additional overheads of managing the hierarchical structure, has a computational complexity of $\mathcal{O}(N^{\frac{3}{2}})$ or even $\mathcal{O}(N \log N)$ for a multilevel implementation with iterative solvers. To test the scaling of or \ac{FMM} implementation, we run both the \ac{FMM} and a traditional \ac{BEM} solver for a series of meshes containing a grid of identical spherical scatterers, with the number of spheres increasing from 1 to 169. We plot the time take to set up the system matrix for the traditional \ac{BEM}, as compared to the time taken to set up the \ac{FMM} data structures precompute the translation operators. We compare the time taken by the direct solver for the traditional \ac{BEM} with the time taken by the \ac{GMRES} solver for the \ac{FMM}. Lastly, we plot the total time taken by each method as a whole.
 
-\todo{Add the non OpenMP plots}
+
 
 \begin{figure}[htpb]
     \centering
@@ -147,7 +147,7 @@ The main motivation for implementing the \ac{FMM} is that it offers much better 
     \label{fig:total_time_comparison}
     
 \end{figure}
-
+\todo{Add the non OpenMP plots}
 In all these timing plots \autoref{fig:setup_time_comparison}, \autoref{fig:solve_time_comparison}, and \autoref{fig:total_time_comparison}, we have included guidelines corresponding to the closest asymptotic complexity for each timing curve.
 Let us consider the traditional \ac{BEM} first. The time taken to set up the system matrix scales as $\mathcal{O}(N^2)$, which is expected as we have to compute the interaction between every pair of elements. The time taken to solve the system scales as $\mathcal{O}(N^3)$, but considering the solving time makes up the bulk of the total time needed for the traditional \ac{BEM}, the total time also scales as $\mathcal{O}(N^3)$.
 The \ac{FMM} build time scales as $\mathcal{O}(N)$ This time is dominated by the time taken to compute the \ac{M2L} translation operators, the number of which scales somewhat linearly with $N$ elements. The solution time taken by the Real-Equivalent system with \ac{GMRES} scales as $\mathcal{O}(N^{\frac{3}{2}})$. As the amoutn of overhead needed to setup the \ac{FMM} data structures and precompute the translation operators goes down as a percentage of the total time taken as $N$ increases, the total time taken by the \ac{FMM} scales as $\mathcal{O}(NlogN)$.
