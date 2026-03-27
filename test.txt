@@ -352,7 +352,7 @@ $$\begin{equation*}
 
 where ka is the size parameter, defined as the product of the wavenumber k and the radius of the scatterer a.
 
-We compare the results of our implementation with the analytical solution using a python script that computes the analytical solution for all the collocation points on the surface of the scatterer and then compares these analytical values with the numerical solution obtained from our FMM implementation.
+We compare the results of our implementation with the analytical solution using a Python script that computes the analytical solution at all collocation points on the scatterer’s surface, and then compares these analytical values with the numerical solution obtained from our FMM implementation.
 We run our solver for a single spherical scatterer with the following parameters:
 
 - Radius a: 0.1 m
@@ -384,11 +384,11 @@ This results in a size parameter of ka = 9.159162  ×  10⁻⁰¹, whi
 
 Effect of the Burton Miller Formulation
 
-As we have discussed in 3.4, the BM formulation is used to mitigate the non-existence of unique solutions at certain characteristic frequencies. To demostrate the effect of using the BM formulation, we imlplemented the BM formulation in our code to be toggled on and off via a command line flag at runtime. We ran the solver for a sweep of frquencies from 100Hz to 3000Hz for a single spherical scatterer with the same parameters as in 6.1, and compared the results with the analytical solution. We especially include the characteristic frequencies, which for a sound-hard sphere are the Dirichlet Resonances, given by the roots of the spherical Bessel function of the first kind, j_(n)(ka) = 0. Our test script hardcodes the ka values corresponding to the resonances present within the range of our frequency sweep. These fictitious values lying within 100Hz to 3000Hz are:
+As we have discussed in 3.4, the BM formulation is used to mitigate the non-existence of unique solutions at certain characteristic frequencies. To demonstrate the effect of using the BM formulation, we implemented it in our code and toggled it on and off via a command-line flag at runtime. We ran the solver for a sweep of frequencies from 100Hz to 3000Hz for a single spherical scatterer with the same parameters as in 6.1, and compared the results with the analytical solution. We especially include the characteristic frequencies, which for a sound-hard sphere are the Dirichlet Resonances, given by the roots of the spherical Bessel function of the first kind, j_(n)(ka) = 0. Our test script hardcodes the ka values corresponding to the resonances present within the range of our frequency sweep. These fictitious values lying within 100Hz to 3000Hz are:
 
-1.  f = 1715Hz which corresponds to first harmonic of a 0.1m radius sphere.
+1.  f = 1715Hz, which corresponds to the first harmonic of a 0.1m radius sphere.
 
-2.  f = 2453Hz which is the first dipole resonance corresponding to a wavenumber ka = 4.49341.
+2.  f = 2453Hz, which is the first dipole resonance corresponding to a wavenumber ka = 4.49341.
 
 (Klaseboer et al. 2019).
 
@@ -400,7 +400,7 @@ The non BM frequency sweep 6.6 shows the spikes at the characteristic frequencie
 
 Performance Analysis
 
-The main motivation for implementing the FMM is that it offers much better scaling as compared to the traditional BEM approach. Traditional BEM with direct solvers has a computational complexity of 𝒪(N³), while FMM, even with the additional overheads of managing the hierarchical structure, has a computational complexity of $\mathcal{O}(N^{\frac{3}{2}})$ or even 𝒪(Nlog N) for a multilevel implementation with iterative solvers. To test the scaling of or FMM implementation, we run both the FMM and a traditional BEM solver for a series of meshes containing a grid of identical spherical scatterers, with the number of spheres increasing from 1 to 169. We plot the time take to set up the system matrix for the traditional BEM, as compared to the time taken to set up the FMM data structures precompute the translation operators. We compare the time taken by the direct solver for the traditional BEM with the time taken by the GMRES solver for the FMM. Lastly, we plot the total time taken by each method as a whole.
+The main motivation for implementing the FMM is that it offers much better scaling as compared to the traditional BEM approach. Traditional BEM with direct solvers has a computational complexity of 𝒪(N³). While the FMM has a computational complexity of $\mathcal{O}(N^{\frac{3}{2}})$ or even 𝒪(Nlog N) for a multilevel implementation with iterative solvers. This means that even with the additional overhead of managing the hierarchical structure, the FMM will break even with, and surpass the performance of the BEM. To test the scaling of our FMM implementation, we run both the FMM and a traditional BEM solver on a series of meshes with a grid of identical spherical scatterers, increasing the number of spheres from 1 to 169. We plot the time to set up the system matrix for the traditional BEM, compared with the time to set up the FMM data structures and precompute the translation operators. We compare the time taken by the direct solver for the traditional BEM with the time taken by the GMRES solver for the FMM. Lastly, we plot the total time taken by each method as a whole.
 
 []
 
@@ -409,22 +409,17 @@ The main motivation for implementing the FMM is that it offers much better scali
 []
 
 In all these timing plots 6.8, 6.9, and 6.10, we have included guidelines corresponding to the closest asymptotic complexity for each timing curve.
-Let us consider the traditional BEM first. The time taken to set up the system matrix scales as 𝒪(N²), which is expected as we have to compute the interaction between every pair of elements. The time taken to solve the system scales as 𝒪(N³), but considering the solving time makes up the bulk of the total time needed for the traditional BEM, the total time also scales as 𝒪(N³).
-The FMM build time scales as 𝒪(N) This time is dominated by the time taken to compute the M2L translation operators, the number of which scales somewhat linearly with N elements. The solution time taken by the Real-Equivalent system with GMRES scales as $\mathcal{O}(N^{\frac{3}{2}})$. As the amoutn of overhead needed to setup the FMM data structures and precompute the translation operators goes down as a percentage of the total time taken as N increases, the total time taken by the FMM scales as 𝒪(NlogN).
+Let us consider the traditional BEM first. The time taken to set up the system matrix scales as 𝒪(N²), as we have to compute the interaction between every pair of elements. The time taken to solve the system scales as 𝒪(N³), but considering the solving time makes up the bulk of the total time needed for the traditional BEM, the total time also scales as 𝒪(N³).
+The FMM build time scales as 𝒪(N). TThis time is dominated by the time spent computing the M2L translation operators, the number of which scales somewhat linearly with N elements. The solution time taken by the Real-Equivalent system with GMRES scales as $\mathcal{O}(N^{\frac{3}{2}})$. As the amount of overhead needed to set up the FMM data structures and precompute the translation operators goes down as a percentage of the total time taken as N increases, the total time taken by the FMM scales as 𝒪(Nlog N).
 
 Conclusion and Future Directions
 
-- Currently Burton - Miller is highly optimized for single dof per cell and for perfectly flat panels. That is, FE_Degree = 0 and Mapping_Degree = 1. To support higher degrees, we need to update the hypersingular calculation in the near field operator and the main assemble system method.
+In this work we have developed an implementation of the FMM for the BEM formulation of the Helmholtz equation for sound hard exterior scattering problems. We began with a classical collocation point based implementation of the BEM made with the deal.II library, and proceed to implement the BM formulation of the problem, which mitigates error spikes at certain fictitious frequencies. We built an Octree data structure for the FMM that adpatively subdivides the domain into boxes. We added Z-order space filling curves to make tree traversal more efficient. We implemented the translation matrices for the FMM and the tree traversal with the upward, downward, and horizontal passes. We implemented the matrix-vector multiplication for the FMM which is the crux of the algorithm that lets us solve the sytem without ever having to explicitly assemble the full matrix. We implemented a conversion layer that converts our complex system into the real-equivalent system that allows us to utilize the native deal.II implementation of GMRES to iteratively solve the system. Finally, we leveraged OpenMP strategically to parallelize the computation of the translation matrices and the matrix-vector multiplication for shared memory systems.
 
-- There is some basic parallelization in the code for computing the translation matrices and for the matrix-vector multiplication done with OpenMP pragmas. But, Deal.ii has its native parallelization support using its native datatypes. The FMM also lends itself to parallelization where each node of the FMM tree may reside in an individual process and maintain its own near field matrix, with only the far-off node dipoles having to be passed around. 
+We validated our implementation against a known analytical solution for plane-wave scattering off of a single sphere. We also demonstrated the effectiveness of the BM formulation in mitigating error spikes at fictitious frequencies. Finally, we demonstrated the measurable improvement in the computational order provided by the FMM over a traditional direct BEM approach.
 
-- The current implementation of the computation of the external field uses drect computations of the green’s function. This can be upgraded to use the FMM approximation in the future, which will be faster for large problems.
-
-- The current implementation is strictly for scattering off of sound hard objects. The next step would be to implment the option to set an arbitrary impedance boundary condition.
-
-- The current implementation is strictly for a stationary mesh.
-
-- Some researchers have proposed using a low-accuracy FMM pass as a precondtionerfor the iterative solver. This can be implemented via deal.II::SolverFGMRES, the flexible variant of GMRES that allows for a different preconditioner at each iteration.
+While our implementation has demonstrated its performance, it stil has some limitations that we must acknowledge. The current implementation is not well suited for higher frequencies. we have implemented the original classical mutlipole expansions uusing regular spherical harmonics. As the frequency goes up, we need an ever smaller final leaf node size to maintain accuracy, which leads to increasing depth and increasing number of translation matrices that need to be stored. This can be addressed by implementing the plane wave expansion of the multipole expansions, which is more efficient for higher frequencies, but breaks down for lower frequencies. They can be used together in a combined approach as demonstrated by (Gumerov and Duraiswami 2009).
+Our BM implementation depends on regularization that arises from the use of a single dof per cell and perfectly flat panels. This is not the case for higher order elements, and so we would need to implement a more general regularization approach to support higher order elements. We have also built the solver around purely the sound-hard scatterer problem, and this can be extended to support arbitrary impedance boundary conditions. It would also be interesting to use an iterative solver that natively supports complex numbers and compare it to the convergence of the real-equivalent system we use with GMRES. Also, the use of flexible iterative solvere with adjustable preconditioners, where the preconditioning is based on the solution of a coarser FMM itself could be interesting to implement. Finally, we have only implemented a shared memory parallelization strategy with OpenMP, but the FMM lends itself to distributed memory parallelization as well, and this can be implemented with MPI.
 
 [TUM]Technical University of Munich
 [BEM]Boundary Element Method

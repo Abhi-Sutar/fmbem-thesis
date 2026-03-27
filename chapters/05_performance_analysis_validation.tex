@@ -28,7 +28,7 @@ While the series is infinite, in practice we can truncate it at a finite number 
 
 where $ka$ is the size parameter, defined as the product of the wavenumber $k$ and the radius of the scatterer $a$. 
 
-We compare the results of our implementation with the analytical solution using a python script that computes the analytical solution for all the collocation points on the surface of the scatterer and then compares these analytical values with the numerical solution obtained from our \ac{FMM} implementation. 
+We compare the results of our implementation with the analytical solution using a \texttt{Python} script that computes the analytical solution at all collocation points on the scatterer's surface, and then compares these analytical values with the numerical solution obtained from our \ac{FMM} implementation. 
 We run our solver for a single spherical scatterer with the following parameters: 
 \begin{itemize}
     \item \textbf{Radius $a$:} 0.1 m
@@ -91,43 +91,44 @@ This results in a size parameter of $ka =\num{9.159162e-01}$, which gives us $N_
         \label{fig:sphere_diff}
     \end{subfigure}
     
-    \caption{Comparison of the surface pressure fields for acoustic scattering by a rigid sphere ($a = 0.1$ m, $f = 500$ Hz, $ka \approx 0.92$). The analytical partial wave series (a) and the BEM numerical solution (b) show excellent visual agreement. The absolute error map (c) isolates the local discretization error, which peaks at a magnitude of 0.026.}
+    \caption{Comparison of the surface pressure fields for acoustic scattering by a rigid sphere ($a = 0.1$ m, $f = 500$ Hz, $ka \approx 0.92$). The analytical partial wave series (a) and the \ac{BEM} numerical solution (b) show excellent visual agreement. The absolute error map (c) isolates the local discretization error, which peaks at a magnitude of 0.026.}
     \label{fig:sphere_comparison}
 \end{figure}
 \todo{Fix plot scales in paraview}
 
 \section{Effect of the Burton Miller Formulation} \label{sec:effect-burton-miller}
-As we have discussed in \autoref{sec:burton-miller}, the \ac{BM} formulation is used to mitigate the non-existence of unique solutions at certain characteristic frequencies. To demostrate the effect of using the \ac{BM} formulation, we imlplemented the \ac{BM} formulation in our code to be toggled on and off via a command line flag at runtime. We ran the solver for a sweep of frquencies from $100 Hz$ to $3000 Hz$ for a single spherical scatterer with the same parameters as in \autoref{sec:validation-analytical-solution}, and compared the results with the analytical solution. We especially include the characteristic frequencies, which for a sound-hard sphere are the Dirichlet Resonances, given by the roots of the spherical Bessel function of the first kind, $j_n(ka) = 0$. Our test script hardcodes the $ka$ values corresponding to the resonances present within the range of our frequency sweep. These fictitious values lying within $100 Hz$ to $3000 Hz$ are:
+As we have discussed in \autoref{sec:burton-miller}, the \ac{BM} formulation is used to mitigate the non-existence of unique solutions at certain characteristic frequencies.  To demonstrate the effect of using the \ac{BM} formulation, we implemented it in our code and toggled it on and off via a command-line flag at runtime. We ran the solver for a sweep of frequencies from $100 Hz$ to $3000 Hz$ for a single spherical scatterer with the same parameters as in \autoref{sec:validation-analytical-solution}, and compared the results with the analytical solution. We especially include the characteristic frequencies, which for a sound-hard sphere are the Dirichlet Resonances, given by the roots of the spherical Bessel function of the first kind, $j_n(ka) = 0$. Our test script hardcodes the $ka$ values corresponding to the resonances present within the range of our frequency sweep. These fictitious values lying within $100 Hz$ to $3000 Hz$ are:
 \begin{enumerate}
-\item $f = 1715 Hz $ which corresponds to first harmonic of a $0.1 m$ radius sphere.
-\item $f = 2453 Hz$ which is the first dipole resonance corresponding to a wavenumber $ka =  4.49341$.
+\item $f = 1715 Hz$, which corresponds to the first harmonic of a $0.1 m$ radius sphere.
+\item $f = 2453 Hz$, which is the first dipole resonance corresponding to a wavenumber $ka =  4.49341$.
 \end{enumerate} \cite{klaseboereliminatingfictitiousfrequency2019}. 
 
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=0.8\textwidth]{figures/burton_miller/FMM_freq_sweep.png}
-    \caption{L2 error plot for the FMM without \ac{BM} formulation.}
+    \caption{L2 error plot for the \ac{FMM} without \ac{BM} formulation.}
     \label{fig:frequency_sweep_no_bm}
 \end{figure}
 
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=0.8\textwidth]{figures/burton_miller/sweep_results_bm.png}
-    \caption{L2 error plot for the FMM with \ac{BM} formulation.}
+    \caption{L2 error plot for the \ac{FMM} with \ac{BM} formulation.}
     \label{fig:frequency_sweep_bm}
 \end{figure}
 
 The non \ac{BM} frequency sweep \autoref{fig:frequency_sweep_no_bm} shows the spikes at the characteristic frequencies, while the one with \ac{BM} \autoref{fig:frequency_sweep_bm} shows that the error at these frequencies is in line with errors at neighbouring frequencies, demonstrating the effectiveness of the \ac{BM} formulation in eliminating the non-uniqueness issue at the characteristic frequencies. We can also see that the overall error with the \ac{BM} formulation is slightly higher than without. This is expected, as the \ac{BM} introduce the \ac{HBIE} to the system. As the \ac{HBIE} has a stronger singularity than the \ac{BIE}, the numerical quadrature errors arising from the singlarity of the \ac{HBIE} kernel are higher than those arising from the \ac{CBIE} kernel, leading to a higher overall error for the \ac{BM} formulation compared to the non-\ac{BM} formulation.
 
 \section{Performance Analysis} \label{sec:performance-analysis}
-The main motivation for implementing the \ac{FMM} is that it offers much better scaling as compared to the traditional \ac{BEM} approach. Traditional \ac{BEM} with direct solvers has a computational complexity of $\mathcal{O}(N^3)$, while \ac{FMM}, even with the additional overheads of managing the hierarchical structure, has a computational complexity of $\mathcal{O}(N^{\frac{3}{2}})$ or even $\mathcal{O}(N \log N)$ for a multilevel implementation with iterative solvers. To test the scaling of or \ac{FMM} implementation, we run both the \ac{FMM} and a traditional \ac{BEM} solver for a series of meshes containing a grid of identical spherical scatterers, with the number of spheres increasing from 1 to 169. We plot the time take to set up the system matrix for the traditional \ac{BEM}, as compared to the time taken to set up the \ac{FMM} data structures precompute the translation operators. We compare the time taken by the direct solver for the traditional \ac{BEM} with the time taken by the \ac{GMRES} solver for the \ac{FMM}. Lastly, we plot the total time taken by each method as a whole.
+
+The main motivation for implementing the \ac{FMM} is that it offers much better scaling as compared to the traditional \ac{BEM} approach. Traditional \ac{BEM} with direct solvers has a computational complexity of $\mathcal{O}(N^3)$. While the \ac{FMM} has a computational complexity of $\mathcal{O}(N^{\frac{3}{2}})$ or even $\mathcal{O}(N \log N)$ for a multilevel implementation with iterative solvers. This means that even with the additional overhead of managing the hierarchical structure, the \ac{FMM} will break even with, and surpass the performance of the \ac{BEM}. To test the scaling of our \ac{FMM} implementation, we run both the \ac{FMM} and a traditional \ac{BEM} solver on a series of meshes with a grid of identical spherical scatterers, increasing the number of spheres from 1 to 169. We plot the time to set up the system matrix for the traditional \ac{BEM}, compared with the time to set up the \ac{FMM} data structures and precompute the translation operators. We compare the time taken by the direct solver for the traditional \ac{BEM} with the time taken by the GMRES solver for the \ac{FMM}. Lastly, we plot the total time taken by each method as a whole.
 
 
 
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/OpenMP/timings_comparison_Build_openmp1_13.png}
-    \caption{Time taken to set up the system matrix for the traditional BEM, as compared to the time taken to set up the FMM data structures and precompute the translation operators.}
+    \caption{Time taken to set up the system matrix for the traditional \ac{BEM}, as compared to the time taken to set up the \ac{FMM} data structures and precompute the translation operators.}
     \label{fig:setup_time_comparison}
     
 \end{figure}
@@ -135,7 +136,7 @@ The main motivation for implementing the \ac{FMM} is that it offers much better 
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/OpenMP/timings_comparison_Solve_openmp1_13.png}
-    \caption{Time taken to solve the system for the traditional BEM, as compared to the time taken to solve the FMM system.}
+    \caption{Time taken to solve the system for the traditional \ac{BEM}, as compared to the time taken to solve the \ac{FMM} system.}
     \label{fig:solve_time_comparison}
     
 \end{figure}
@@ -143,12 +144,12 @@ The main motivation for implementing the \ac{FMM} is that it offers much better 
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/OpenMP/timings_comparison_totals_openmp1_13.png}
-    \caption{Total time taken by the traditional BEM, as compared to the time taken by the FMM.}
+    \caption{Total time taken by the traditional \ac{BEM}, as compared to the time taken by the \ac{FMM}.}
     \label{fig:total_time_comparison}
     
 \end{figure}
 \todo{Add the non OpenMP plots}
 In all these timing plots \autoref{fig:setup_time_comparison}, \autoref{fig:solve_time_comparison}, and \autoref{fig:total_time_comparison}, we have included guidelines corresponding to the closest asymptotic complexity for each timing curve.
-Let us consider the traditional \ac{BEM} first. The time taken to set up the system matrix scales as $\mathcal{O}(N^2)$, which is expected as we have to compute the interaction between every pair of elements. The time taken to solve the system scales as $\mathcal{O}(N^3)$, but considering the solving time makes up the bulk of the total time needed for the traditional \ac{BEM}, the total time also scales as $\mathcal{O}(N^3)$.
-The \ac{FMM} build time scales as $\mathcal{O}(N)$ This time is dominated by the time taken to compute the \ac{M2L} translation operators, the number of which scales somewhat linearly with $N$ elements. The solution time taken by the Real-Equivalent system with \ac{GMRES} scales as $\mathcal{O}(N^{\frac{3}{2}})$. As the amoutn of overhead needed to setup the \ac{FMM} data structures and precompute the translation operators goes down as a percentage of the total time taken as $N$ increases, the total time taken by the \ac{FMM} scales as $\mathcal{O}(NlogN)$.
-\todo{add explanations for why the FMM scales as it does}
+Let us consider the traditional \ac{BEM} first. The time taken to set up the system matrix scales as $\mathcal{O}(N^2)$, as we have to compute the interaction between every pair of elements. The time taken to solve the system scales as $\mathcal{O}(N^3)$, but considering the solving time makes up the bulk of the total time needed for the traditional \ac{BEM}, the total time also scales as $\mathcal{O}(N^3)$.
+The \ac{FMM} build time scales as $\mathcal{O}(N)$. TThis time is dominated by the time spent computing the \ac{M2L} translation operators, the number of which scales somewhat linearly with $N$ elements. The solution time taken by the Real-Equivalent system with \ac{GMRES} scales as $\mathcal{O}(N^{\frac{3}{2}})$. As the amount of overhead needed to set up the \ac{FMM} data structures and precompute the translation operators goes down as a percentage of the total time taken as $N$ increases, the total time taken by the \ac{FMM} scales as $\mathcal{O}(N\log N)$.
+% TODO: ADD Explanation of FMM scaling
