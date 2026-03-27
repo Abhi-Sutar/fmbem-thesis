@@ -1,3 +1,4 @@
-\chapter{\abstractname}
+\chapter*{\abstractname}
+\addcontentsline{toc}{chapter}{\abstractname}
 
-%TODO: Abstract
+The Boundary Element Method (BEM) is a numerical technique that is well suited to model finite structures in an infinite exterior domain. However, the computational cost of the BEM scales as $\mathcal{O}(N^3)$, where $N$ is the number of degrees of freedom, making it prohibitive for large-scale problems. The Fast Multipole Method (FMM) is an algorithm that can drastically reduce the computational cost to $\mathcal{O}(N^{\frac{3}{2}})$ or even $\mathcal{O}(N \log N)$, by decoupling far-field interactions through hierarchical spatial decomposition and truncated analytical basis expansions. This thesis presents the design, implementation, validation and performance analysis of a high-performance Fast Multipole Method (FMM) accelerated Boundary Element Method (BEM) solver.

@@ -20,47 +20,34 @@ Master’s Thesis in Computational Science and Engineering
 
 Fast Multipole Boundary Element Method for Finite Periodic Structures
 
-Titel der Abschlussarbeit
+Schnelle Multipol-Randelementmethode für endliche periodische Strukturen
 
   ------------------ ----------------------------
   Author:            Abhijeet Abhay Sutar
   Examiner:          Steffen Marburg, Prof. Dr.
   Supervisor:        Arne Hildenbrand, M.Sc.
-  Submission Date:   Submission date
+  Submission Date:   30th March 2026
   ------------------ ----------------------------
 
 I confirm that this master’s thesis is my own work and I have documented all sources and material used.
 
-Munich, Submission date Abhijeet Abhay Sutar
-
-Acknowledgments
+Munich, 30th March 2026 Abhijeet Abhay Sutar
 
 Abstract
 
+The Boundary Element Method (BEM) is a numerical technique that is well suited to model finite structures in an infinite exterior domain. However, the computational cost of the BEM scales as 𝒪(N³), where N is the number of degrees of freedom, making it prohibitive for large-scale problems. The Fast Multipole Method (FMM) is an algorithm that can drastically reduce the computational cost to $\mathcal{O}(N^{\frac{3}{2}})$ or even 𝒪(Nlog N), by decoupling far-field interactions through hierarchical spatial decomposition and truncated analytical basis expansions. This thesis presents the design, implementation, validation and performance analysis of a high-performance Fast Multipole Method (FMM) accelerated Boundary Element Method (BEM) solver.
+
 Introduction
 
-Section
+Simulation of wave propagation and scattering off of objects in infinite space can be very challenging to solve with traditional numerical methods such as the FEM or FDM, which require discretization of the entire domain. They have to truncate the domain, and they need special treatment to handle the infinite domain, such as using Absorbing Boundary Conditions which apply artificial mathematical boundary conditions at these truncated boundaries to absorb outgoing wave and minimize unphysical reflections back into the domain. Another approach is to use PMLs which adds an artificial buffer zone around the domain that absorbs outgoing waves across all non-tangential angles. These methods can be computationally expensive, and due to numerical inaccuracies, they can introduce spurious reflections that can contaminate the solution.
 
-Citation test (Lamport 1994).
+The BEM take a different approach by reformulating the problem as a boundary integral equation, which only requires discretization of the surface of the scatterer, rather than the entire domain. It satisfies the Sommerfeld radiation condition at infinity by construction. This, along with simpler meshing requirement, makes it eminently suitable for solving wave scattering problems in infinite domains. However, the reformulation causes spikes in error due to non-uniqueness of the solution at certain frequencies, known as the characteristic frequencies. While the BM formulation can be used to mitigate this issue, it introduces addition singularities in the integral equation, which can be difficult to handle numerically. The BEM also results in a dense complex system of equations, which can’t be solved using the Conjugate Gradient method, needing to be solved directly at a cost of 𝒪(N³), where N is the number of degrees of freedom.
 
-Acronyms must be added in main.tex and are referenced using macros. The first occurrence is automatically replaced with the long version of the acronym, while all subsequent usages use the abbreviation.
+One approach to mitigate this issue comes from the unlikely field of particle dynamics and quantum physics, where the FMM was developed to efficiently compute long-range interactions between particles. The FMM splits the domain into a hierarchical tree structure, and approximates long range interactions between non-adjacent nodes of the tree using multipole expansions. It also provides a wy to perform the matrix-vector products needed to use iterative solvers without ever having to explicitly assemble the system matrix. This reduces the computational cost to $\mathcal{O}(N^{\frac{3}{2}} or even \mathcal{O}(N \log N)$ if the tree is sudivided into mutliple levels. This makes it possible to solve large scale problems with the BEM that would otherwise be intractable.
 
-For more details, see the documentation of the acronym package[1].
-
-Subsection
-
-See 2.1, 2.1, 2.2, 2.3.
-
-  A   B   C   D
-  --- --- --- ---
-  1   2   1   2
-  2   3   2   3
-
-  : An example for a simple table.
-
-+:-------------------------------------------:+
-|     SELECT * FROM tbl WHERE tbl.str = "str" |
-+---------------------------------------------+
+In this work, we present the design and implementation of a high-performance FMM-accelerated BEM solver for acoustic wave scattering problems.
+In chapters 2 and 3 we focus on the mathematical formulation of the problem, how to integrate the BM formulation into a basic BEM approach. How to best subdivide the domain into a heirarchical tree structure for the FMM, and how to implement the various multipole expansions and translations needed for the FMM. In chapter 4 we discuss the optimizations we make to improve performance on modern computing architectures, such as using SIMD instructions and optimizing memory access patterns. We detail the workaround we use to utilize deal.II’ native GMRES solver, which only supports real-valued systems, to solve the complex-valued system resulting from the BEM formulation. We present the validation of our implementation against analytical solutions, the control over the errors spikes achieved by the BM formulation, and analyze the performance of our solver against a traditional BEM approach in Chapter 5.
+In chapter 6 we also discuss potential future directions for improving the solver and extending it to other types of wave scattering problems.
 
 Mathematical Formulation of BEM
 
@@ -251,7 +238,7 @@ Software Architecture and HPC Optimizations
 
 Bitwise Operations for Morton Encoding
 
-As detailed in Section 4.2.2.1, the Morton Z-order curve is used to map the 3D coordinates of the mesh elements for a more efficient Octree construction. To optimize this process without relying on expensive looping, we use a series of bitwise operations that interleave the bits of the binary representations of the x, y, and z coordinates.
+As detailed in Section 3.2.2.1, the Morton Z-order curve is used to map the 3D coordinates of the mesh elements for a more efficient Octree construction. To optimize this process without relying on expensive looping, we use a series of bitwise operations that interleave the bits of the binary representations of the x, y, and z coordinates.
 
 The basic algorithm that we use to compute the Morton key for a given 3D coordinate is as follows:
 
@@ -318,9 +305,9 @@ We get around this limitation by formulating our complex-valued system as its eq
 
 4.  Post-Processing: After the GMRES solver converges, we take the resulting size 2N real solution vector and reconstruct the complex N-sized phi vector, which contains the values of the potential at the collocation points.
 
-Our implementation of the RealFMMOperator struct is shown in Appendix 8.2.
+Our implementation of the RealFMMOperator struct is shown in Appendix 7.2.
 
-While iterative Krylov space solvers like GMRES are quite robust in their convergence, convergence depends on the matrix’s spectral properties and condition number (Saad and Schultz 1986). The real-equivalent formulations can, in theory, produce eigenvalue distributions that are unfavorable for the convergence of GMRES. To ensure fast convergence, we employ a preconditioner to improve the system’s spectral properties. The Jacobi-block-diagonal preconditioner (Day and Heroux 2001) we implement extracts the complex-scalar diagonal from the near-field sparse matrix we assembled for the FMM and stores its inverse. Deal.II’s GMRES, which by default uses left preconditioning, then applies this to the residuals which it tries to minimize. The exact implementation of this preconditioner is shown in Appendix 8.3.
+While iterative Krylov space solvers like GMRES are quite robust in their convergence, convergence depends on the matrix’s spectral properties and condition number (Saad and Schultz 1986). The real-equivalent formulations can, in theory, produce eigenvalue distributions that are unfavorable for the convergence of GMRES. To ensure fast convergence, we employ a preconditioner to improve the system’s spectral properties. The Jacobi-block-diagonal preconditioner (Day and Heroux 2001) we implement extracts the complex-scalar diagonal from the near-field sparse matrix we assembled for the FMM and stores its inverse. Deal.II’s GMRES, which by default uses left preconditioning, then applies this to the residuals which it tries to minimize. The exact implementation of this preconditioner is shown in Appendix 7.3.
 
 Performance Analysis and Validation
 
@@ -384,7 +371,7 @@ This results in a size parameter of ka = 9.159162  ×  10⁻⁰¹, whi
 
 Effect of the Burton Miller Formulation
 
-As we have discussed in 3.4, the BM formulation is used to mitigate the non-existence of unique solutions at certain characteristic frequencies. To demonstrate the effect of using the BM formulation, we implemented it in our code and toggled it on and off via a command-line flag at runtime. We ran the solver for a sweep of frequencies from 100Hz to 3000Hz for a single spherical scatterer with the same parameters as in 6.1, and compared the results with the analytical solution. We especially include the characteristic frequencies, which for a sound-hard sphere are the Dirichlet Resonances, given by the roots of the spherical Bessel function of the first kind, j_(n)(ka) = 0. Our test script hardcodes the ka values corresponding to the resonances present within the range of our frequency sweep. These fictitious values lying within 100Hz to 3000Hz are:
+As we have discussed in 2.4, the BM formulation is used to mitigate the non-existence of unique solutions at certain characteristic frequencies. To demonstrate the effect of using the BM formulation, we implemented it in our code and toggled it on and off via a command-line flag at runtime. We ran the solver for a sweep of frequencies from 100Hz to 3000Hz for a single spherical scatterer with the same parameters as in 5.1, and compared the results with the analytical solution. We especially include the characteristic frequencies, which for a sound-hard sphere are the Dirichlet Resonances, given by the roots of the spherical Bessel function of the first kind, j_(n)(ka) = 0. Our test script hardcodes the ka values corresponding to the resonances present within the range of our frequency sweep. These fictitious values lying within 100Hz to 3000Hz are:
 
 1.  f = 1715Hz, which corresponds to the first harmonic of a 0.1m radius sphere.
 
@@ -396,7 +383,7 @@ As we have discussed in 3.4, the BM formulation is used to mitigate the non-exis
 
 []
 
-The non BM frequency sweep 6.6 shows the spikes at the characteristic frequencies, while the one with BM 6.7 shows that the error at these frequencies is in line with errors at neighbouring frequencies, demonstrating the effectiveness of the BM formulation in eliminating the non-uniqueness issue at the characteristic frequencies. We can also see that the overall error with the BM formulation is slightly higher than without. This is expected, as the BM introduce the HBIE to the system. As the HBIE has a stronger singularity than the BIE, the numerical quadrature errors arising from the singlarity of the HBIE kernel are higher than those arising from the CBIE kernel, leading to a higher overall error for the BM formulation compared to the non-BM formulation.
+The non BM frequency sweep 5.6 shows the spikes at the characteristic frequencies, while the one with BM 5.7 shows that the error at these frequencies is in line with errors at neighbouring frequencies, demonstrating the effectiveness of the BM formulation in eliminating the non-uniqueness issue at the characteristic frequencies. We can also see that the overall error with the BM formulation is slightly higher than without. This is expected, as the BM introduce the HBIE to the system. As the HBIE has a stronger singularity than the BIE, the numerical quadrature errors arising from the singlarity of the HBIE kernel are higher than those arising from the CBIE kernel, leading to a higher overall error for the BM formulation compared to the non-BM formulation.
 
 Performance Analysis
 
@@ -408,7 +395,7 @@ The main motivation for implementing the FMM is that it offers much better scali
 
 []
 
-In all these timing plots 6.8, 6.9, and 6.10, we have included guidelines corresponding to the closest asymptotic complexity for each timing curve.
+In all these timing plots 5.8, 5.9, and 5.10, we have included guidelines corresponding to the closest asymptotic complexity for each timing curve.
 Let us consider the traditional BEM first. The time taken to set up the system matrix scales as 𝒪(N²), as we have to compute the interaction between every pair of elements. The time taken to solve the system scales as 𝒪(N³), but considering the solving time makes up the bulk of the total time needed for the traditional BEM, the total time also scales as 𝒪(N³).
 The FMM build time scales as 𝒪(N). TThis time is dominated by the time spent computing the M2L translation operators, the number of which scales somewhat linearly with N elements. The solution time taken by the Real-Equivalent system with GMRES scales as $\mathcal{O}(N^{\frac{3}{2}})$. As the amount of overhead needed to set up the FMM data structures and precompute the translation operators goes down as a percentage of the total time taken as N increases, the total time taken by the FMM scales as 𝒪(Nlog N).
 
@@ -424,6 +411,9 @@ Our BM implementation depends on regularization that arises from the use of a si
 [TUM]Technical University of Munich
 [BEM]Boundary Element Method
 [FMM]Fast Multipole Method
+[FEM]Finite Element Method
+[FDM]Finite Difference Method
+[PML]Perfectly Matched Layer
 [BIE]Boundary Integral Equation
 [BM]Burton-Miller
 [CBIE]Conventional Boundary Integral Equation
@@ -591,5 +581,3 @@ Wiscombe, W. J. 1980. “Improved Mie Scattering Algorithms.” Applied Optics 1
 Wu, T. W. 2000. Boundary Element Acoustics: Fundamentals and Computer Codes. WIT Press.
 
 Xie, Chunhu, Huachun Wu, and Jian Zhou. 2023. “Vectorization Programming Based on HR DSP Using SIMD.” Electronics 12 (13): 2922. https://doi.org/10.3390/electronics12132922.
-
-[1] https://ctan.org/pkg/acronym

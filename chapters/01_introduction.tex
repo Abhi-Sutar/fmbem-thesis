@@ -3,93 +3,12 @@
 
 \chapter{Introduction}\label{chapter:introduction}
 
-\section{Section}
-Citation test~\parencite{latex}.
+Simulation of wave propagation and scattering off of objects in infinite space can be very challenging to solve with traditional numerical methods such as the \ac{FEM} or \ac{FDM}, which require discretization of the entire domain. They have to truncate the domain, and they need special treatment to handle the infinite domain, such as using Absorbing Boundary Conditions which apply artificial mathematical boundary conditions at these truncated boundaries to absorb outgoing wave and minimize unphysical reflections back into the domain. Another approach is to use \ac{PML}s which adds an artificial buffer zone around the domain that absorbs outgoing waves across all non-tangential angles. These methods can be computationally expensive, and due to numerical inaccuracies, they can introduce spurious reflections that can contaminate the solution.
 
-Acronyms must be added in \texttt{main.tex} and are referenced using macros. The first occurrence is automatically replaced with the long version of the acronym, while all subsequent usages use the abbreviation.
+The \ac{BEM} take a different approach by reformulating the problem as a boundary integral equation, which only requires discretization of the surface of the scatterer, rather than the entire domain. It satisfies the Sommerfeld radiation condition at infinity by construction. This, along with simpler meshing requirement, makes it eminently suitable for solving wave scattering problems in infinite domains. However, the reformulation causes spikes in error due to non-uniqueness of the solution at certain frequencies, known as the characteristic frequencies. While the \ac{BM} formulation can be used to mitigate this issue, it introduces addition singularities in the integral equation, which can be difficult to handle numerically. The \ac{BEM} also results in a dense complex system of equations, which can't be solved using the Conjugate Gradient method, needing to be solved directly at a cost of $\mathcal{O}(N^3)$, where $N$ is the number of degrees of freedom. 
 
-% E.g. \texttt{\textbackslash ac\{TUM\}, \textbackslash ac\{TUM\}} $\Rightarrow$ \ac{TUM}, \ac{TUM}
+One approach to mitigate this issue comes from the unlikely field of particle dynamics and quantum physics, where the \ac{FMM} was developed to efficiently compute long-range interactions between particles. The \ac{FMM} splits the domain into a hierarchical tree structure, and approximates long range interactions between non-adjacent nodes of the tree using multipole expansions. It also provides a wy to perform the matrix-vector products needed to use iterative solvers without ever having to explicitly assemble the system matrix. This reduces the computational cost to $\mathcal{O}(N^{\frac{3}{2}} or even \mathcal{O}(N \log N)$ if the tree is sudivided into mutliple levels. This makes it possible to solve large scale problems with the \ac{BEM} that would otherwise be intractable.
 
-For more details, see the documentation of the \texttt{acronym} package\footnote{\url{https://ctan.org/pkg/acronym}}.
-\subsection{Subsection}
-
-See~\autoref{tab:sample}, \autoref{fig:sample-drawing}, \autoref{fig:sample-plot}, \autoref{fig:sample-listing}.
-
-\begin{table}[htpb]
-  \caption[Example table]{An example for a simple table.}\label{tab:sample}
-  \centering
-  \begin{tabular}{l l l l}
-    \toprule
-      A & B & C & D \\
-    \midrule
-      1 & 2 & 1 & 2 \\
-      2 & 3 & 2 & 3 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\begin{figure}[htpb]
-  \centering
-  % This should probably go into a file in figures/
-  \begin{tikzpicture}[node distance=3cm]
-    \node (R0) {$R_1$};
-    \node (R1) [right of=R0] {$R_2$};
-    \node (R2) [below of=R1] {$R_4$};
-    \node (R3) [below of=R0] {$R_3$};
-    \node (R4) [right of=R1] {$R_5$};
-
-    \path[every node]
-      (R0) edge (R1)
-      (R0) edge (R3)
-      (R3) edge (R2)
-      (R2) edge (R1)
-      (R1) edge (R4);
-  \end{tikzpicture}
-  \caption[Example drawing]{An example for a simple drawing.}\label{fig:sample-drawing}
-\end{figure}
-
-\begin{figure}[htpb]
-  \centering
-
-  \pgfplotstableset{col sep=&, row sep=\\}
-  % This should probably go into a file in data/
-  \pgfplotstableread{
-    a & b    \\
-    1 & 1000 \\
-    2 & 1500 \\
-    3 & 1600 \\
-  }\exampleA
-  \pgfplotstableread{
-    a & b    \\
-    1 & 1200 \\
-    2 & 800 \\
-    3 & 1400 \\
-  }\exampleB
-  % This should probably go into a file in figures/
-  \begin{tikzpicture}
-    \begin{axis}[
-        ymin=0,
-        legend style={legend pos=south east},
-        grid,
-        thick,
-        ylabel=Y,
-        xlabel=X
-      ]
-      \addplot table[x=a, y=b]{\exampleA};
-      \addlegendentry{Example A}
-      \addplot table[x=a, y=b]{\exampleB};
-      \addlegendentry{Example B}
-    \end{axis}
-  \end{tikzpicture}
-  \caption[Example plot]{An example for a simple plot.}\label{fig:sample-plot}
-\end{figure}
-
-\begin{figure}[htpb]
-  \centering
-  \begin{tabular}{c}
-  \begin{lstlisting}[language=SQL]
-    SELECT * FROM tbl WHERE tbl.str = "str"
-  \end{lstlisting}
-  \end{tabular}
-  \caption[Example listing]{An example for a source code listing.}\label{fig:sample-listing}
-\end{figure}
+In this work, we present the design and implementation of a high-performance \ac{FMM}-accelerated \ac{BEM} solver for acoustic wave scattering problems.
+In chapters \autoref{chapter:mathematical-formulation-bem} and \autoref{chapter:fmm-framework} we focus on the mathematical formulation of the problem, how to integrate the \ac{BM} formulation into a basic \ac{BEM} approach. How to best subdivide the domain into a heirarchical tree structure for the \ac{FMM}, and how to implement the various multipole expansions and translations needed for the \ac{FMM}. In chapter \autoref{chapter:software-arch-and-hpc-optimizations} we discuss the optimizations we make to improve performance on modern computing architectures, such as using SIMD instructions and optimizing memory access patterns. We detail the workaround we use to utilize \texttt{deal.II}' native \ac{GMRES} solver, which only supports real-valued systems, to solve the complex-valued system resulting from the \ac{BEM} formulation. We present the validation of our implementation against analytical solutions, the control over the errors spikes achieved by the \ac{BM} formulation, and analyze the performance of our solver against a traditional \ac{BEM} approach in Chapter \autoref{chapter:performance-analysis-validation}.
+In chapter \autoref{chapter:conclusion-future-directions} we also discuss potential future directions for improving the solver and extending it to other types of wave scattering problems.
