@@ -360,6 +360,23 @@
   langid = {english}
 }
 
+@article{graydirectevaluationhypersingular2004,
+  title = {Direct {{Evaluation}} of {{Hypersingular Galerkin Surface Integrals}}},
+  author = {Gray, L. J. and Glaeser, J. M. and Kaplan, T.},
+  date = {2004-01},
+  journaltitle = {SIAM Journal on Scientific Computing},
+  shortjournal = {SIAM J. Sci. Comput.},
+  volume = {25},
+  number = {5},
+  pages = {1534--1556},
+  issn = {1064-8275, 1095-7197},
+  doi = {10.1137/S1064827502405999},
+  url = {http://epubs.siam.org/doi/10.1137/S1064827502405999},
+  urldate = {2026-03-28},
+  abstract = {A direct algorithm for evaluating hypersingular integrals arising in a three-dimensional Galerkin boundary integral analysis is presented. The singular integrals are defined as limits to the boundary, and by integrating two of the four dimensions analytically, the coincident integral is shown to be divergent. However, the divergent terms can be explicitly calculated and shown to cancel with corresponding singularities in the adjacent edge integrals. A single analytic integration is employed for the edge and vertex singular integrals. This is sufficient to display the divergent term in the edge-adjacent integral and to show that the vertex integral is finite. By explicitly identifying the divergent quantities, we can compute the hypersingular integral without recourse to Stokes’s theorem or the Hadamard finite part. The algorithms are developed in the context of a linear element approximation for the Laplace equation but are expected to be generally applicable. As an example, the algorithms are applied to solve a thermal problem in an exponentially graded material.},
+  langid = {english}
+}
+
 @article{greengardfastalgorithmparticle1987,
   title = {A Fast Algorithm for Particle Simulations},
   author = {Greengard, L and Rokhlin, V},
@@ -751,6 +768,17 @@
   langid = {english}
 }
 
+@inproceedings{liunearlysingularhypersingular1970,
+  title = {Nearly {{Singular}} and {{Hypersingular Integrals}} in the {{Boundary Element Method}}},
+  booktitle = {Boundary {{Elements XV}}},
+  author = {Liu, Y. J. and Zhang, D. and Rizzo, Frank},
+  date = {1970},
+  volume = {1},
+  publisher = {WIT Press},
+  url = {https://api.semanticscholar.org/CorpusID:8511346},
+  eventtitle = {5th {{International Conference}} on {{Boundary Element Methods}}}
+}
+
 @article{maciaautomatedgenerationhighperformance2022,
   title = {Automated Generation of {{High-Performance Computational Fluid Dynamics Codes}}},
   author = {Macià, Sandra and Martínez-Ferrer, Pedro J. and Ayguadé, Eduard and Beltran, Vicenç},
@@ -879,6 +907,23 @@
   organization = {COMSOL}
 }
 
+@article{mohsenboundaryintegralequation2011,
+  title = {{{ON THE BOUNDARY INTEGRAL EQUATION TREATMENT OF EXTERIOR ACOUSTIC PROBLEMS}}},
+  author = {Mohsen, Adel and Ochmann, Martin},
+  date = {2011-12},
+  journaltitle = {Journal of Computational Acoustics},
+  shortjournal = {J. Comp. Acous.},
+  volume = {19},
+  number = {04},
+  pages = {395--405},
+  issn = {0218-396X, 1793-6489},
+  doi = {10.1142/S0218396X11004444},
+  url = {https://www.worldscientific.com/doi/abs/10.1142/S0218396X11004444},
+  urldate = {2026-03-28},
+  abstract = {The solution of acoustic problems via integral equations (IEs) is considered. Symmetrical evaluation of the resulting integrals is proposed. The possible reduction of the system matrix to complex symmetric form is considered. Applications of the proposed method to scattering by a soft as well as a hard sphere are presented. Another application to radiation from a uniformly vibrating sphere is also considered. To overcome the nonuniqueness problem, CHIEF method is used and Lagrange multipliers are employed to deal with the resulting overdetermined system to preserve the symmetry of the system matrix. The application of CHIEF via a close interior surface of a hard sphere with ka = 22.602185 illustrates the success of CHIEF at high frequencies (HF).},
+  langid = {english}
+}
+
 @article{munankarmycomparisontwoequivalent2002,
   title = {A {{Comparison}} of {{Two Equivalent Real Formulations}} for {{Complex-Valued Linear Systems Part}} 1: {{Introduction}} and {{Method}}},
   shorttitle = {A {{Comparison}} of {{Two Equivalent Real Formulations}} for {{Complex-Valued Linear Systems Part}} 1},
@@ -948,6 +993,20 @@
   doi = {10.1016/0021-9991(90)90107-C},
   url = {https://linkinghub.elsevier.com/retrieve/pii/002199919090107C},
   urldate = {2026-02-16},
+  langid = {english}
+}
+
+@inproceedings{romeroquadraturerulesolving2023,
+  title = {{{QUADRATURE RULE FOR SOLVING THE HELMHOLTZ EQUATION IN HYPERSINGULAR BEM FORMULATION}}},
+  author = {Romero, Antonio and Velázquez-Mata, Rocio and Domínguez, Jose and Tadeu, Antonio and Galvín, Pedro},
+  date = {2023-12-05},
+  pages = {43--53},
+  location = {Lisbon, Portugal},
+  doi = {10.2495/BE460051},
+  url = {http://library.witpress.com/viewpaper.asp?pcode=BE46-005-1},
+  urldate = {2026-03-28},
+  abstract = {Vel´azquez-Mata et al. [1] recently presented a quadrature rule to accurately evaluate singular and weakly singular integrals in the sense of the Cauchy Principal Value by an exclusively numerical procedure. The procedure was verified by solving engineering problems using the boundary element method with fundamental solutions that have singularities of type log(r) and 1/r. However, that quadrature does not handle the evaluation of the Hadamard Finite Part of hypersingular integrals. These types of singularity appear in several fundamental solutions and, also, when the hypersingular boundary element formulation is applied to the Green functions previously analysed by the authors. In this paper, the quadrature rule presented in Vel´azquez-Mata et al. [1] is extended to accurately compute integrals with singularities of the type 1/r2. The quadrature weights are derived from a system of equations defined from the finite part of known integrals called generalised moments, which include the element shape functions. This novelty is included in the hypersingular formulation of the boundary element method to solve the Helmholtz equation, taking advantage of this methodology to consider null-thickness boundaries using the Dual BEM.},
+  eventtitle = {{{BEM}}/{{MRM}} 46},
   langid = {english}
 }
 
@@ -1203,4 +1262,23 @@
   abstract = {The meshless/meshfree radial basis function (RBF) method is a powerful technique for interpolating scattered data. But, solving large RBF interpolation problems without fast summation methods is computationally expensive. For RBF interpolation with N points, using a direct method requires O(N 2) operations. As a fast summation method, the fast multipole method (FMM) has been implemented in speeding up the matrix-vector multiply, which reduces the complexity from O(N 2) to O(N 1.5) and even to O(N logN ) for the multilevel fast multipole method (MLFMM). In this paper, we present a novel kernel-independent fast multipole method for RBF interpolation, which is used in combination with the evaluation of point-to-point interactions by RBF and the fast matrix-vector multiplication. This approach is based on band-limited approximation and quadrature rules, which extends the range of applicability of FMM.},
   pubstate = {prepublished},
   keywords = {Mathematics - Numerical Analysis}
+}
+
+@inproceedings{zozulyaregularizationhypersingularintegrals2008,
+  title = {Regularization of the Hypersingular Integrals in 3-{{D}} Problems of Fracture Mechanics},
+  booktitle = {Boundary {{Elements}} and {{Other Mesh Reduction Methods XXX}}},
+  author = {Zozulya, V. V.},
+  date = {2008-06-20},
+  volume = {I},
+  pages = {219--228},
+  publisher = {WIT Press},
+  location = {Maribor, Slovenia},
+  issn = {1743-355X, 1746-4064},
+  doi = {10.2495/BEO80221},
+  url = {http://library.witpress.com/viewpaper.asp?pcode=BE08-022-1},
+  urldate = {2026-03-28},
+  abstract = {This article considers the hypersingular integrals, which arise when the boundary integral equation (BIE) methods are used to solve fracture mechanics problems . The methodology of hypersingular integral regularization developed in our previous publications is based on theory of distribution and Green’s theorems. In the case of piecewise constant and piecewise linear approximations the hypersingular integrals are transformed into the regular contour integrals that can be easily calculated analytically or numerically.},
+  eventtitle = {{{BEM}} 30},
+  isbn = {978-1-84564-121-4},
+  langid = {english}
 }

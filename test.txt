@@ -159,8 +159,8 @@ At these critical frequencies, also sometime referred to as fictitious or irregu
 It must be noted that the original exterior problem does have a unique solution at these frequencies and that the connection to the interior problem has no physical significance. The non-uniqueness arises solely from the formulation of the problem in terms of a BIE.(Burton and Miller 1971)
 
 There have been various approaches proposed in the literature to address this, such as the CHIEF proposed by (Schenck 1968).
-The CHIEF method uses auxiliary collocation points inside the interior to form an overdetermined system, which was then solved with a least-squares approach to eliminate the spurious solutions (Chien et al. 1990).
-However, the locatiotion of these auxiliary points is critical, and if they are placed on a nodal plane of an interior standing wave, the method can fail (Langrenne et al. 2015).
+The CHIEF method uses auxiliary collocation points within the interior to form an overdetermined system, which is then solved by a least-squares approach to eliminate the spurious solutions (Chien et al. 1990).
+However, the location of these auxiliary points is critical, and if they are placed on a nodal plane of an interior standing wave, the method can fail (Langrenne et al. 2015).
 By contrast, the formulation proposed by Burton and Miller (Burton and Miller 1971) is a mathematically robust method that ensures the uniqueness of the solution across all frequencies.
 
 The Hypersingular Boundary Integral Equation
@@ -174,6 +174,128 @@ $$\begin{equation}
 where n is the unit normal at the field point x.
 
 Like the CBIE suffers from non-uniqueness at the characteristic frequencies of the interior Dirichlet problem, the HBIE also suffers from non-uniqueness, but at the characteristic frequencies of the interior Neumann problem. As the eigenvalues of the interior Neumann problem do not coincide with those of the interior Dirichlet problem, the combination of the two equations ensures that their union has only one valid solution across all frequencies.
+
+The Combined Equation and the Coupling parameter
+
+The BM formulation is a linear combination of the CBIE and the HBIE, with the HBIE scaled by a complex coupling parameter η:
+$$\begin{equation}
+ \label{eq:combined-integral-equation}
+    \mathbf{\ac{CBIE}} + \eta \mathbf{\ac{HBIE}} = 0
+\end{equation}$$
+A unique solution is guaranteed for [eq:combined-integral-equation] as long as η has a non-zero imaginary part.
+The theoretically optimal choice for this coupling parameter is η = i/k in the high frequency limit.
+Terai(Terai, n.d.) explains this by framing the Burton-Miller formulation as the boundary condition for a virtual interior acoustic problem, and relating the coupling parameter as $\eta = \frac{-1}{i k A}$, where A is specific admittance.
+By setting A = 1 to maximize the absorption, we can eliminate the possibility of internal resonances.
+At low frequencies, regularized variations such as η = ik/(k² + λ)in the limit k → 0 to prevent matrix ill-conditioning (Marburg 2016).
+
+We can write the combine integral equation as:
+
+$$\begin{multline}
+ \label{eq:bm-cbie-expanded}
+    c(\mathbf{x_0})\phi(\mathbf{x_0}) + \eta c(\mathbf{x_0})\frac{\partial \phi(\mathbf{x_0})}{\partial n_0} + \int_S \phi(\mathbf{x}) \frac{\partial G_k(\mathbf{x_0}, \mathbf{x})}{\partial n} dS(\mathbf{x}) + \eta \int_S \phi(\mathbf{x}) \frac{\partial^2 G_k(\mathbf{x_0}, \mathbf{x})}{\partial n \partial n_0} dS(\mathbf{x}) = \\ \int_S \frac{\partial \phi(\mathbf{x})}{\partial n} G_k(\mathbf{x_0}, \mathbf{x}) dS(\mathbf{x}) + \eta \int_S \frac{\partial \phi(\mathbf{x})}{\partial n} \frac{\partial G_k(\mathbf{x_0}, \mathbf{x})}{\partial n_0} dS(\mathbf{x}) + \phi_{inc}(\mathbf{x_0} + \eta \frac{\partial \phi_{inc}(\mathbf{x_0})}{\partial n_0})
+\end{multline}$$
+
+While the BM formulation guarantees uniqueness, it comes at the cost of having to evaluate an integral term with a highly divergent kernel $\frac{\partial^2 G_k(\mathbf{x_0}, \mathbf{x})}{\partial n \partial n_0}$.
+This integral will diverge and collapse the system, if not treated with specialized analytical techniques.
+
+Characterizing the Boundary Integral Singularities
+
+To understand the mathematics of the hypersingularity, and subsequently the techniques to regularize it, we first need to explicitly derive the derivatives of the Green’s function and characterize their behavior.
+Consider the green’s equation in 3D:
+$$\begin{equation*}
+    G_k = \frac{e^{i k r}}{4 \pi r}
+\end{equation*}$$
+and let the distance vector be r⃗ = x − x⁰, with scalar distance r = |r⃗|.
+We can then write the gradient of the distance with respect to the collocation point as $\nabla_{\mathbf{x_0}} r = -\frac{\mathbf{\vec{r}}}{r}$, and with respect to the field point as $\nabla_{\mathbf{x}} r = \frac{\mathbf{\vec{r}}}{r}$.
+
+First Normal Derivative
+
+The first normal derivative of the Green’s function with respect to normal n atthe field point x is then given by:
+$$\begin{equation}
+ \label{eq:first-deriv-greens}
+    \frac{\partial G_k}{\partial n} = n \cdot \nabla_x \left( \frac{e^{ikr}}{4\pi r} \right) = \frac{e^{ikr}}{4\pi r^2}(ikr - 1) \frac{n \cdot (x - x_0)}{r}
+\end{equation}$$
+As r → 0, i.e., when we get close to the collocation point, the term e^(ikr) → 1. The functional behavior is dominated by the 1/r² term.
+However, for a smooth surface the, the normal vector n becomes perpendicular to the distance vector as the points merge.
+This means that the term n ⋅ (x − x₀) approaches zero at the rate of 𝒪(r²), and this reduces the apparent 𝒪(1/r²) singularity to a weak 𝒪(1/r) singularity.
+Considering the fact that our mesh elements are locally smooth, this applies to our case as well.
+
+Second Normal Derivative (Hypersingularity)
+
+Applying the normal derivative again to [eq:first-deriv-greens] with respect to the normal direction n₀ at the collocation point x⁰, we get:
+$$\begin{equation}
+ \label{eq:second-deriv-greens}
+    \frac{\partial^2 G_k}{\partial n \partial n_0} =  \frac{1}{4\pi} \left[\frac{n_0 \cdot n}{r^3}(1 - ikr)e^{ikr} - \frac{(n \cdot (x - x_0))(n_0 \cdot (x - x_0))}{r^5}(3 - 3ikr - k^2 r^2)e^{ikr} \right]
+\end{equation}$$
+To characterize the behavior of this kernel, we use the Taylor expansion of the exponential term e^(ikr) for infinitesimally small values of r.
+$$\begin{equation}
+    e^{ikr} = 1 + ikr - \frac{1}{2} k^2 r^2 - \frac{i}{6} k^3 r^3 + \mathcal{O}(r^4)
+\end{equation}$$
+Using this expansion, the first term in [eq:second-deriv-greens] expands to:
+$$\begin{equation}
+    (1 - ikr)e^{ikr} \approx 1 + \frac{1}{2} k^2 r^2 + \mathcal{O}(r^3)
+\end{equation}$$
+and the second term expands to:
+$$\begin{equation}
+    (3 - 3ikr - k^2 r^2)e^{ikr} \approx 3 + \frac{1}{2} k^2 r^2 + \mathcal{O}(r^3)
+\end{equation}$$
+
+Substituting these expansions back into [eq:second-deriv-greens], we get
+$$\begin{equation}
+    \frac{\partial^2 G_k}{\partial n \partial n_0} =  \frac{1}{4\pi} \left[\frac{n_0 \cdot n}{r^3} \left( 1 + \frac{1}{2} k^2 r^2\right) - \frac{(n \cdot \vec{r})(n_0 \cdot \vec{r})}{r^5} \left( 3 + \frac{1}{2} k^2 r^2 \right) \right] + \mathcal{O}(1)
+\end{equation}$$
+(Sun and Klaseboer 2023)
+
+This reveals that the singularity is fundamentally dominated by the 1/r³ term.
+Integrals diverging as 𝒪(1/r³) are strictly hypersingular, and cannot be evaluated using Cauchy Principal Value theorems. Standard numerical quadratures like the Gauss-Legendre quadrature will fail to converge for such integrals without applying analytical regularization.
+
+  Kernel Type         Associated Equation    Functional Form   Singularity Order (3D)  Integration Requirement
+  ------------------- --------------------- ----------------- ------------------------ -------------------------
+  Weakly Singular     CBIE (RHS)                  G_(k)                𝒪(1/r)          Standard Quadrature
+  Strongly Singular   CBIE (LHS)                ∂G_(k)/∂n             𝒪(1/r²)          CPV
+  Hypersingular       HBIE (LHS)              ∂²G_(k)/∂n∂n₀           𝒪(1/r³)          HFP
+
+  : Singularity Behavior of the Green’s Function and its Derivatives
+
+Flat Panel Simplification: Geometric Reduction
+
+If we use flat panels to discretize the boundary, whether flat triangles or flat quadrilaterals, we can leverage a geometric simplification that allows us to reduce mathematical complexity of the BM formulation.
+This arises from the fact that the normal vector will be constant across a flat element, and the distance vector will be always be perpendicular to the normal vector.
+
+Orthogonality and Parallelism Constraints
+
+When the integration point is close enough to the collocation point for the singularity to manifest, both points are located on the same flat panel. This geometry establishes two critical constraints:
+
+1.  Parallel Normal Vectors: The normal the the collocation point n₀ and the normal at the field point n are identical and parallel.
+    n(x) = n(x₀) = n₀ ⇒ n₀ ⋅ n = 1
+
+2.  Orthogonality of the Distance Vector: The distance vector r⃗ = x − x₀ is always perpendicular to the normal vector, as both points lie on the same plane.
+    n ⋅ (x − x₀) = 0 and similarlyn₀ ⋅ (x − x₀) = 0
+
+Hypersingularity Kernel Collapse
+
+Using these constraints in the second normal derivative of the Green’s function [eq:second-deriv-greens], we can see that the second term goes to zero:
+$$\begin{equation}
+    \frac{\partial^2 G_k}{\partial n \partial n_0} =  \frac{1}{4\pi} \left[\frac{1}{r^3}(1 - ikr)e^{ikr} - \frac{(0) (0)}{r^5} (3 - 3 i k r - k^2 r^2) e^{ikr} \right]
+\end{equation}$$
+
+The second term, which captured the curvature of the surface, collapses to zero. The hypersingular kernel collapses down to:
+$$\begin{equation}
+    \frac{\partial^2 G_k}{\partial n \partial n_0} \bigg|_{\text{on a single flat panel}} =  \frac{1}{4\pi} \left[\frac{1}{r^3}(1 - ikr)e^{ikr} \right]
+\end{equation}$$
+This particular simplification means that we don’t have to compute the extra terms associated with the normals nd local tangents.
+
+Decoupling Static and Dynamic components
+
+While our flat panel geometry allows us to collapse the functional form of the kernel, the expression $\frac{e^{ikr}}{r^3}(1 - ikr)$ is still hypersingular. To compute the term numerically, we split the integrand into a purely divergent, static singularity, and a regularized, weakly singular dynamic component (Sun and Klaseboer 2023).
+Looking at the Taylor expansion of the kernel after the collapse:
+$$\begin{align}
+    \frac{e^{ikr}}{r^3}(1 - ikr) &= \frac{1}{r^3} \left[ 1 + \frac{1}{2} k^2 r^2 + \mathcal{O}(r^3) \right] \\
+    &= \frac{1}{r^3} + \frac{1}{2 r} k^2 + \mathcal{O}(1)
+\end{align}$$
+This expansion tell us something quite important about the frequency dependence of this kernel. The dynamic kerm that depends on the wavenumber k is only weakly singular with the order of 𝒪(1/r). The remain ing term, which is purel static and real, is the hypersingular term 1/r³.
+
+Sun and Klase
 
 The Fast Multipole Method Framework
 
@@ -428,6 +550,8 @@ Our BM implementation depends on regularization that arises from the use of a si
 [FDM]Finite Difference Method
 [PML]Perfectly Matched Layer
 [BIE]Boundary Integral Equation
+[CPV]Cauchy Principal Value
+[HFP]Hadamard Finite Part
 [BM]Burton-Miller
 [CBIE]Conventional Boundary Integral Equation
 [HBIE]Hypersingular Boundary Integral Equation
@@ -591,6 +715,10 @@ Saad, Youcef, and Martin H. Schultz. 1986. “GMRES: A Generalized Minimal Resid
 Schenck, Harry A. 1968. “Improved Integral Formulation for Acoustic Radiation Problems.” The Journal of the Acoustical Society of America 44 (1): 41–58. https://doi.org/10.1121/1.1911085.
 
 Shirron, Joseph J, and Ivo Babuska. n.d. A Comparison of Approximate Boundary Conditions and Infinite Methods for Exterior Helmholtz Problems.
+
+Sun, Qiang, and Evert Klaseboer. 2023. “Non-Singular Burton–Miller Boundary Element Method for Acoustics.” Fluids 8 (2): 56. https://doi.org/10.3390/fluids8020056.
+
+Terai, T. n.d. ON CALCULATION OF SOUND FIELDS AROUND THREE DLMENSIONAL OBJECTS BY INTEGRAL. EQUATION MkTt 1()DS.
 
 “The Deal.II Library: SolverGMRES< VectorType > Class Template Reference.” n.d. Accessed March 25, 2026. https://dealii.org/9.4.1/doxygen/deal.II/classSolverGMRES.html.
 
