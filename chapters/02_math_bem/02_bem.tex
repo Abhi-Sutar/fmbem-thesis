@@ -4,37 +4,37 @@
 
 The Boundary Element Method (BEM) solves the Helmholtz equation by transforming it into an integral equation defined on the boundary of the domain. This transformation is typically achieved using Green's Second Identity.
 
-Let $\Omega$ be the domain containing the fluid and $\Gamma$ be its boundary. For two scalar fields $P$ and $G$ in $\Omega$, Green's Second Identity states \cite{wu2000boundary}:
+Let $\Omega$ be the domain containing the fluid and $\Gamma$ be its boundary. For two scalar fields $\phi$ and $G$ in $\Omega$, Green's Second Identity states \cite{wu2000boundary}:
 
 \begin{equation}
-    \int_{\Omega} \left( P \nabla^2 G - G \nabla^2 P \right) d\Omega = \int_{\Gamma} \left( P \frac{\partial G}{\partial n} - G \frac{\partial P}{\partial n} \right) d\Gamma
+    \int_{\Omega} \left( \phi \nabla^2 G - G \nabla^2 \phi \right) d\Omega = \int_{\Gamma} \left( \phi \frac{\partial G}{\partial n} - G \frac{\partial \phi}{\partial n} \right) d\Gamma
 \end{equation}
 
 where $n$ is the outward unit normal vector to the boundary.
 
-We choose $P(\mathbf{x})$ to be the acoustic pressure, satisfying the Helmholtz equation derived in Equation (\ref{eq:helmholtz}):
+We choose $\phi(\mathbf{x})$ to be the acoustic pressure, satisfying the Helmholtz equation derived in Equation (\ref{eq:helmholtz}):
 \begin{equation}
-    \nabla^2 P(\mathbf{x}) + k^2 P(\mathbf{x}) = 0
+    \nabla^2 \phi(\mathbf{x}) + k^2 \phi(\mathbf{x}) = 0
 \end{equation}
 
-We choose $G(\mathbf{x}, \mathbf{y})$ to be the fundamental solution (Green's function) of the Helmholtz equation, which satisfies the inhomogeneous equation with a point source at $\mathbf{y}$:
+We choose $G(\mathbf{x}, \mathbf{x_0})$ to be the fundamental solution (Green's function) of the Helmholtz equation, which satisfies the inhomogeneous equation with a point source at $\mathbf{x_0}$:
 \begin{equation}
-    \nabla^2 G(\mathbf{x}, \mathbf{y}) + k^2 G(\mathbf{x}, \mathbf{y}) = -\delta(\mathbf{x} - \mathbf{y})
+    \nabla^2 G(\mathbf{x}, \mathbf{x_0}) + k^2 G(\mathbf{x}, \mathbf{x_0}) = -\delta(\mathbf{x} - \mathbf{x_0})
 \end{equation}
 
 where $\delta$ is the Dirac delta function. For 3D acoustics, the free-space Green's function satisfying the Sommerfeld radiation condition is given by \cite{kirkupboundaryelementmethod1998}:
 
 \begin{equation}
-    G(\mathbf{x}, \mathbf{y}) = \frac{e^{ik r}}{4 \pi r} \quad \mbox{with} \quad r = |\mathbf{x} - \mathbf{y}|
+    G(\mathbf{x}, \mathbf{x_0}) = \frac{e^{ik r}}{4 \pi r} \quad \mbox{with} \quad r = |\mathbf{x} - \mathbf{x_0}|
 \end{equation}
 
-Substituting these into Green's Second Identity for a source point $\mathbf{y}$ inside the domain $\Omega$:
+Substituting these into Green's Second Identity for a source point $\mathbf{x_0}$ inside the domain $\Omega$:
 
 \begin{equation}
-    P(\mathbf{y}) = \int_{\Gamma} \left( G(\mathbf{x}, \mathbf{y}) \frac{\partial P}{\partial n}(\mathbf{x}) - P(\mathbf{x}) \frac{\partial G}{\partial n}(\mathbf{x}, \mathbf{y}) \right) d\Gamma(\mathbf{x})
+    \phi(\mathbf{x_0}) = \int_{\Gamma} \left( G(\mathbf{x}, \mathbf{x_0}) \frac{\partial \phi}{\partial n}(\mathbf{x}) - \phi(\mathbf{x}) \frac{\partial G}{\partial n}(\mathbf{x}, \mathbf{x_0}) \right) d\Gamma(\mathbf{x})
 \end{equation}
 
-As the source point $\mathbf{y}$ is moved to the boundary $\Gamma$, the integrals become singular. Evaluating the singularity using a limiting process yields the \ac{CBIE} \cite{marburg2002boundary}:
+As the source point $\mathbf{x_0}$ is moved to the boundary $\Gamma$, the integrals become singular. Evaluating the singularity using a limiting process yields the \ac{CBIE} \cite{marburg2002boundary}:
 
 \begin{equation}
     c(\mathbf{x_0})\phi(\mathbf{x_0}) + \int_S \phi(\mathbf{x}) \frac{\partial G_k(\mathbf{x_0}, \mathbf{x})}{\partial n} dS(\mathbf{x}) = \int_S \frac{\partial \phi(\mathbf{x})}{\partial n} G_k(\mathbf{x_0}, \mathbf{x}) dS(\mathbf{x}) + \phi_{inc}(\mathbf{x_0})
@@ -44,7 +44,7 @@ where $c(\mathbf{x_0})$, the integral free term, represents the geometric coeffi
 
 \subsection{Discretization} \label{subsec:bem-discretization}
 
-To solve the \ac{CBIE} numerically, the boundary $\Gamma$ is discretized into $N$ boundary elements. The pressure $P$ and its normal derivative $q = \partial P / \partial n$ are approximated using shape functions. 
+To solve the \ac{CBIE} numerically, the boundary $\Gamma$ is discretized into $N$ boundary elements. The pressure $\phi$ and its normal derivative $\nu_s = \partial \phi / \partial n$ are approximated using shape functions. 
 
 Applying the collocation method at the nodes leads to a system of linear algebraic equations:
 

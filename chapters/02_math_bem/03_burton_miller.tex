@@ -132,14 +132,14 @@ The second term, which captured the curvature of the surface, collapses to zero.
 \end{equation}
 This particular simplification means that we don't have to compute the extra terms associated with the normals nd local tangents.
 
-\subsubsection{Decoupling Static and Dynamic components} \label{subsubsec:decoupling-static-dynamic-components}
+\subsubsection{Decoupling Static and Dynamic Components} \label{subsubsec:decoupling-static-dynamic-components}
 While our flat panel geometry allows us to collapse the functional form of the kernel, the expression $ \frac{e^{ikr}}{r^3}(1 - ikr)$ is still hypersingular. To compute the term numerically, we split the integrand into a purely divergent, static singularity, and a regularized, weakly singular dynamic component \cite{sunnonsingularburtonmiller2023}.
 Looking at the Taylor expansion of the kernel after the collapse:
 \begin{align}
     \frac{e^{ikr}}{r^3}(1 - ikr) &= \frac{1}{r^3} \left[ 1 + \frac{1}{2} k^2 r^2 + \mathcal{O}(r^3) \right] \\
     &= \frac{1}{r^3} + \frac{1}{2 r} k^2 + \mathcal{O}(1)
 \end{align}
-This expansion tell us something quite important about the frequency dependence of this kernel. The dynamic kerm that depends on the wavenumber $k$ is only weakly singular with the order of $\mathcal{O}(1/r)$. The remain ing term, which is purel static and real, is the hypersingular term $1/r^3$.
+This expansion tells us something quite important about thekernel's frequency dependence. The dynamic term that depends on the wavenumber $k$ is only weakly singular, of the order of $\mathcal{O}(1/r)$. The remaining term, which is purely static and real, is the hypersingular term $1/r^3$.
 
 Sun and Klaseboer \cite{sunnonsingularburtonmiller2023} demonstrate that this isolated static term $1/r^3$ is the same as the hypersingular kernel of the Laplace equation, which we can consider as a special case of the Helmholtz equation where $k = 0$. 
 We can demonstrate this equivalence by taking the second normal derivative of the fundamental solution to the Laplace equation $G_0 = \frac{1}{4 \pi r}$, which is given by:
@@ -158,6 +158,7 @@ This lets us break down the acoustic Helmholtz hypersingular kernel perfectly in
     \frac{\partial^2 G_k}{\partial n \partial n_0} \bigg|_{\text{flat panel}} = \frac{\partial^2 G_0}{\partial n \partial n_0} \bigg|_{\text{flat panel}} + \frac{1}{4\pi} \left[\frac{e^{ikr} (1 - ikr) - 1 }{r^3} \right]
 \end{equation}
 
-The isolated term in the brackets is completely regularized, and its limit as $r \to 0$  evaluates to $\frac{k^2}{2r}$. Since this term is only weakly singular, we can use standard numericl quadratures like the Gaussian quadrature to integrate it over the flat panel without diverging.
+The isolated term in the brackets is completely regularized, and its limit as $r \to 0$  evaluates to $\frac{k^2}{2r}$. Since this term is only weakly singular, we can use standard numerical quadratures, such as the Gaussian quadrature, to integrate it over the flat panel without divergence.
 
 Through this geometric simplification and asymptotic decoupling, the highly complex Burton-Miller implementation problem on flat panels is reduced to a singular, specific mathematical goal: evaluating the finite part of the static Laplace hypersingular integral $\int_S \frac{1}{r^3} dS$ over a planar polygonal element.
+In our code we integrate it with a higher order quadrature to ensure accuracy.

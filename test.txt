@@ -295,7 +295,26 @@ $$\begin{align}
 \end{align}$$
 This expansion tell us something quite important about the frequency dependence of this kernel. The dynamic kerm that depends on the wavenumber k is only weakly singular with the order of 𝒪(1/r). The remain ing term, which is purel static and real, is the hypersingular term 1/r³.
 
-Sun and Klase
+Sun and Klaseboer (Sun and Klaseboer 2023) demonstrate that this isolated static term 1/r³ is the same as the hypersingular kernel of the Laplace equation, which we can consider as a special case of the Helmholtz equation where k = 0.
+We can demonstrate this equivalence by taking the second normal derivative of the fundamental solution to the Laplace equation $G_0 = \frac{1}{4 \pi r}$, which is given by:
+$$\begin{equation}
+    \frac{\partial^2 G_0}{\partial n \partial n_0} = \frac{1}{4\pi} \left[ \frac{n_0 \cdot n}{r^3} - \frac{3(n \cdot (x - x_0))(n_0 \cdot (x - x_0))}{r^5} \right]
+\end{equation}$$
+
+Applying the flat panel orthogonality and parallelism constraints again, we can see that the second term goes to zero, and the kernel collapses to:
+$$\begin{equation}
+    \frac{\partial^2 G_0}{\partial n \partial n_0} \bigg|_{\text{flat panel}} =  \frac{1}{4\pi} \left[\frac{1}{r^3} \right]
+\end{equation}$$
+
+This lets us break down the acoustic Helmholtz hypersingular kernel perfectly into the static Laplace hypersingular kernel, and a regularized dynamic remainder:
+
+$$\begin{equation}
+    \frac{\partial^2 G_k}{\partial n \partial n_0} \bigg|_{\text{flat panel}} = \frac{\partial^2 G_0}{\partial n \partial n_0} \bigg|_{\text{flat panel}} + \frac{1}{4\pi} \left[\frac{e^{ikr} (1 - ikr) - 1 }{r^3} \right]
+\end{equation}$$
+
+The isolated term in the brackets is completely regularized, and its limit as r → 0 evaluates to $\frac{k^2}{2r}$. Since this term is only weakly singular, we can use standard numericl quadratures like the Gaussian quadrature to integrate it over the flat panel without diverging.
+
+Through this geometric simplification and asymptotic decoupling, the highly complex Burton-Miller implementation problem on flat panels is reduced to a singular, specific mathematical goal: evaluating the finite part of the static Laplace hypersingular integral $\int_S \frac{1}{r^3} dS$ over a planar polygonal element.
 
 The Fast Multipole Method Framework
 
