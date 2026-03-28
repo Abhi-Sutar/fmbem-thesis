@@ -35,9 +35,21 @@
 \usepackage{todonotes}
 \usepackage{siunitx}
 
+\usetikzlibrary{external}
 \usetikzlibrary{calc}
 \usetikzlibrary{arrows.meta}
 \usetikzlibrary{decorations.markings}
+% Enable externalization
+\tikzexternalize[prefix=build/] % Saves the cached figures into the build/ directory
+
+% FIX 1: Remove -output-directory=build. 
+% The prefix=build/ already sets the jobname to build/main-figureX, so the output goes to the right place.
+\tikzset{external/system call={pdflatex \tikzexternalcheckshellescape -halt-on-error -interaction=batchmode -jobname "\image" "\texsource"}}
+
+% FIX 2: Make todonotes and tikzexternalize play nicely
+\makeatletter
+\renewcommand{\todo}[2][]{\tikzexternaldisable\@todo[#1]{#2}\tikzexternalenable}
+\makeatother
 
 
 \DeclareSourcemap{

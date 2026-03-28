@@ -1,10 +1,67 @@
 \section{Burton-Miller Formulation}\label{sec:burton-miller}
 
-The Boundary Element Method (BEM) offers a highly elegant, mathematically rigorous, and computationally efficient alternative by reformulating the volumetric partial differential equation into a Boundary Integral Equation (BIE) mapped strictly over the surface of the scattering or radiating body. This approach intrinsically satisfies the Sommerfeld radiation condition at infinity, thereby reducing the dimensionality of the problem by one—transforming a three-dimensional volumetric domain into a two-dimensional surface mesh, or a two-dimensional problem into a one-dimensional contour \cite{latex, wu2000boundary, marburg2002boundary,kirkupboundaryelementmethod1998}.
-\todo{Remove test citation}
+The Boundary Element Method (BEM) offers a highly elegant, mathematically rigorous, and computationally efficient alternative by reformulating the volumetric partial differential equation into a Boundary Integral Equation (BIE) mapped over the surface of the scattering or radiating body. This approach intrinsically satisfies the Sommerfeld radiation condition at infinity, thereby reducing the dimensionality of the problem by one—transforming a three-dimensional volumetric domain into a two-dimensional surface mesh, or a two-dimensional problem into a one-dimensional contour \cite{kirkupboundaryelementmethod1998}.
 
-However, as \cite{burtonapplicationintegralequation1971} showed, the standard \ac{BEM} approach for exterior problems, gives rise to non-existence of unique solutions at wavenumbers coinciding with the resonances of the corresponding interior problem.
+However, as \cite{burtonapplicationintegralequation1971} showed, the standard \ac{BEM} approach for exterior problems, gives rise to non-existence of unique solutions at wavenumbers coinciding with the eigenvalues or resonances of the corresponding interior Dirichlet problem.
 
 At these critical frequencies, also sometime referred to as \textit{fictitious or irregular frequencies}, the matrix system resulting from the discretization of the BIE  becomes ill-conditioned, leading to numerical instability and a spike in the error of the computed solution. 
 
 It must be noted that the original exterior problem does have a unique solution at these frequencies and that the connection to the interior problem has no physical significance. The non-uniqueness arises solely from the formulation of the problem in terms of a \ac{BIE}.\cite{burtonapplicationintegralequation1971}
+
+There have been various approaches proposed in the literature to address this, such as the \ac{CHIEF} proposed by \cite{schenckimprovedintegralformulation1968}. 
+The \ac{CHIEF} method uses auxiliary collocation points within the interior to form an overdetermined system, which is then solved by a least-squares approach to eliminate the spurious solutions \cite{chieneffectivemethodsolving1990}. 
+However, the location of these auxiliary points is critical, and if they are placed on a nodal plane of an interior standing wave, the method can fail \cite{langrennesolvinghypersingularboundary2015}.
+By contrast, the formulation proposed by  Burton and Miller \cite{burtonapplicationintegralequation1971} is a mathematically robust method that ensures the uniqueness of the solution across all frequencies. 
+
+\subsection{The Hypersingular Boundary Integral Equation} \label{subsec:bm-hbie}
+The \ac{BM} formulation combines the \ac{CBIE} with its own normal derivative, which we will refer to as the \ac{HBIE}. We derive the \ac{HBIE} by applying the gradient operator to the \ac{CBIE} with respect to the collocation point $\mathbf{x_0}$, then taking the inner product with the local unit normal vector $\mathbf{\hat{n}_0}$.
+The normal opertaor can be represented as $ \frac{\partial}{\partial n_0} = \mathbf{\hat{n}_0} \cdot \nabla_{\mathbf{x_0}}$.
+Applying this to the \ac{CBIE} yields :
+\begin{equation}
+    c(\mathbf{x_0})\frac{\partial \phi(\mathbf{x_0})}{\partial n_0} + \int_S \phi(\mathbf{x}) \frac{\partial^2 G_k(\mathbf{x_0}, \mathbf{x})}{\partial n \partial n_0} dS(\mathbf{x}) = \int_S \frac{\partial \phi(\mathbf{x})}{\partial n} \frac{\partial G_k(\mathbf{x_0}, \mathbf{x})}{\partial n_0} dS(\mathbf{x}) + \frac{\partial \phi_{inc}(\mathbf{x_0})}{\partial n_0}
+\end{equation}
+where $n$ is the unit normal at the field point $\mathbf{x}$.
+
+Like the \ac{CBIE} suffers from non-uniqueness at the characteristic frequencies of the interior Dirichlet problem, the \ac{HBIE} also suffers from non-uniqueness, but at the characteristic frequencies of the interior Neumann problem. As the eigenvalues of the interior Neumann problem do not coincide with those of the interior Dirichlet problem, the combination of the two equations ensures that their union has only one valid solution across all frequencies.
+
+\subsection{The Combined Equation and the Coupling parameter} \label{subsec:bm-combined}
+
+The \ac{BM} formulation is a linear combination of the \ac{CBIE} and the \ac{HBIE}, with the \ac{HBIE} scaled by a complex coupling parameter $\eta$:
+\begin{equation} \label{eq:combined-integral-equation}
+    \mathbf{\ac{CBIE}} + \eta \mathbf{\ac{HBIE}} = 0
+\end{equation}
+A unique solution is guaranteed for \eqref{eq:combined-itegral-equation} as long as $\eta$ has a non-zero imaginary part. 
+The theoretically optimal choice for this  coupling parameter is $\eta = i/k$  in the high frequency limit. 
+Terai\cite{teraicalculationsoundfields} explains this by framing the Burton-Miller formulation as the boundary condition for a virtual interior acoustic problem, and relating the coupling parameter as $\eta = \frac{-1}{i k A}$, where $A$ is specific admittance. 
+By setting $A = 1$ to maximize the absorption, we can eliminate the possibility of internal resonances. 
+At low frequencies, regularized variations such as $\eta = i k / \left( k^2 + \lambda \right) $in the limit $ k \to 0$ to prevent matrix ill-conditioning \cite{marburgburtonmillermethod2016}.
+
+We can write the combine integral equation as:
+
+\begin{multline} \label{eq:bm-cbie-expanded}
+    c(\mathbf{x_0})\phi(\mathbf{x_0}) + \eta c(\mathbf{x_0})\frac{\partial \phi(\mathbf{x_0})}{\partial n_0} + \int_S \phi(\mathbf{x}) \frac{\partial G_k(\mathbf{x_0}, \mathbf{x})}{\partial n} dS(\mathbf{x}) + \eta \int_S \phi(\mathbf{x}) \frac{\partial^2 G_k(\mathbf{x_0}, \mathbf{x})}{\partial n \partial n_0} dS(\mathbf{x}) = \\ \int_S \frac{\partial \phi(\mathbf{x})}{\partial n} G_k(\mathbf{x_0}, \mathbf{x}) dS(\mathbf{x}) + \eta \int_S \frac{\partial \phi(\mathbf{x})}{\partial n} \frac{\partial G_k(\mathbf{x_0}, \mathbf{x})}{\partial n_0} dS(\mathbf{x}) + \phi_{inc}(\mathbf{x_0} + \eta \frac{\partial \phi_{inc}(\mathbf{x_0})}{\partial n_0})
+\end{multline}
+
+While the \ac{BM} formulation guarantees uniqueness, it comes at the cost of having to evaluate an integral term with a highly divergent kernel $\frac{\partial^2 G_k(\mathbf{x_0}, \mathbf{x})}{\partial n \partial n_0}$. 
+This integral will diverge and collapse the system, if not treated with specialized analytical techniques. 
+
+\subsection{Characterizing the Boundary Integral Singularities}\label{subsec:bm-singularities}
+To underestan the mathematics of the hypersingularity, and subsequently the techniques to regularize it, we  first need to explicitly derive the derivatives of the Green's function and characterize their behavior.
+Consider the green's equation in 3D:
+\begin{equation*}
+    G_k = \frac{e^{i k r}}{4 \pi r}
+\end{equation*}
+and let the distance vector be $\mathbf{\vec{r}} = \mathbf{x} - \mathbf{x_0}$, with scalar distance $r = |\mathbf{\vec{r}}|$. 
+We can then write the gradient of the distance with respect to the collocation point as $\nabla_{\mathbf{x_0}} r = -\frac{\mathbf{\vec{r}}}{r}$, and with respect to the field point as $\nabla_{\mathbf{x}} r = \frac{\mathbf{\vec{r}}}{r}$.
+
+\subsubsection{First Normal Derivative} \label{subsubsec:first-normal-derivative}
+The first normal derivative of the Green's function is then given by:
+\begin{equation}
+    \frac{\partial G_k}{\partial n} = n \cdot \nabla_x \left( \frac{e^{ikr}}{4\pi r} \right) = \frac{e^{ikr}}{4\pi r^2}(ikr - 1) \frac{n \cdot (x - x_0)}{r}
+\end{equation}
+As $r \to 0$, i.e., when we get close to the collocation point, the term $e^{ikr} \to 1$. The functional behavior is dominated by the $1/r^2$ term. 
+However, for a smooth surface the, the normal vector $n$ becomes perpendicular to the distance vector as the points merge. 
+This means that the term $n \cdot (x - x_0)$ approaches zero at the rate of $\mathcal{O}(r^2)$, and this reduces the apparent $\mathcal{O}(1/r^2)$ singularity to a weak $\mathcal{O}(1/r)$ singularity. 
+Considering the fact that our mesh elements are locally smooth, this applies to our case as well.
+
+\subsubsection{Second Normal Derivative} \label{subsubsec:second-normal-derivative}

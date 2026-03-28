@@ -1,6 +1,6 @@
 \section{Boundary Element Method}\label{sec:bem}
 
-\subsection{Boundary Integral Formulation}
+\subsection{Boundary Integral Formulation} \label{subsec:bie}
 
 The Boundary Element Method (BEM) solves the Helmholtz equation by transforming it into an integral equation defined on the boundary of the domain. This transformation is typically achieved using Green's Second Identity.
 
@@ -34,23 +34,23 @@ Substituting these into Green's Second Identity for a source point $\mathbf{y}$ 
     P(\mathbf{y}) = \int_{\Gamma} \left( G(\mathbf{x}, \mathbf{y}) \frac{\partial P}{\partial n}(\mathbf{x}) - P(\mathbf{x}) \frac{\partial G}{\partial n}(\mathbf{x}, \mathbf{y}) \right) d\Gamma(\mathbf{x})
 \end{equation}
 
-As the source point $\mathbf{y}$ is moved to the boundary $\Gamma$, the integrals become singular. Evaluating the singularity using a limiting process yields the Boundary Integral Equation (BIE) \cite{marburg2002boundary}:
+As the source point $\mathbf{y}$ is moved to the boundary $\Gamma$, the integrals become singular. Evaluating the singularity using a limiting process yields the \ac{CBIE} \cite{marburg2002boundary}:
 
 \begin{equation}
-    C(\mathbf{y}) P(\mathbf{y}) = \int_{\Gamma} \left( G(\mathbf{x}, \mathbf{y}) \frac{\partial P}{\partial n}(\mathbf{x}) - P(\mathbf{x}) \frac{\partial G}{\partial n}(\mathbf{x}, \mathbf{y}) \right) d\Gamma(\mathbf{x})
+    c(\mathbf{x_0})\phi(\mathbf{x_0}) + \int_S \phi(\mathbf{x}) \frac{\partial G_k(\mathbf{x_0}, \mathbf{x})}{\partial n} dS(\mathbf{x}) = \int_S \frac{\partial \phi(\mathbf{x})}{\partial n} G_k(\mathbf{x_0}, \mathbf{x}) dS(\mathbf{x}) + \phi_{inc}(\mathbf{x_0})
 \end{equation}
 
-where $C(\mathbf{y})$ is the geometric coefficient (solid angle). For a smooth boundary, $C(\mathbf{y}) = 0.5$.
+where $c(\mathbf{x_0})$, the integral free term, represents the geometric coefficient (solid angle). For a smooth boundary, $c(\mathbf{x_0}) = 0.5$.
 
-\section{Discretization}
+\subsection{Discretization} \label{subsec:bem-discretization}
 
-To solve the BIE numerically, the boundary $\Gamma$ is discretized into $N$ boundary elements. The pressure $P$ and its normal derivative $q = \partial P / \partial n$ are approximated using shape functions. 
+To solve the \ac{CBIE} numerically, the boundary $\Gamma$ is discretized into $N$ boundary elements. The pressure $P$ and its normal derivative $q = \partial P / \partial n$ are approximated using shape functions. 
 
 Applying the collocation method at the nodes leads to a system of linear algebraic equations:
 
 \begin{equation}
-    \mathbf{H} \mathbf{P} = \mathbf{G} \mathbf{Q}
+    \mathbf{H} \boldsymbol{\phi} = \mathbf{G} \boldsymbol{\nu}_s
 \end{equation}
 
-where $\mathbf{H}$ and $\mathbf{G}$ are the dense, nonsymmetric influence matrices resulting from the integration of the fundamental solution and its derivative, and $\mathbf{P}$ and $\mathbf{Q}$ are vectors containing the nodal values of pressure and normal velocity, respectively.
+where $\mathbf{H}$ and $\mathbf{G}$ are the dense, nonsymmetric influence matrices resulting from the integration of the fundamental solution and its derivative, and $\boldsymbol{\phi}$ and $\boldsymbol{\nu}_s$ are vectors containing the nodal values of the pressure and normal velocity, respectively.
 

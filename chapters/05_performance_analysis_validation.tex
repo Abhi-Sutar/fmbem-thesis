@@ -149,6 +149,7 @@ The main motivation for implementing the \ac{FMM} is that it offers much better 
     
 \end{figure}
 \todo{Add the non OpenMP plots}
+
 In all these timing plots \autoref{fig:setup_time_comparison}, \autoref{fig:solve_time_comparison}, and \autoref{fig:total_time_comparison}, we have included guidelines corresponding to the closest asymptotic complexity for each timing curve.
 Let us consider the traditional \ac{BEM} first. The time taken to set up the system matrix scales as $\mathcal{O}(N^2)$, as we have to compute the interaction between every pair of elements. The time taken to solve the system scales as $\mathcal{O}(N^3)$, but considering the solving time makes up the bulk of the total time needed for the traditional \ac{BEM}, the total time also scales as $\mathcal{O}(N^3)$.
 The \ac{FMM} build time scales as $\mathcal{O}(N)$. This time is dominated by the time spent computing the \ac{M2L} translation operators, the number of which scales somewhat linearly with $N$ elements. The solution time taken by the Real-Equivalent system with \ac{GMRES} scales as $\mathcal{O}(N^{\frac{3}{2}})$. As the amount of overhead needed to set up the \ac{FMM} data structures and precompute the translation operators goes down as a percentage of the total time taken as $N$ increases, the total time taken by the \ac{FMM} scales as $\mathcal{O}(N\log N)$.
