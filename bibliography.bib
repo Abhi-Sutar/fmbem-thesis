@@ -112,6 +112,23 @@
   langid = {english}
 }
 
+@article{ceckafourierbasedfastmultipole2013,
+  title = {Fourier-{{Based Fast Multipole Method}} for the {{Helmholtz Equation}}},
+  author = {Cecka, Cris and Darve, Eric},
+  date = {2013-01},
+  journaltitle = {SIAM Journal on Scientific Computing},
+  shortjournal = {SIAM J. Sci. Comput.},
+  volume = {35},
+  number = {1},
+  pages = {A79-A103},
+  issn = {1064-8275, 1095-7197},
+  doi = {10.1137/11085774X},
+  url = {http://epubs.siam.org/doi/10.1137/11085774X},
+  urldate = {2026-03-27},
+  abstract = {The multilevel fast multipole method (MLFMM) is an algorithm that has had great success in reducing the computational time required to find the solution to the Galerkin boundary integral form of the Helmholtz equation. We present a new formulation of the MLFMM using Fourier basis functions rather than spherical harmonics in order to accelerate and simplify the time-critical stages of the algorithm. With modifications to the transfer function in the precomputation stage of the MLFMM, the interpolation and anterpolation algorithms become straightforward applications of FFT interpolations only. Using spectral methods, constructive algorithms are derived to determine a near-optimal quadrature for a given level in the algorithm and an a-priori estimate of the integration error.},
+  langid = {english}
+}
+
 @article{chandler-wildeboundaryelementmethods2007,
   title = {Boundary Element Methods for Acoustics},
   author = {Chandler-Wilde, Simon and Langdon, Steve},
@@ -180,6 +197,22 @@
   isbn = {978-1-58053-152-8},
   pagetotal = {931},
   keywords = {Computer algorithms,Data processing,Electromagnetism}
+}
+
+@article{chieneffectivemethodsolving1990,
+  title = {An Effective Method for Solving the Hyper-Singular Integral Equations in 3-{{D}} Acoustics},
+  author = {Chien, C. C. and Rajiyah, H. and Atluri, S. N.},
+  date = {1990-08-01},
+  journaltitle = {The Journal of the Acoustical Society of America},
+  volume = {88},
+  number = {2},
+  pages = {918--937},
+  issn = {0001-4966, 1520-8524},
+  doi = {10.1121/1.399743},
+  url = {https://pubs.aip.org/jasa/article/88/2/918/921557/An-effective-method-for-solving-the-hyper-singular},
+  urldate = {2026-03-27},
+  abstract = {The application of the boundary integral methods to the problem of acoustics, exterior to a three-dimensional surface, suffers, in general, from the nonexistence of nonuniqueness of its solutions at frequencies that are characteristic of the associated interior problem. The formulation that is most suitable for numerical implementation still appears to be that proposed by Burton and Miller [Proc. R. Soc. London Ser. A 323, 201–210 (1971)]. However, the hypersingular kernels present in such a formulation render it computationally unattractive. Previous attempts to regularize such hypersingular kernels involved the use of double surface integrals, or implicit use of tangential operators, or closed-form evaluations of hypersingular integrals. The method of double surface integrals is computationally highly inefficient, even though it allows higher-order interpolation schemes on the surface. The other two approaches are more conducive to the assumption of a constant value for each of the variables (pressure and its normal gradient) over each of the descretized surface subdomains.             The present work is concerned with the development of a procedure to regularize the hypersingular integral found in the Burton and Miller formulation, through a novel method by employing certain identities for the hypersingular integrals arising in an associated integral equation for the Laplace equation in the interior domain. It is feasible to use arbitrary-order C0 interpolations for pressure and its normal derivative on the three-dimensional surface in the present approach. Even in such a case, the contribution to the hypersingular integrals over a small patch near the source point can be evaluated indirectly without using any special quadrature schemes, through a consideration of simple solutions to the associated Laplace equation in the interior domain. It should be noted here that there is no extra effort required in computing the potential kernels since they are a subset of the kernels found in the acoustic problem. In order to demonstrate the simplicity, robustness, and efficiency of the proposed method, numerical results with quadratic isoparametric C0 surface elements are presented for both radiation and scattering problems. Comparisons are made with close-form solutions and other existing formulations.},
+  langid = {english}
 }
 
 @online{cohlgegenbauerexpansionsaddition2022a,
@@ -893,6 +926,23 @@
   langid = {english}
 }
 
+@article{sunnonsingularburtonmiller2023,
+  title = {Non-{{Singular Burton}}–{{Miller Boundary Element Method}} for {{Acoustics}}},
+  author = {Sun, Qiang and Klaseboer, Evert},
+  date = {2023-02-05},
+  journaltitle = {Fluids},
+  shortjournal = {Fluids},
+  volume = {8},
+  number = {2},
+  pages = {56},
+  issn = {2311-5521},
+  doi = {10.3390/fluids8020056},
+  url = {https://www.mdpi.com/2311-5521/8/2/56},
+  urldate = {2026-03-27},
+  abstract = {The problem of non-unique solutions at fictitious frequencies that can appear in the boundary element method for external acoustic phenomena described by the Helmholtz equation is studied. We propose a method to fully desingularise in an analytical way the otherwise hypersingular Burton–Miller framework, where the original boundary element method and its normal derivative are combined. The method considerably simplifies the use of higher-order elements, for example, quadratic curved surface elements. The concept is validated using the example of scattering on a rigid sphere and a rigid cube, and its robustness and effectiveness for external sound-wave problems are confirmed.},
+  langid = {english}
+}
+
 @article{tadeu3dacousticwave2012,
   title = {{{3D}} Acoustic Wave Simulation Using {{BEM}} Formulations: {{Closed}} Form Integration of Singular and Hypersingular Integrals},
   shorttitle = {{{3D}} Acoustic Wave Simulation Using {{BEM}} Formulations},
@@ -960,6 +1010,11 @@
 @article{winternitzgrafsadditiontheorem,
   title = {Graf's {{Addition Theorem Obtained}} from {{SO}}(3) {{Contraction}}},
   author = {Winternitz, P and Wolf, K B and Pogosyan, G S and Sissakian, A N},
+  date = {2001},
+  journaltitle = {Theoretical and Mathematical Physics},
+  volume = {129},
+  number = {2},
+  pages = {1501--1503},
   langid = {english}
 }
 
@@ -1017,6 +1072,14 @@
   url = {https://www.mdpi.com/2079-9292/12/13/2922},
   urldate = {2026-03-24},
   abstract = {Single instruction multiple data (SIMD) vector extension has become an essential feature of high-performance processors. Architectures such as x86, ARM, MIPS, and PowerPC have specific vector extension instruction sets and SIMD micro-architectures. Using SIMD vectorization programming can significantly improve the performance of application algorithms while keeping the hardware overhead low. In addition, other methods can enhance algorithm performance, such as selecting the best SIMD vectorization model for algorithms, ensuring sufficient instruction streams, implementing reasonable and effective cache data prefetching, and aligning data access and storage addresses according to instruction characteristics. The goal of this paper is three-fold. First, we introduce the basic structural characteristics of a general RISC processor, Hua Rui (HR) DSP, with a custom vector instruction set based on compatibility with an MIPS64 fixed-point and floating-point instruction set, as well as a Fei Teng (FT) processor compatible with an ARMv8 instruction set. Second, we summarize the fundamental principles of SIMD vectorization programming design for the HR DSP, which provides ideas for other scholars or engineering and technical personnel to study the algorithm performance using SIMD vectorization optimization. Third, we implement representative typical algorithms based on the HR and FT platforms and obtain experimental results that show improvement in algorithm SIMD vectorization optimization according to the vector programming design principles summarized in this article can improve the single-core performance of scalar implementation without vectorization, instruction streams, and cache data prefetching by 4–22 times for mean filter, accumulation, and matrix–matrix multiplication, which is significantly better than the performance improvement of 3–13 times for the FT platform. Moreover, the performance of matrix–matrix multiplication using the best vectorization model on the HR platform is about 84\% higher than that of the common SIMD vectorization model.},
+  langid = {english}
+}
+
+@article{yasudafastmultipolebem2010,
+  title = {The Fast Multipole {{BEM}} for Low-Frequency Acoustic Problems Based on Degenerate Boundary Formulation},
+  author = {Yasuda, Yosuke and Oshima, Takuya and Sakuma, Tetsuya and Gunawan, Arief and Masumoto, Takayuki},
+  date = {2010},
+  abstract = {The fast multipole boundary element method (FMBEM), which is an efficient BEM with the use of the fast multipole method (FMM), is known to have instability at low frequencies when the well-known diagonal form for translation of multipole/local coefficients is employed. To overcome this problem, we have already developed a low-frequency FMBEM (LF-FMBEM), which is based on the original multipole expansion theory with translation techniques proposed by Gumerov and Duraiswami for avoiding the low-frequency instability. In the present paper, the degenerate boundary formulation, which is often referred to as the dual BEM, is discussed in the framework of the LF-FMBEM. The degenerate boundary formulation enables not only analyzing degenerate boundary models which have unknowns on both sides of the boundaries, but also avoiding well-known fictitious eigenfrequency difficulties for exterior problems. A concrete computational procedure of the LF-FMBEM based on the degenerate boundary formulation is described in details, which results in O(N) operation counts and memory requirements. The computational accuracy and efficiency are validated through numerical experiments. Moreover, practically appropriate numerical settings on truncation numbers for multipole/local expansion coefficients and the lowest level for the hierarchical cell structure used in the FMM are investigated. Numerical results and computational efficiency of the LF-FMBEM are compared with those of the high-frequency FMBEM (HF-FMBEM), in which the diagonal form is employed.},
   langid = {english}
 }
 
