@@ -1,0 +1,96 @@
+\begin{tikzpicture}[
+    node distance=1.5cm,
+    leaf/.style={circle, draw=black!70, fill=blue!10, minimum size=0.7cm, font=\small, thick},
+    internal/.style={circle, draw=black!70, fill=green!15, minimum size=0.7cm, font=\small, thick},
+    rootnode/.style={circle, draw=black!70, fill=red!15, minimum size=0.7cm, font=\small, thick},
+    arrow/.style={-Latex, thick, blue!60!black},
+    bemedge/.style={solid, gray!40, thin}
+]
+
+% ==========================================
+% TOP: Standard BEM 
+% ==========================================
+\begin{scope}[local bounding box=topfig]
+    
+    \begin{scope}[local bounding box=bem_network]
+        % Draw 8 nodes in a linear arrangement
+        \foreach \i in {1,...,8} {
+            \node[leaf] (b\i) at ({\i*1.2 - 5.4}, 0) {$x_\i$};
+        }
+
+        % Draw all-to-all background edges with significantly taller curved arcs
+        \foreach \i in {1,...,8} {
+            \foreach \j in {\i,...,8} {
+                \ifnum\i=\j \else
+                    \draw[bemedge] (b\i) .. controls +(0, {(\j-\i)*1.1}) and +(0, {(\j-\i)*1.1}) .. (b\j);
+                \fi
+            }
+        }
+        
+        % Highlight node 1's contributions
+        \foreach \j in {2,...,8} {
+            \draw[-Latex, thick, red!70] (b1) .. controls +(0, {(\j-1)*1.1}) and +(0, {(\j-1)*1.1}) .. (b\j);
+        }
+    \end{scope}
+
+    % Added the node name "bem_title" so we can target it for the bounding box crop later
+    \node[name=bem_title, font=\bfseries\large, align=center, text depth=0.5ex, text height=2ex] at ([yshift=-1.2cm]bem_network.north) {BEM};
+    
+    \node[font=\small, align=center, text=red!80!black] (bemcaption) at ([yshift=-0.8cm]bem_network.south) {Dense matrix:\\Every node directly contributes to every other node};
+    
+\end{scope}
+
+% ==========================================
+% BOTTOM: Fast Multipole Method (FMM)
+% ==========================================
+\begin{scope}[shift={([yshift=-1.5cm]topfig.south)}]
+    
+    \begin{scope}[local bounding box=fmm_network]
+        \node[rootnode] (root) at (0, 0) {Root};
+
+        \foreach \i in {1,...,2} {
+            \node[internal] (t\i) at ({\i*4.8 - 7.2}, -1.8) {};
+        }
+
+        \foreach \i in {1,...,4} {
+            \node[internal] (m\i) at ({\i*2.4 - 6.0}, -3.6) {};
+        }
+
+        \foreach \i in {1,...,8} {
+            \node[leaf] (l\i) at ({\i*1.2 - 5.4}, -5.4) {$x_\i$};
+        }
+
+        \foreach \i in {1,2} { \draw[arrow] (l\i) -- (m1); }
+        \foreach \i in {3,4} { \draw[arrow] (l\i) -- (m2); }
+        \foreach \i in {5,6} { \draw[arrow] (l\i) -- (m3); }
+        \foreach \i in {7,8} { \draw[arrow] (l\i) -- (m4); }
+
+        \foreach \i in {1,2} { \draw[arrow] (m\i) -- (t1); }
+        \foreach \i in {3,4} { \draw[arrow] (m\i) -- (t2); }
+
+        \foreach \i in {1,2} { \draw[arrow] (t\i) -- (root); }
+
+        \node[font=\small, align=left, right=0.8cm of root] {Level 0: Global Multipole Expansion};
+        \node[font=\small, align=left, right=0.8cm of t2] {Level 1: Translated Expansions (M2M)};
+        \node[font=\small, align=left, right=0.8cm of m4] {Level 2: Local Aggregation};
+        \node[font=\small, align=left, right=0.8cm of l8] {Level 3: Boundary Elements (Nodes)};
+    \end{scope}
+
+    \node[font=\bfseries\large, align=center, text depth=0.5ex, text height=2ex] at ([yshift=0.8cm]fmm_network.north) {Fast Multipole Method (FMM)};
+
+    \node[font=\small, align=center, text=blue!80!black] at ([yshift=-0.8cm]fmm_network.south) {Information is collated step-by-step upward through the binary tree};
+    
+\end{scope}
+
+% ==========================================
+% BOUNDING BOX CROP (Removes Top Whitespace)
+% ==========================================
+% 1. Save the current bottom-left and top-right corners
+\coordinate (SW) at (current bounding box.south west);
+\coordinate (NE) at (current bounding box.north east);
+% 2. Wipe the bounding box clean
+\pgfresetboundingbox
+% 3. Redraw it using the saved bottom-left, but replacing the top edge with the BEM title
+\useasboundingbox (SW) rectangle ([yshift=0.2cm]NE |- bem_title.north);
+
+\end{tikzpicture}

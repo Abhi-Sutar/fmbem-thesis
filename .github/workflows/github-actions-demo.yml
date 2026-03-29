@@ -10,6 +10,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: clean build directory
+      run: make purge
+
     - name: Build pdf
       run: make pdf
 
