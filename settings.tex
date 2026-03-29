@@ -35,6 +35,7 @@
 \usepackage{todonotes}
 \usepackage{siunitx}
 \usepackage{tabularx}
+\usepackage{tcolorbox}
 
 \usetikzlibrary{positioning, external, arrows.meta, shapes.geometric, calc, decorations.markings}
 % \usetikzlibrary{calc}
@@ -86,7 +87,7 @@
 }
 
 
-\newcommand\comment[1]\null
+\providecommand\comment[1]\null
 
 % Themes
 \ifthenelse{\equal{\detokenize{dark}}{\jobname}}{%
@@ -140,4 +141,18 @@
   keywordstyle=\bfseries\color{TUMBlue},
   stringstyle=\color{TUMAccentGreen},
   captionpos=b
+}
+
+
+% Define a custom environment called 'insetBox'
+\newtcolorbox{insetBox}[1][]{
+  shield externalize,
+  colback=TUMLightGray!20,       % Light gray background (10% gray, 90% white)
+  colframe=TUMBlue,      % Slightly darker gray border
+  title=Performance Tip, % Default title for the box
+  fonttitle=\bfseries,   % Bold title font
+  coltitle=black,        % Black text for the title
+  arc=3pt,               % Gently rounded corners
+  boxrule=0.5pt,         % Thin, unobtrusive border
+  #1                     % Allows you to pass extra options locally if needed
 }

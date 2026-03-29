@@ -47,20 +47,41 @@ The core of the \ac{FMM} logic revolves around the interaction lists of each nod
     \item \textbf{Level 2 and Deeper:} To build the neighbor and far-field lists for nodes at level 2 and deeper, we first identify the parent node, and then iterate through the parent's neighbor list. For each neighboring node of the parent, we check if its children, colloquially referred to as the "cousin" nodes of the current node, are adjacent to the current node or not. If they are, we add them to the neighbor list. 
 \end{enumerate}
 
-\subsubsection{Space-Filling Curves and Morton Encoding} \label{subsubsec:morton-encoding}
-
-We map the geometric centers of the boundary elements from three-dimensional space into a one-dimensional array using a space-filling curve, specifically, the Morton Z-curve. Morton encoding converts the 3D coordinates of each mesh element into a single integer by interleaving the bits of the binary representations of the x, y, and z coordinates, generating that element's Morton key. This ordering assigns numerically adjacent Morton keys to spatially adjacent elements. This allows us to sort the elements into a linearly ordered array,  where adjacent elements get clustered together, improving cache locality. This cache locality helps reduce the overhead of assigning the elements to the Octree's nodes. While the Morton Z-order curve may not be the optimum space-filling curve for 3D problems, its simplicity of implementation via bitwise operations lends itself to efficient execution \cite{malhotrapvfmmparallelkernel2015}.
-
-\subsection{Admissibiltiy Criterion and the Interaction Lists} \label{subsec:interaction-lists}
-We use a strict geometric admissibility criterion to determine whether a candidate "cousin" node goes into the target node's \texttt{neighbor\_list} or the \texttt{interaction\_list}. 
-We use the Chebyshev distance, which is the maximum of the absolute differences of their Cartesian coordinates, to evaluate spatial separation.
-
-
-
 \begin{figure}[htpb] 
     \centering
     \includegraphics[width=0.8\textwidth]{figures/diagram_2_logical.pdf}
     \caption{Quadtree structure corresponding to the subdivided domain in Figure \ref{fig:quadtree-domain}. The line at the right shows the depth of the tree. The leaf nodes are colored in gray andthe circle beneath them shows the ID of the mesh element they contain. The non-leaf nodes are white rectangles. All nodes are labeled with their local ID in their parent node as per the scheme shown in the small square in Figure \ref{fig:quadtree-domain}. \cite{liufastmultipoleboundary2006}}
     \label{fig:quadtree-logical}
 \end{figure}
+\subsubsection{Space-Filling Curves and Morton Encoding} \label{subsubsec:morton-encoding}
+
+We map the geometric centers of the boundary elements from three-dimensional space into a one-dimensional array using a space-filling curve, specifically, the Morton Z-curve. Morton encoding converts the 3D coordinates of each mesh element into a single integer by interleaving the bits of the binary representations of the x, y, and z coordinates, generating that element's Morton key. This ordering assigns numerically adjacent Morton keys to spatially adjacent elements. This allows us to sort the elements into a linearly ordered array,  where adjacent elements get clustered together, improving cache locality. This cache locality helps reduce the overhead of assigning the elements to the Octree's nodes. While the Morton Z-order curve may not be the optimum space-filling curve for 3D problems, its simplicity of implementation via bitwise operations lends itself to efficient execution \cite{malhotrapvfmmparallelkernel2015}.
+
+\subsection{Admissibiltiy Criterion and the Interaction Lists} \label{subsec:interaction-lists}
+We use a strict geometric admissibility criterion to determine whether a candidate "cousin" node goes into the target node's \texttt{neighbor\_list} or the \texttt{interaction\_list}. 
+We use the Chebyshev distance, which is the maximum of the absolute differences of their Cartesian coordinates, to evaluate spatial separation. Given a pair of target node and candidate cousin node at the same heirarchical level, we extract their relative integer grid coordinates \texttt{grid\_x, grid\_y, grid\_z}, and compute the spatial dimension differences: $dx$, $dy$, and $dz$. The admission criterion is then evaluated as follows:
+\begin{itemize}
+    \item \textbf{Near-field interaction (The neighbor list):} The maximum orthogaonal separation is calculated as $\max(|dx|, |dy|, |dz|)$. If this is less than or equal to 1, the candidate cousin node share at least a vertex, edge or even a face. This means that the nodes are geometrically adjacent, and thus their interactions must be computed directly. Therefore, the candidate cousin node is added to the target node's \texttt{neighbor\_list}. During the matrix-vector product stage of the \ac{FMM}, these neighbor nodes will be evaluated with exact \ac{P2P} analytical integration.
+    \item \textbf{Far-field interaction (The interaction list):} If the maximum orthogonal separation is greater than 1, thenit means that the candidate cousin node is at least separated from the target node by the width of one cubic node. Therefore, this candidate node being sufficiently far away, it is added to the target node's \texttt{interaction\_list}. During the matrix-vector product stage of the \ac{FMM}, the acoustic influence of these nodes will be transferred to the target node using the \ac{M2L} translation operator.
+\end{itemize}
+
+There is one topological edge case that we must take care of. This arises when the parent's neighbor node is a coarser leaf node. What this means, is that the parent node's neighbor node contain some elements of the boundary, but was not subdivided further because the number of elements it contained was less than the threshold, thus terminating at a shallower heirarchical depth. Since the \ac{M2L} operators are formulated for nodes at the same heirarchical level, we cannot directly use the \ac{M2L} operator to compute the interaction between the target node and this coarser neighbor node. To maintain numerical stability, we inject the parent's coarser leaf neighbor into the target node's \texttt{neighbor\_list} and compute the interaction directly with \ac{P2P} integration despite their potential separation.
+
+
+\subsection{Wiscombe's Criterion for the Truncation Order}
+The theoretical basis of the \ac{FMM} lies on the infinite series expansion of the Green's function. However, in practice, we must truncate this expansion to a finite number of terms, deonted as $P$. The choice of $P$ is a critical trade-off between accuracy and computational cost. The number of complex-valued coefficient required to represent the acoustic field scaler quadratically with $P$ as $N_{coeff} = (P + 1)^2$ for a 3D problem.
+
+Unlike the Laplace equation, where the truncation error decays geometrically with distance, the Helmholtz equation displays oscillatory phase behaviours that complicate the choice of the truncation order. If the physical size of a node, in this case its diameter is large relative to the acoustic wavelength, then the expansion needs to contain sufficient terms to capture the spatial oscillations, otherswise, the translated field will experience severe aliasing and phase destruction. To ensure accuracy across the whol domain, we calculate a uniform truncation order for all the nodes in the tree based on the largest node diameter and the wavenumber, using Wiscombe's criterion, which is formalized in the context of the \ac{FMM} as the Excess Bandwidth Formula by Song and Chew \cite{chewfastefficientalgorithms2001}. The algorithm of the methoda that determines the truncation order is as follows:
+\begin{enumerate}
+    \item \textbf{Initilize Precision:} The function accepts the acoustic wavenumber $k$, and a user define tolerenace $\epsilon$. This tolerance is converted to a precision metric $d_0$ using the formula $d_0 = -\log_{10}(\epsilon)$, which represents the number of significant digits required.
+    \item \textbf{Calculate the Size Parameter:} A non-dimensional size parameter, $kD$, is calculated where $D$ is the absolute maximum diameter among all the leaf nodes. $kD$ represents the physical diameter of the node normalized by the acoustic wavenumber.
+    \item \textbf{Regime Bifurcation:}
+    \begin{itemize}
+        \item \textbf{Low-Frequency Regime:} If $kD < 1.0$, the node is small relative to the wavelength, the expansion behave like the static Laplacian potential. The truncation order can then be appointed by a stable low-frequency heuristic: $$P = [kD + 5]$$.
+        \item \textbf{High-Frequency Regime:} If $kD \geq 1.0$, the node spans one or multiple wavelengths, in which case we need to apply the Excess Bandwidth Formula. It scales the required terms linearly with the size parameter $kD$, while adding a non-linear excess bandwidth term driven by the desired accuracy $d_0$. The order is calculated as: $$P \approx [kD +1.8 \cdot d_0^{2/3} \cdot (kD)^{1/3}]$$
+    \end{itemize}
+\end {enumerate}
+
+Subsequently, a uniform truncation order $P$ is assigned identically to all the nodes in the tree to ensure that all the translation matrices are perfectly square and dimensionally compatible.
+
 

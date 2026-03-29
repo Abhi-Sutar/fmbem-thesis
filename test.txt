@@ -98,39 +98,42 @@ Introducing the wavenumber k = ω/c, we arrive at the homogeneous Helmholtz 
 
 ∇²P(x) + k²P(x) = 0
 
+Since we use the symbol ϕ to represent the acoustic potential in our BEM formulation, we can rewrite the Helmholtz equation as:
+∇²ϕ(x) + k²ϕ(x) = 0
+
 Boundary Element Method
 
 Boundary Integral Formulation
 
 The Boundary Element Method (BEM) solves the Helmholtz equation by transforming it into an integral equation defined on the boundary of the domain. This transformation is typically achieved using Green’s Second Identity.
 
-Let Ω be the domain containing the fluid and Γ be its boundary. For two scalar fields P and G in Ω, Green’s Second Identity states (Wu 2000):
+Let Ω be the domain containing the fluid and Γ be its boundary. For two scalar fields ϕ and G in Ω, Green’s Second Identity states (Wu 2000):
 
 $$\begin{equation}
-    \int_{\Omega} \left( P \nabla^2 G - G \nabla^2 P \right) d\Omega = \int_{\Gamma} \left( P \frac{\partial G}{\partial n} - G \frac{\partial P}{\partial n} \right) d\Gamma
+    \int_{\Omega} \left( \phi \nabla^2 G - G \nabla^2 \phi \right) d\Omega = \int_{\Gamma} \left( \phi \frac{\partial G}{\partial n} - G \frac{\partial \phi}{\partial n} \right) d\Gamma
 \end{equation}$$
 
 where n is the outward unit normal vector to the boundary.
 
-We choose P(x) to be the acoustic pressure, satisfying the Helmholtz equation derived in Equation ([eq:helmholtz]):
-∇²P(x) + k²P(x) = 0
+We choose ϕ(x) to be the acoustic pressure, satisfying the Helmholtz equation derived in Equation ([eq:helmholtz]):
+∇²ϕ(x) + k²ϕ(x) = 0
 
-We choose G(x, y) to be the fundamental solution (Green’s function) of the Helmholtz equation, which satisfies the inhomogeneous equation with a point source at y:
-∇²G(x, y) + k²G(x, y) = −δ(x − y)
+We choose G(x, x⁰) to be the fundamental solution (Green’s function) of the Helmholtz equation, which satisfies the inhomogeneous equation with a point source at x⁰:
+∇²G(x, x⁰) + k²G(x, x⁰) = −δ(x − x⁰)
 
 where δ is the Dirac delta function. For 3D acoustics, the free-space Green’s function satisfying the Sommerfeld radiation condition is given by (Kirkup 1998):
 
 $$\begin{equation}
-    G(\mathbf{x}, \mathbf{y}) = \frac{e^{ik r}}{4 \pi r} \quad \mbox{with} \quad r = |\mathbf{x} - \mathbf{y}|
+    G(\mathbf{x}, \mathbf{x_0}) = \frac{e^{ik r}}{4 \pi r} \quad \mbox{with} \quad r = |\mathbf{x} - \mathbf{x_0}|
 \end{equation}$$
 
-Substituting these into Green’s Second Identity for a source point y inside the domain Ω:
+Substituting these into Green’s Second Identity for a source point x⁰ inside the domain Ω:
 
 $$\begin{equation}
-    P(\mathbf{y}) = \int_{\Gamma} \left( G(\mathbf{x}, \mathbf{y}) \frac{\partial P}{\partial n}(\mathbf{x}) - P(\mathbf{x}) \frac{\partial G}{\partial n}(\mathbf{x}, \mathbf{y}) \right) d\Gamma(\mathbf{x})
+    \phi(\mathbf{x_0}) = \int_{\Gamma} \left( G(\mathbf{x}, \mathbf{x_0}) \frac{\partial \phi}{\partial n}(\mathbf{x}) - \phi(\mathbf{x}) \frac{\partial G}{\partial n}(\mathbf{x}, \mathbf{x_0}) \right) d\Gamma(\mathbf{x})
 \end{equation}$$
 
-As the source point y is moved to the boundary Γ, the integrals become singular. Evaluating the singularity using a limiting process yields the CBIE (Marburg 2008):
+As the source point x⁰ is moved to the boundary Γ, the integrals become singular. Evaluating the singularity using a limiting process yields the CBIE (Marburg 2008):
 
 $$\begin{equation}
     c(\mathbf{x_0})\phi(\mathbf{x_0}) + \int_S \phi(\mathbf{x}) \frac{\partial G_k(\mathbf{x_0}, \mathbf{x})}{\partial n} dS(\mathbf{x}) = \int_S \frac{\partial \phi(\mathbf{x})}{\partial n} G_k(\mathbf{x_0}, \mathbf{x}) dS(\mathbf{x}) + \phi_{inc}(\mathbf{x_0})
@@ -140,7 +143,7 @@ where c(x⁰), the integral free term, represents the geometric coefficient (sol
 
 Discretization
 
-To solve the CBIE numerically, the boundary Γ is discretized into N boundary elements. The pressure P and its normal derivative q = ∂P/∂n are approximated using shape functions.
+To solve the CBIE numerically, the boundary Γ is discretized into N boundary elements. The pressure ϕ and its normal derivative ν_(s) = ∂ϕ/∂n are approximated using shape functions.
 
 Applying the collocation method at the nodes leads to a system of linear algebraic equations:
 
@@ -285,7 +288,7 @@ $$\begin{equation}
 \end{equation}$$
 This particular simplification means that we don’t have to compute the extra terms associated with the normals nd local tangents.
 
-Decoupling Static and Dynamic components
+Decoupling Static and Dynamic Components
 
 While our flat panel geometry allows us to collapse the functional form of the kernel, the expression $\frac{e^{ikr}}{r^3}(1 - ikr)$ is still hypersingular. To compute the term numerically, we split the integrand into a purely divergent, static singularity, and a regularized, weakly singular dynamic component (Sun and Klaseboer 2023).
 Looking at the Taylor expansion of the kernel after the collapse:
@@ -293,7 +296,7 @@ $$\begin{align}
     \frac{e^{ikr}}{r^3}(1 - ikr) &= \frac{1}{r^3} \left[ 1 + \frac{1}{2} k^2 r^2 + \mathcal{O}(r^3) \right] \\
     &= \frac{1}{r^3} + \frac{1}{2 r} k^2 + \mathcal{O}(1)
 \end{align}$$
-This expansion tell us something quite important about the frequency dependence of this kernel. The dynamic kerm that depends on the wavenumber k is only weakly singular with the order of 𝒪(1/r). The remain ing term, which is purel static and real, is the hypersingular term 1/r³.
+This expansion tells us something quite important about thekernel’s frequency dependence. The dynamic term that depends on the wavenumber k is only weakly singular, of the order of 𝒪(1/r). The remaining term, which is purely static and real, is the hypersingular term 1/r³.
 
 Sun and Klaseboer (Sun and Klaseboer 2023) demonstrate that this isolated static term 1/r³ is the same as the hypersingular kernel of the Laplace equation, which we can consider as a special case of the Helmholtz equation where k = 0.
 We can demonstrate this equivalence by taking the second normal derivative of the fundamental solution to the Laplace equation $G_0 = \frac{1}{4 \pi r}$, which is given by:
@@ -312,9 +315,10 @@ $$\begin{equation}
     \frac{\partial^2 G_k}{\partial n \partial n_0} \bigg|_{\text{flat panel}} = \frac{\partial^2 G_0}{\partial n \partial n_0} \bigg|_{\text{flat panel}} + \frac{1}{4\pi} \left[\frac{e^{ikr} (1 - ikr) - 1 }{r^3} \right]
 \end{equation}$$
 
-The isolated term in the brackets is completely regularized, and its limit as r → 0 evaluates to $\frac{k^2}{2r}$. Since this term is only weakly singular, we can use standard numericl quadratures like the Gaussian quadrature to integrate it over the flat panel without diverging.
+The isolated term in the brackets is completely regularized, and its limit as r → 0 evaluates to $\frac{k^2}{2r}$. Since this term is only weakly singular, we can use standard numerical quadratures, such as the Gaussian quadrature, to integrate it over the flat panel without divergence.
 
 Through this geometric simplification and asymptotic decoupling, the highly complex Burton-Miller implementation problem on flat panels is reduced to a singular, specific mathematical goal: evaluating the finite part of the static Laplace hypersingular integral $\int_S \frac{1}{r^3} dS$ over a planar polygonal element.
+In our code we integrate it with a higher order quadrature to ensure accuracy.
 
 The Fast Multipole Method Framework
 
@@ -384,13 +388,101 @@ FMM Translation Operators:
 
     5.  L2P Matrix: Evaluates the Local expansion directly onto the target particles (mesh cells).
 
+[]
+
 Splitting the domain to make an Octree
 
-The underlying spatial data-structue sets the stage for the computational efficiency of the FMM algorithm. It dictates how the source-target interactions are categorized as either near-field, needing direct computation, or far-field, and thus suitable for approximation via multipole expansions. An adaptive, heirarchical Octree allows for a systematic way to manage these interactions.
+The underlying spatial data-structue sets the stage for the computational efficiency of the FMM algorithm. It dictates how the source-target interactions are categorized as either near-field, needing direct computation, or far-field, and thus suitable for approximation via multipole expansions. An adaptive, heirarchical Octree allows for a systematic way to manage these interactions. The Octree is constructed by a top-down recursive subdivision of the spatial domain.
+
+We start by defining the root node as a cube that encompasses the entire geometry.
+We iterate over the vertices of all the mesh elements to find the minimum and maximum coordinates.
+We then add a 1% padding to the bounding box as a safety margin to ensure that all elements are contained within the root node, and to avoid edge cases where elements lie exactly on the boundary of the node.
+This safety margin can help guard against floating point precision issues occurring precisely at the boundary, which could lead to elements on or near the boundary being misclassified as outside the node.
+This root node is then subdivided into 8 child nodes, and the elements are assigned to the child nodes based on their centroids. This is repeated recursively for each child node until the number of elements left in a node are less than a predefined threshold, or a set maximum depth is reached, at which point the node is designated as a leaf node. This threshold is a critical parameter that can be manually set at runtime.
+When subdividing the domain for a multi-object mesh, we can see that there will be empty interstitial space. The tree adapts to this by pruning empty branches, that is bracnhes the do not contain any boundary elements.
+Each instantiated FMMNode is assigned a unique spatial index, and information like its depth, the index of its parent node, its geometric coordinates, and the indices of its child nodes are stored in the node’s data structure.
+This information is crucial for the FMM tree traversal.
+
+The core of the FMM logic revolves around the interaction lists of each node generated by the build_interaction_lists method after the Octree geometry is constructed. This method operates over the Tree as follows:
+
+1.  Level 0 (Root Node): Considering the root node has no neighbors, its far-field list remain empty, and its neighbor list consists only of itself, as it interacts exclusively with itself.
+
+2.  Level 1 (First level of child nodes): These intial eight child nodes of the root node are neighbors to each other, and thus their neighbor lists consist of each other. From this it follows that they have no far-field interactions, and thus their far-field lists also remain empty.
+
+3.  Level 2 and Deeper: To build the neighbor and far-field lists for nodes at level 2 and deeper, we first identify the parent node, and then iterate through the parent’s neighbor list. For each neighboring node of the parent, we check if its children, colloquially referred to as the "cousin" nodes of the current node, are adjacent to the current node or not. If they are, we add them to the neighbor list.
+
+[]
 
 Space-Filling Curves and Morton Encoding
 
 We map the geometric centers of the boundary elements from three-dimensional space into a one-dimensional array using a space-filling curve, specifically, the Morton Z-curve. Morton encoding converts the 3D coordinates of each mesh element into a single integer by interleaving the bits of the binary representations of the x, y, and z coordinates, generating that element’s Morton key. This ordering assigns numerically adjacent Morton keys to spatially adjacent elements. This allows us to sort the elements into a linearly ordered array, where adjacent elements get clustered together, improving cache locality. This cache locality helps reduce the overhead of assigning the elements to the Octree’s nodes. While the Morton Z-order curve may not be the optimum space-filling curve for 3D problems, its simplicity of implementation via bitwise operations lends itself to efficient execution (Malhotra and Biros 2015).
+
+Admissibiltiy Criterion and the Interaction Lists
+
+We use a strict geometric admissibility criterion to determine whether a candidate "cousin" node goes into the target node’s neighbor_list or the interaction_list.
+We use the Chebyshev distance, which is the maximum of the absolute differences of their Cartesian coordinates, to evaluate spatial separation. Given a pair of target node and candidate cousin node at the same heirarchical level, we extract their relative integer grid coordinates grid_x, grid_y, grid_z, and compute the spatial dimension differences: dx, dy, and dz. The admission criterion is then evaluated as follows:
+
+- Near-field interaction (The neighbor list): The maximum orthogaonal separation is calculated as max (|dx|,|dy|,|dz|). If this is less than or equal to 1, the candidate cousin node share at least a vertex, edge or even a face. This means that the nodes are geometrically adjacent, and thus their interactions must be computed directly. Therefore, the candidate cousin node is added to the target node’s neighbor_list. During the matrix-vector product stage of the FMM, these neighbor nodes will be evaluated with exact P2P analytical integration.
+
+- Far-field interaction (The interaction list): If the maximum orthogonal separation is greater than 1, thenit means that the candidate cousin node is at least separated from the target node by the width of one cubic node. Therefore, this candidate node being sufficiently far away, it is added to the target node’s interaction_list. During the matrix-vector product stage of the FMM, the acoustic influence of these nodes will be transferred to the target node using the M2L translation operator.
+
+There is one topological edge case that we must take care of. This arises when the parent’s neighbor node is a coarser leaf node. What this means, is that the parent node’s neighbor node contain some elements of the boundary, but was not subdivided further because the number of elements it contained was less than the threshold, thus terminating at a shallower heirarchical depth. Since the M2L operators are formulated for nodes at the same heirarchical level, we cannot directly use the M2L operator to compute the interaction between the target node and this coarser neighbor node. To maintain numerical stability, we inject the parent’s coarser leaf neighbor into the target node’s neighbor_list and compute the interaction directly with P2P integration despite their potential separation.
+
+Wiscombe’s Criterion for the Truncation Order
+
+The theoretical basis of the FMM lies on the infinite series expansion of the Green’s function. However, in practice, we must truncate this expansion to a finite number of terms, deonted as P. The choice of P is a critical trade-off between accuracy and computational cost. The number of complex-valued coefficient required to represent the acoustic field scaler quadratically with P as N_(coeff) = (P + 1)² for a 3D problem.
+
+Unlike the Laplace equation, where the truncation error decays geometrically with distance, the Helmholtz equation displays oscillatory phase behaviours that complicate the choice of the truncation order. If the physical size of a node, in this case its diameter is large relative to the acoustic wavelength, then the expansion needs to contain sufficient terms to capture the spatial oscillations, otherswise, the translated field will experience severe aliasing and phase destruction. To ensure accuracy across the whol domain, we calculate a uniform truncation order for all the nodes in the tree based on the largest node diameter and the wavenumber, using Wiscombe’s criterion, which is formalized in the context of the FMM as the Excess Bandwidth Formula by Song and Chew (Chew 2001). The algorithm of the methoda that determines the truncation order is as follows:
+
+1.  Initilize Precision: The function accepts the acoustic wavenumber k, and a user define tolerenace ϵ. This tolerance is converted to a precision metric d₀ using the formula d₀ = −log₁₀(ϵ), which represents the number of significant digits required.
+
+2.  Calculate the Size Parameter: A non-dimensional size parameter, kD, is calculated where D is the absolute maximum diameter among all the leaf nodes. kD represents the physical diameter of the node normalized by the acoustic wavenumber.
+
+3.  Regime Bifurcation:
+
+    - Low-Frequency Regime: If kD < 1.0, the node is small relative to the wavelength, the expansion behave like the static Laplacian potential. The truncation order can then be appointed by a stable low-frequency heuristic:
+      P = [kD + 5]
+      .
+
+    - High-Frequency Regime: If kD ≥ 1.0, the node spans one or multiple wavelengths, in which case we need to apply the Excess Bandwidth Formula. It scales the required terms linearly with the size parameter kD, while adding a non-linear excess bandwidth term driven by the desired accuracy d₀. The order is calculated as:
+      P ≈ [kD + 1.8 ⋅ d₀^(2/3) ⋅ (kD)^(1/3)]
+
+Subsequently, a uniform truncation order P is assigned identically to all the nodes in the tree to ensure that all the translation matrices are perfectly square and dimensionally compatible.
+
+Expansion Bases and Key building blocks of the FMM
+
+Before we can derive the translation operators, we need to define the expansion bases used for the multipole and local expansions. The translations of the exterior acoustic Helmholtz equation requires the use of spherical coordinate bases, specifically spherical harmonics for angular resolution, and spherical Bessel and Hankel functions for radial propogation.
+
+Fundmental Solution for the Helmholtz
+
+The free-sapce Green’s function for the 3D Helmholtz equation which charactesrizes the acoustic pressure at a target point x due to a unit point source at at x⁰ is given by:
+$$\begin{equation}
+\label{green-function}
+    G(\mathbf{x}, \mathbf{x_0}) = \frac{e^{ik|\mathbf{x} - \mathbf{x_0}|}}{4\pi |\mathbf{x} - \mathbf{x_0}|}
+\end{equation}$$
+For the FMM, the Cartesian coordinates (x, y, z) taken rlative to the center of the octree node are transformed to spherical coordinates (r, θ, ϕ). The acoustic field is then represented as a linear combination of spherical wave functions, mapping the global Cartesian based interactions to a local spherical coordinate system.
+
+Spherical Harmonics and Legendre Polynomials
+
+Spherical Harmonics, denoted as Y_(n)^(m)(θ, ϕ), are a set of orthogonal functions defined on the surface of a unit sphere, and act as the angular portion of the general solution to the vector Helmhholtz equation The integer n ≥ 0 is the degree of the harmonic, while the integer m represents the order.
+
+Our FMM framework uses an orthonomal normalization convention that rigorously ensures that the surface integral of the squared magnitude of the harmonic over the unit sphere evaluates to exactly unity. Uder this specific normalization regime, we can define the spherical harmonic in terms of the associated Legendre polynomials P_(n)^(m)(cos θ) as:
+$$\begin{equation}
+\label{spherical-harmonic}
+    Y_n^m(\theta, \phi) = \sqrt{\frac{(2n + 1)(n - m)!}{4\pi (n + m)!}} P_n^m(\cos \theta) e^{im\phi}
+\end{equation}$$
+
+Building the Translation Matrices
+
+The core optimization of our FMM implementation is the precomputation of the translation matrices. These matrices are used to perform the various translations required by the FMM algorithm, such as P2M, M2M, M2L, L2L, and L2P. We compute the matrices once upfront and store them in the FMMNode data structure for each node in the Octree. This allows us to avoid expensive redundant calculations during the FMM algorithm, significantly improving the computational efficiency of our implementation.
+
+We group the discussion of the translation matrices by the stage of the tree traversal they are used in. This traversal process involves mathematically translating the source and destination points to the same coordinate system, which is then used to compute the translation matrices.
+
+[]
+
+[]
+
+[]
 
 Software Architecture and HPC Optimizations
 
@@ -697,6 +789,8 @@ Burton, A. J., and G. F. Miller. 1971. “The Application of Integral Equation M
 
 Chandler-Wilde, Simon, and Steve Langdon. 2007. Boundary Element Methods for Acoustics. July 18.
 
+Chew, Weng Cho, ed. 2001. Fast and Efficient Algorithms in Computational Electromagnetics. Artech House Antennas and Propagation Library. Artech House.
+
 Chien, C. C., H. Rajiyah, and S. N. Atluri. 1990. “An Effective Method for Solving the Hyper-Singular Integral Equations in 3-D Acoustics.” The Journal of the Acoustical Society of America 88 (2): 918–37. https://doi.org/10.1121/1.399743.
 
 Coifman, R., V. Rokhlin, and S. Wandzura. 1993. “The Fast Multipole Method for the Wave Equation: A Pedestrian Prescription.” IEEE Antennas and Propagation Magazine 35 (3): 7–12. https://doi.org/10.1109/74.250128.
@@ -718,6 +812,8 @@ Kloberdanz, Kyle. 2020. “OpenMP - Static or Dynamic Scheduling?” Blog. May 1
 Kohnke, Bartosz, Carsten Kutzner, Andreas Beckmann, et al. 2021. “A CUDA Fast Multipole Method with Highly Efficient M2L Far Field Evaluation.” The International Journal of High Performance Computing Applications 35 (1): 97–117. https://doi.org/10.1177/1094342020964857.
 
 Langrenne, Christophe, Alexandre Garcia, and Marc Bonnet. 2015. “Solving the Hypersingular Boundary Integral Equation for the Burton and Miller Formulation.” The Journal of the Acoustical Society of America 138 (5): 3332–40. https://doi.org/10.1121/1.4935134.
+
+Liu, Y. J., and N. Nishimura. 2006. “The Fast Multipole Boundary Element Method for Potential Problems: A Tutorial.” Engineering Analysis with Boundary Elements 30 (5): 371–81. https://doi.org/10.1016/j.enganabound.2005.11.006.
 
 Liu, Yijun. 2009. Fast Multipole Boundary Element Method: THEORY AND APPLICATIONS IN ENGINEERING. CAMBRIDGE UNIVERSITY PRESS.
 
