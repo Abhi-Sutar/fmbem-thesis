@@ -3,6 +3,27 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
 # ==========================================
+# 0. CONFIGURATION SETTINGS
+# ==========================================
+
+# --- Geometry & QuadTree Settings ---
+NUM_ELEMENTS = 30               # Total number of boundary elements
+MAX_ELEMENTS_PER_CELL = 1       # QuadTree capacity (1 guarantees unique leaves for FMM)
+TREE_MAX_DEPTH = 6              # Maximum subdivision depth allowed for the tree
+
+# --- FMM Interaction Targets ---
+TARGET_ID = 20                  # Element ID to act as the Target (z_0) 
+SOURCE_IDS = [27, 6, 3]         # List of Element IDs to act as Sources (z)
+
+# --- Tree Level Settings ---
+# Note: Root is 0, smaller numbers = larger boxes
+M2L_DEPTH = 2                   # Tree level where M2L translations occur (Grandparent nodes)
+
+# --- View / Zoom Settings ---
+SOURCE_ZOOM_ID = 3              # Which Source ID to center the right-hand zoom box around
+
+
+# ==========================================
 # 1. Boundary & QuadTree Logic
 # ==========================================
 
@@ -51,7 +72,7 @@ class QuadTree:
             
         return node
 
-def generate_boundary(n_points=35):
+def generate_boundary(n_points):
     t = np.linspace(0, 2*np.pi, n_points, endpoint=False)
     r = 0.8 + 0.2 * np.sin(2 * t) + 0.1 * np.cos(3 * t)
     x = r * np.cos(t)
@@ -181,21 +202,23 @@ def draw_arrow(ax, start, end, color, ls, lw=1.5, zorder=4):
     ax.annotate("", xy=end, xytext=start,
                 arrowprops=dict(arrowstyle="-|>", color=color, ls=ls, lw=lw, 
                                 mutation_scale=15, clip_on=True),
-                # annotation_clip=False prevents the arrow from disappearing 
-                # when the target (xy) is outside the zoomed axes view
                 annotation_clip=False, 
                 zorder=zorder, clip_on=True)
 
 def label_z_points(ax, parent_node, label):
     pts = []
-    for c in parent_node.children:
-        if c.is_leaf: pts.extend(c.point_data)
+    def collect_pts(node):
+        if node.is_leaf: pts.extend(node.point_data)
+        else:
+            for c in node.children: collect_pts(c)
+    if parent_node:
+        collect_pts(parent_node)
+    
     if pts:
         pts.sort(key=lambda p: p[2], reverse=True)
         ax.text(pts[0][1] - 0.02, pts[0][2] + 0.01, f"${label}$", fontsize=22, zorder=6, ha='right', clip_on=True)
 
 def get_leaf_by_id(node, target_id):
-    """Recursively search for the leaf node containing a specific point ID."""
     if node.is_leaf:
         if any(p[0] == target_id for p in node.point_data): return node
         return None
@@ -210,79 +233,116 @@ def get_ancestor_at_depth(node, depth):
         curr = curr.parent
     return curr
 
-def setup_fmm_nodes(tree):
-    # 1. Target node (keep as leftmost)
-    leaves = [n for n in tree.nodes if n.is_leaf and n.point_data]
-    leaves.sort(key=lambda n: n.x)
-    t_parent = get_ancestor_at_depth(leaves[0], 3)
+def setup_fmm_nodes(tree, target_id, source_ids, m2l_depth):
+    t_leaf = get_leaf_by_id(tree.nodes[0], target_id)
     
-    # 2. Source nodes based on specific element IDs
-    s_parents = []
-    for point_id in [8, 6, 3]: # Order determines M2L mapping
+    # Guarantee the target is deep enough to show full tree traversal logic
+    if not t_leaf or t_leaf.depth <= m2l_depth: 
+        deep_leaves = [n for n in tree.nodes if n.is_leaf and n.point_data and n.depth > m2l_depth]
+        if deep_leaves:
+            deep_leaves.sort(key=lambda n: n.x)
+            t_leaf = deep_leaves[0]
+        else:
+            leaves = [n for n in tree.nodes if n.is_leaf and n.point_data]
+            leaves.sort(key=lambda n: n.x)
+            t_leaf = leaves[0]
+            
+    t_m2l_node = get_ancestor_at_depth(t_leaf, m2l_depth)
+    
+    s_m2l_nodes = []
+    for point_id in source_ids: 
         leaf = get_leaf_by_id(tree.nodes[0], point_id)
         if leaf:
-            parent = get_ancestor_at_depth(leaf, 3)
-            # Avoid duplicates if two IDs share the same depth=3 parent
-            if parent not in s_parents:
-                s_parents.append(parent)
+            m2l_node = get_ancestor_at_depth(leaf, m2l_depth)
+            if m2l_node and m2l_node not in s_m2l_nodes: s_m2l_nodes.append(m2l_node)
                 
-    return t_parent, s_parents
+    return t_m2l_node, s_m2l_nodes
 
-def plot_fmm_interactions(ax, t_parent, s_parents):
-    # Source Side (Iterate over all requested source parents)
-    for sp in s_parents:
-        for child in sp.children:
-            if child.is_leaf and child.point_data:
-                for p in child.point_data:
-                    draw_arrow(ax, (p[1], p[2]), (child.cx, child.cy), 'red', 'solid', lw=2)
-                draw_arrow(ax, (child.cx, child.cy), (sp.cx, sp.cy), 'mediumblue', 'dashed', lw=1.5)
-                ax.plot(child.cx, child.cy, '^', color='red', markersize=5, zorder=5, clip_on=True)
-        ax.plot(sp.cx, sp.cy, 's', color='mediumblue', markersize=8, zorder=5, clip_on=True)
+def plot_fmm_interactions(ax, t_m2l_node, s_m2l_nodes):
+    
+    # --- Adaptive Recursive Traversals ---
+    def upward_pass(node, stop_node):
+        """Recursively traverses upward, starting from the deepest leaves"""
+        if not has_points(node): return
+        
+        if node.is_leaf:
+            # Multipole Expansions (Leaf Points -> Leaf Center)
+            for p in node.point_data:
+                draw_arrow(ax, (p[1], p[2]), (node.cx, node.cy), 'red', 'solid', lw=2)
+            ax.plot(node.cx, node.cy, '^', color='red', markersize=5, zorder=5, clip_on=True)
+        else:
+            for child in node.children:
+                upward_pass(child, stop_node)
+        
+        # M2M Translation (Node Center -> Parent Center)
+        if node != stop_node and node.parent:
+            draw_arrow(ax, (node.cx, node.cy), (node.parent.cx, node.parent.cy), 'mediumblue', 'dashed', lw=1.5)
+            if not node.is_leaf:
+                ax.plot(node.cx, node.cy, 's', color='mediumblue', markersize=6, zorder=5, clip_on=True)
 
-    # Target Side
-    for child in t_parent.children:
-        if child.is_leaf and child.point_data:
-            draw_arrow(ax, (t_parent.cx, t_parent.cy), (child.cx, child.cy), 'saddlebrown', 'dotted', lw=2)
-            for p in child.point_data:
-                draw_arrow(ax, (child.cx, child.cy), (p[1], p[2]), 'deeppink', 'dashdot', lw=2)
-            ax.plot(child.cx, child.cy, '^', color='red', markersize=5, zorder=5, clip_on=True)
-    ax.plot(t_parent.cx, t_parent.cy, 's', color='mediumblue', markersize=8, zorder=5, clip_on=True)
+    def downward_pass(node):
+        """Recursively traverses downward, expanding out to the leaves"""
+        if not has_points(node): return
+        
+        if node.is_leaf:
+            # Local Expansions (Leaf Center -> Leaf Points)
+            for p in node.point_data:
+                draw_arrow(ax, (node.cx, node.cy), (p[1], p[2]), 'deeppink', 'dashdot', lw=2)
+            ax.plot(node.cx, node.cy, '^', color='red', markersize=5, zorder=5, clip_on=True)
+        else:
+            for child in node.children:
+                if has_points(child):
+                    # L2L Translation (Node Center -> Child Center)
+                    draw_arrow(ax, (node.cx, node.cy), (child.cx, child.cy), 'saddlebrown', 'dotted', lw=2)
+                    downward_pass(child)
+                    
+            if node != t_m2l_node:
+                ax.plot(node.cx, node.cy, 's', color='mediumblue', markersize=6, zorder=5, clip_on=True)
 
-    # Green: M2L Translations (From each source parent DIRECTLY to the single target parent)
-    for sp in s_parents:
-        draw_arrow(ax, (sp.cx, sp.cy), (t_parent.cx, t_parent.cy), 'forestgreen', 'dashdot', lw=1.5)
+    # ---- Execution ----
+    
+    # Source Side (Upward Passes)
+    for sm2l in s_m2l_nodes:
+        upward_pass(sm2l, sm2l)
+        ax.plot(sm2l.cx, sm2l.cy, 'D', color='mediumblue', markersize=8, zorder=5, clip_on=True)
 
-def plot_main_fmm(ax, tree, boundary, t_parent, s_parents):
+    # Target Side (Downward Passes)
+    if t_m2l_node:
+        downward_pass(t_m2l_node)
+        ax.plot(t_m2l_node.cx, t_m2l_node.cy, 'D', color='mediumblue', markersize=8, zorder=5, clip_on=True)
+
+    # Translations (M2L - Green)
+    if t_m2l_node:
+        for sm2l in s_m2l_nodes:
+            draw_arrow(ax, (sm2l.cx, sm2l.cy), (t_m2l_node.cx, t_m2l_node.cy), 'forestgreen', 'dashdot', lw=1.5)
+
+
+def plot_main_fmm(ax, tree, boundary, t_m2l_node, s_m2l_nodes, s_zoom_focus):
     plot_spatial_tree(ax, tree, boundary, show_ids=False)
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     
-    plot_fmm_interactions(ax, t_parent, s_parents)
+    plot_fmm_interactions(ax, t_m2l_node, s_m2l_nodes)
     
-    # Label z_0 and z
-    label_z_points(ax, t_parent, 'z_0')
-    # Use the parent of element 3 as the definitive 'z' label location
-    s_parent_3 = s_parents[-1] if len(s_parents) > 0 else None
-    if s_parent_3:
-        label_z_points(ax, s_parent_3, 'z')
+    if t_m2l_node: label_z_points(ax, t_m2l_node, 'z_0')
+    if s_zoom_focus: label_z_points(ax, s_zoom_focus, 'z')
     
     pad = 0.03
-    # Draw dashed box for Target
-    rect_t = Rectangle((t_parent.x - pad, t_parent.y - pad), t_parent.w + 2*pad, t_parent.h + 2*pad, 
-                       fill=False, ec='black', ls='--', lw=1, zorder=6)
-    ax.add_patch(rect_t)
+    if t_m2l_node:
+        rect_t = Rectangle((t_m2l_node.x - pad, t_m2l_node.y - pad), t_m2l_node.w + 2*pad, t_m2l_node.h + 2*pad, 
+                           fill=False, ec='black', ls='--', lw=1, zorder=6)
+        ax.add_patch(rect_t)
     
-    # ONLY draw dashed box for the Source parent containing Element 3
-    if s_parent_3:
-        rect_s = Rectangle((s_parent_3.x - pad, s_parent_3.y - pad), s_parent_3.w + 2*pad, s_parent_3.h + 2*pad, 
+    if s_zoom_focus:
+        rect_s = Rectangle((s_zoom_focus.x - pad, s_zoom_focus.y - pad), s_zoom_focus.w + 2*pad, s_zoom_focus.h + 2*pad, 
                            fill=False, ec='black', ls='--', lw=1, zorder=6)
         ax.add_patch(rect_s)
 
-def plot_zoom_fmm(ax, tree, boundary, t_parent, s_parents, focus_node):
+def plot_zoom_fmm(ax, tree, boundary, t_m2l_node, s_m2l_nodes, focus_node):
     plot_spatial_tree(ax, tree, boundary, show_ids=False)
-    plot_fmm_interactions(ax, t_parent, s_parents)
+    plot_fmm_interactions(ax, t_m2l_node, s_m2l_nodes)
     
-    label = 'z_0' if focus_node == t_parent else 'z'
+    label = 'z_0' if focus_node == t_m2l_node else 'z'
     label_z_points(ax, focus_node, label)
     
     pad = 0.03
@@ -303,12 +363,18 @@ def plot_zoom_fmm(ax, tree, boundary, t_parent, s_parents, focus_node):
 # ==========================================
 
 if __name__ == "__main__":
-    boundary_pts = generate_boundary(n_points=35)
-    qtree = QuadTree(capacity=1, max_depth=6) 
+    boundary_pts = generate_boundary(n_points=NUM_ELEMENTS)
+    qtree = QuadTree(capacity=MAX_ELEMENTS_PER_CELL, max_depth=TREE_MAX_DEPTH) 
     root = qtree.build(boundary_pts, 0.0, 0.0, 1.0, 1.0)
     
-    t_parent, s_parents = setup_fmm_nodes(qtree)
+    t_m2l_node, s_m2l_nodes = setup_fmm_nodes(
+        qtree, TARGET_ID, SOURCE_IDS, M2L_DEPTH
+    )
+    
+    leaf_zoom = get_leaf_by_id(root, SOURCE_ZOOM_ID)
+    s_zoom_focus = get_ancestor_at_depth(leaf_zoom, M2L_DEPTH) if leaf_zoom else None
 
+    # Diagram Generation
     fig1, ax1 = plt.subplots(figsize=(8, 8))
     plot_spatial_tree(ax1, qtree, boundary_pts, show_reference=True, show_ids=True)
     fig1.savefig("diagram_1_spatial.svg", format="svg", bbox_inches='tight')
@@ -318,16 +384,17 @@ if __name__ == "__main__":
     fig2.savefig("diagram_2_logical.svg", format="svg", bbox_inches='tight')
 
     fig3, ax3 = plt.subplots(figsize=(8, 8))
-    plot_main_fmm(ax3, qtree, boundary_pts, t_parent, s_parents)
+    plot_main_fmm(ax3, qtree, boundary_pts, t_m2l_node, s_m2l_nodes, s_zoom_focus)
     fig3.savefig("diagram_3_fmm_main.svg", format="svg", bbox_inches='tight')
     
     fig4, ax4 = plt.subplots(figsize=(4, 4))
-    plot_zoom_fmm(ax4, qtree, boundary_pts, t_parent, s_parents, focus_node=t_parent)
-    fig4.savefig("diagram_4_fmm_target_zoom.svg", format="svg", bbox_inches='tight')
+    if t_m2l_node:
+        plot_zoom_fmm(ax4, qtree, boundary_pts, t_m2l_node, s_m2l_nodes, focus_node=t_m2l_node)
+        fig4.savefig("diagram_4_fmm_target_zoom.svg", format="svg", bbox_inches='tight')
     
     fig5, ax5 = plt.subplots(figsize=(4, 4))
-    # Pass the specific parent box for element 3 as the focus_node
-    plot_zoom_fmm(ax5, qtree, boundary_pts, t_parent, s_parents, focus_node=s_parents[-1])
-    fig5.savefig("diagram_5_fmm_source_zoom.svg", format="svg", bbox_inches='tight')
+    if s_zoom_focus:
+        plot_zoom_fmm(ax5, qtree, boundary_pts, t_m2l_node, s_m2l_nodes, focus_node=s_zoom_focus)
+        fig5.savefig("diagram_5_fmm_source_zoom.svg", format="svg", bbox_inches='tight')
 
     print("Successfully generated and saved 5 individual SVG files.")
