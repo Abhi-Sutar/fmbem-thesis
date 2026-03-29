@@ -1,15 +1,14 @@
 \chapter{Performance Analysis and Validation}\label{chapter:performance-analysis-validation}
 
-We have thus far discussed the step-by-step implementation of an \ac{FMM}-based solver for the \ac{BEM} formulation of the acoustic scattering problem. In this chapter, we present the results of validating our implementation against analytical solutions, show the effect of using the Burton-Miller formulation, and analyze the performance of our implementation in terms of computational time compared with a traditional \ac{BEM} solver.
+We have thus far discussed the step-by-step implementation of a \ac{FMM}-based solver for the \ac{BEM} formulation of the acoustic scattering problem. In this chapter, we present the results of validating our implementation against analytical solutions, show the effect of using the Burton-Miller formulation, and analyze the performance of our implementation in terms of computational time compared with a traditional \ac{BEM} solver.
 
-\section{Validation against Analytical Solution} \label{sec:validation-analytical-solution}
+\section{Validation vs. Analytical Solution} \label{sec:validation-analytical-solution}
 When implementing a new solver, it is critical to validate it against known solutions to ensure it is correctly implemented and produces accurate results. The "acoustic scattering from sound-hard boundaries" problem that we have implemented our solver for has a known analytical solution for a single spherical scatterer in a medium excited by a plane wave.
 The plane wave is given by:
 
 \begin{equation*}
     p_{\mathrm{b}}\,=\,p_{0}e^{-i(\mathbf{k}\cdot\mathbf{x})}\,=\,p_{0}e^{-i k_{s}\left({\frac{\mathbf{x}\cdot\mathbf{e}_{k}}{\left|\left|\mathbf{e}_{k}\right|\right|}}\right)}
 \end{equation*}
-
 where $p_{0}$ is the amplitude of the plane wave, $\mathbf{k}$ is the wave vector with amplitude $k_s$, $\mathbf{e}_{k}$ is the unit vector in the direction of wave propagation, and $\mathbf{x}$ is the position vector.
 
 The analytical solution for the scattered pressure field is given as a series expansion in terms of spherical harmonics and spherical Bessel functions, as follows:
@@ -17,15 +16,13 @@ The analytical solution for the scattered pressure field is given as a series ex
 \begin{equation*}
     p_{s}=p_{0}\left\{\sum_{n=0}^{\infty}\mathrm{i}^{n}(2n+1)\frac{j_{n}^{\prime}(k R)}{h_{n}^{\prime}(k R)}P_{n}(\cos\theta)h_{n}(k r)\right\}
 \end{equation*}
-
 where $p_0$ is the amplitude of the incident plane wave, $j_n$ and $h_n$ are the spherical Bessel and Hankel functions of the first kind, respectively, $R$ is the radius of the spherical scatterer, $P_n$ is the Legendre polynomial of degree $n$, $\theta$ is the angle between the direction of wave propagation and the position vector of the external point $\mathbf{x}$ we are computing the scattered field at,  and $r$ is defined as the distance $r = |\mathbf{x}-\mathbf{x}_0|$, with $\mathbf{x}_0$ being the center of the spherical scatterer \cite{marburgburtonmillermethod2016}. 
 
 
-While the series is infinite, in practice we can truncate it at a finite number of terms, $N$, to obtain an approximation of the scattered field. We use a slightly modified version of an empirical formula as shown by \cite{wiscombeimprovedmiescattering1980} to determine the number of terms we use:
+While the series is infinite, in practice we can truncate it at a finite number of terms, $N$, to obtain an approximation of the scattered field. Our implementation uses a slightly modified version of an empirical formula as shown by \cite{wiscombeimprovedmiescattering1980} to determine the number of terms we use:
 \begin{equation*}
     N_{\text{max}} = \left[r ka + 4(ka)^{\frac{1}{3}} + 10 \right]
 \end{equation*}
-
 where $ka$ is the size parameter, defined as the product of the wavenumber $k$ and the radius of the scatterer $a$. 
 
 We compare the results of our implementation with the analytical solution using a \texttt{Python} script that computes the analytical solution at all collocation points on the scatterer's surface, and then compares these analytical values with the numerical solution obtained from our \ac{FMM} implementation. 
@@ -41,7 +38,7 @@ We run our solver for a single spherical scatterer with the following parameters
 This results in a size parameter of $ka =\num{9.159162e-01}$, which gives us $N_{\text{max}} = 14$ using our particular empirical criterion. We find that the results from our implementation match the analytical solution with a relative $L_2$ error, calculated as $ \frac{\| p_{\mathrm{num}} - p_{\mathrm{ana}} \|_2}{\| p_{\mathrm{ana}} \|_2} $ of $\num{1.062840e-02}$ for the absolute pressure values at the collocation points.
 \begin{table}[htbp]
     \centering
-    \caption{Error metrics for scattering from a rigid sphere ($a = 0.1$ m, $f = 500$ Hz, $ka \approx 0.92$).}
+    \caption{Error metrics vs. Analytical Solution for scattering from a rigid sphere ($a = 0.1$ m, $f = 500$ Hz, $ka \approx 0.92$).}
     \label{tab:sphere_error_metrics}
     \begin{tabular}{lccc}
         \toprule
@@ -94,10 +91,9 @@ This results in a size parameter of $ka =\num{9.159162e-01}$, which gives us $N_
     \caption{Comparison of the surface pressure fields for acoustic scattering by a rigid sphere ($a = 0.1$ m, $f = 500$ Hz, $ka \approx 0.92$). The analytical partial wave series (a) and the \ac{BEM} numerical solution (b) show excellent visual agreement. The absolute error map (c) isolates the local discretization error, which peaks at a magnitude of 0.026.}
     \label{fig:sphere_comparison}
 \end{figure}
-\todo{Fix plot scales in paraview}
 
 \section{Effect of the Burton Miller Formulation} \label{sec:effect-burton-miller}
-As we have discussed in \autoref{sec:burton-miller}, the \ac{BM} formulation is used to mitigate the non-existence of unique solutions at certain characteristic frequencies.  To demonstrate the effect of using the \ac{BM} formulation, we implemented it in our code and toggled it on and off via a command-line flag at runtime. We ran the solver for a sweep of frequencies from $100 Hz$ to $3000 Hz$ for a single spherical scatterer with the same parameters as in \autoref{sec:validation-analytical-solution}, and compared the results with the analytical solution. We especially include the characteristic frequencies, which for a sound-hard sphere are the Dirichlet Resonances, given by the roots of the spherical Bessel function of the first kind, $j_n(ka) = 0$. Our test script hardcodes the $ka$ values corresponding to the resonances present within the range of our frequency sweep. These fictitious values lying within $100 Hz$ to $3000 Hz$ are:
+As we have discussed in \autoref{sec:burton-miller}, the \ac{BM} formulation is used to mitigate the non-existence of unique solutions at certain characteristic frequencies. To demonstrate the effect of using the \ac{BM} formulation, we implemented it in our code and toggled it on and off via a command-line flag at runtime. We ran the solver for a sweep of frequencies from $100 Hz$ to $3000 Hz$ for a single spherical scatterer with the same parameters as in \autoref{sec:validation-analytical-solution}, and compared the results with the analytical solution. We especially include the characteristic frequencies, which for a sound-hard sphere are the Dirichlet Resonances, given by the roots of the spherical Bessel function of the first kind, $j_n(ka) = 0$. Our test script has the $ka$ values corresponding to the resonances present within the range of our frequency sweep hardcoded. These fictitious values lying within $100 Hz$ to $3000 Hz$ are:
 \begin{enumerate}
 \item $f = 1715 Hz$, which corresponds to the first harmonic of a $0.1 m$ radius sphere.
 \item $f = 2453 Hz$, which is the first dipole resonance corresponding to a wavenumber $ka =  4.49341$.
@@ -117,13 +113,18 @@ As we have discussed in \autoref{sec:burton-miller}, the \ac{BM} formulation is 
     \label{fig:frequency_sweep_bm}
 \end{figure}
 
-The non \ac{BM} frequency sweep \autoref{fig:frequency_sweep_no_bm} shows the spikes at the characteristic frequencies, while the one with \ac{BM} \autoref{fig:frequency_sweep_bm} shows that the error at these frequencies is in line with errors at neighbouring frequencies, demonstrating the effectiveness of the \ac{BM} formulation in eliminating the non-uniqueness issue at the characteristic frequencies. We can also see that the overall error with the \ac{BM} formulation is slightly higher than without. This is expected, as the \ac{BM} introduces the \ac{HBIE} to the system. As the \ac{HBIE} has a stronger singularity than the \ac{BIE}, the numerical quadrature errors arising from the singularity of the \ac{HBIE} kernel are higher than those arising from the \ac{CBIE} kernel, leading to a higher overall error for the \ac{BM} formulation compared to the non-\ac{BM} formulation.
+The non \ac{BM} frequency sweep \autoref{fig:frequency_sweep_no_bm} shows the spikes at the characteristic frequencies, while the one with \ac{BM} \autoref{fig:frequency_sweep_bm} shows that the error at these frequencies is in line with errors at neighboring frequencies, demonstrating the effectiveness of the \ac{BM} formulation in eliminating the non-uniqueness issue at the characteristic frequencies. We can also see that the overall error with the \ac{BM} formulation is slightly higher than without. This is expected, as the \ac{BM} introduces the \ac{HBIE} to the system. As the \ac{HBIE} has a stronger singularity than the \ac{BIE}, the numerical quadrature errors arising from the singularity of the \ac{HBIE} kernel are higher than those arising from the \ac{CBIE} kernel, leading to a higher overall error for the \ac{BM} formulation compared to the non-\ac{BM} formulation.
 
 \section{Performance Analysis} \label{sec:performance-analysis}
 
 The main motivation for implementing the \ac{FMM} is that it offers much better scaling as compared to the traditional \ac{BEM} approach. Traditional \ac{BEM} with direct solvers has a computational complexity of $\mathcal{O}(N^3)$. While the \ac{FMM} has a computational complexity of $\mathcal{O}(N^{\frac{3}{2}})$ or even $\mathcal{O}(N \log N)$ for a multilevel implementation with iterative solvers. This means that even with the additional overhead of managing the hierarchical structure, the \ac{FMM} will break even with, and surpass the performance of the \ac{BEM}. To test the scaling of our \ac{FMM} implementation, we run both the \ac{FMM} and a traditional \ac{BEM} solver on a series of meshes with a grid of identical spherical scatterers, increasing the number of spheres from 1 to 169. We plot the time to set up the system matrix for the traditional \ac{BEM}, compared with the time to set up the \ac{FMM} data structures and precompute the translation operators. We compare the time taken by the direct solver for the traditional \ac{BEM} with the time taken by the GMRES solver for the \ac{FMM}. Lastly, we plot the total time taken by each method as a whole.
 
 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/slice3x3.png}
+    \caption{A $3\times 3$ grid of spherical scatterers, in an incident plane wave of frequency $f = 500 Hz$. The plot shows the Total Absolute Pressure (Pa) field on the surface of the scatterers, as well as a slice of the field on the $z=0$ plane.}
+\end{figure}
 
 \begin{figure}[htpb]
     \centering

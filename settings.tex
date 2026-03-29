@@ -36,6 +36,7 @@
 \usepackage{siunitx}
 \usepackage{tabularx}
 \usepackage{tcolorbox}
+\usepackage[table]{xcolor}
 
 \usetikzlibrary{positioning, external, arrows.meta, shapes.geometric, calc, decorations.markings}
 % \usetikzlibrary{calc}
@@ -53,6 +54,7 @@
 \renewcommand{\todo}[2][]{\tikzexternaldisable\@todo[#1]{#2}\tikzexternalenable}
 \makeatother
 
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
 
 \DeclareSourcemap{
   \maps[datatype=bibtex]{

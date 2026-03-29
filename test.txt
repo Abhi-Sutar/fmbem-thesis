@@ -37,6 +37,16 @@ Abstract
 
 The Boundary Element Method (BEM) is a numerical technique that is well suited to model finite structures in an infinite exterior domain. However, the computational cost of the BEM scales as 𝒪(N³), where N is the number of degrees of freedom, making it prohibitive for large-scale problems. The Fast Multipole Method (FMM) is an algorithm that can drastically reduce the computational cost to $\mathcal{O}(N^{\frac{3}{2}})$ or even 𝒪(Nlog N), by decoupling far-field interactions through hierarchical spatial decomposition and truncated analytical basis expansions. This thesis presents the design, implementation, validation and performance analysis of a high-performance FMM accelerated BEM solver.
 
+This work has benefited from the use of AI-based language models in the following ways:
+
+- Proofreading and grammar checking: I have used AI-based language models to proofread my writing and check for grammatical errors, specifically Claude’s Sonnet 4.6
+
+- Generate Latex equations: I have used AI-based language models to generate Latex equations for mathematical expressions, specifically Google’s Gemini 3.1 Pro in its online interface.
+
+- Generate plotting scripts: I have used AI-based language models to generate small plotting scripts for visualizing data, specifically Google’s Gemini 3.1 Pro in its online interface, as well as, in VS Code with GitHub Copilot.
+
+All scientific content, arguments, and structure were developed independently by the author.
+
 Introduction
 
 Simulation of wave propagation and scattering off of objects in infinite space can be challenging to solve with traditional numerical methods such as the FEM or FDM, which require discretization of the entire domain. They have to truncate the domain, and they need special treatment to handle the infinite domain, such as using Absorbing Boundary Conditions which apply artificial mathematical boundary conditions at these truncated boundaries to absorb outgoing waves and minimize unphysical reflections back into the domain. Another approach is to use PMLs which adds an artificial buffer zone around the domain that absorbs outgoing waves across all non-tangential angles. These methods can be computationally expensive, and due to numerical inaccuracies, they can introduce spurious reflections that can contaminate the solution.
@@ -323,8 +333,7 @@ In our code we integrate it with a higher order quadrature to ensure accuracy.
 The Fast Multipole Method Framework
 
 The BEM lends itself naturally to modelling acoustic wave propagation. Transforming the volumetric governing differential equations into boundary integral equations allows finite structures to be treated in an infinite exterior domain without having to truncate the domain, thereby avoiding the need for special boundary conditions.
-However, the required mathematical
-transformation of the problem yields a full, complex, non-Hermitian matrix (Chandler-Wilde and Langdon 2007). As the degrees of freedom increase to model larger problem, the memory requirements to hold the large full matrix and the cost to compute the matrix coefficients themselves, scale as 𝒪(N²), and the computational cost of solving the resulting linear system using direct solvers scales as 𝒪(N³), where N is the number of degrees of freedom (Liu 2009). This makes the BEM computationally prohibitive for large-scale problems.
+However, the required mathematical transformation of the problem yields a full, complex, non-Hermitian matrix (Chandler-Wilde and Langdon 2007). As the degrees of freedom increase to model larger problem, the memory requirements to hold the large full matrix and the cost to compute the matrix coefficients themselves, scale as 𝒪(N²), and the computational cost of solving the resulting linear system using direct solvers scales as 𝒪(N³), where N is the number of degrees of freedom (Liu 2009). This makes the BEM computationally prohibitive for large-scale problems.
 
 To overcome this computational bottleneck, we must employ a radically different numerical strategy. This chapter details the algorithmic design and the mathematical formulation of the FMM framework. The FMM decouples far-field interactions through hierarchical spatial decomposition, truncated analytical basis expansions, and the application of complex mathematical translation operators (Coifman et al. 1993).
 
@@ -472,17 +481,183 @@ $$\begin{equation}
     Y_n^m(\theta, \phi) = \sqrt{\frac{(2n + 1)(n - m)!}{4\pi (n + m)!}} P_n^m(\cos \theta) e^{im\phi}
 \end{equation}$$
 
+The evaluation of the associated Legendre polynomials is performed using the numerically stable 3-term recurrence relation, maintaining bounding limits to prevent floating point underflow at high expansion degrees. Setting the evaluation parameter x = cos θ, the generalized non-diagonl terms P_(n)^(m)(x) can be constructed as:
+$$\begin{equation}
+\label{legendre-recurrence}
+    P_n^m(x) = \frac{x(2n - 1)xP_{n-1}^m(x) - (n + m - 1)P_{n-2}^m(x)}{n - m}
+\end{equation}$$
+
+Spherical Bessel and Hankel Functions
+
+The radial propagation of the acoustic wave is governed by the spherical Bessel differential equation. Depending on the topology of the translation pass, we need two distinct classes of solutions:
+
+1.  Spherical Bessel functions of the First Kind (j_(n)(kr)): These are regular (finite) at the origin r = 0. They are used to represent standing waves or incoming acoustic fields. In the context of the FMM, they are used for the M2M upward shifts and the L2L downward shifts, where these operations occur strictly with the continuous domain of an octree node, and the field is nonsingular.
+
+2.  Spherical Hankel functions of the First Kind (h_(n)⁽¹⁾(kr)): These model outward-propagating, radiating waves that satisfy the Sommerfeld radiation condition. They have an intrinsic singularity at the origin, diverging towards complex infinity as r → 0. They are used to the M2L translations in the Horizontal passes, where the model the radiation of scattered energy across the far-field gap to a separated target cluster.
+
+Wigner 3-j Symbols and Racah’s Formula
+
+The mathematical translation of spherical wave expansions requires integrating the product of multiple spherical harmonics. This process relies on the Wigner 3-j symbols, which arise from the quantum mechanical theory of angular momentum coupling (Gumerov and Duraiswami 2004).
+
+The Wigner 3-j symbols, denoted as $\begin{pmatrix} j_1 & j_2 & j_3 \\ m_1 & m_2 & m_3 \end{pmatrix}$, dictate the geometric probability amplitude of coupling three distinct spherical angular states. We evaluate this symbols using the exact, analytical Racah formula. To prevent unnecessary computations, the algorithm first enforces strict selection rules, and returns 0.0 if any of the following physical limits are violated:
+
+1.  Magnetic Conservation: The sum of the order indices must be strictly zero, i.e., m₁ + m₂ + m₃ = 0.
+
+2.  Triangule Inequality: The degrees must form a closed vector triangle, i.e., |j₁ − j₂| ≤ j₃ ≤ j₁ + j₂.
+
+3.  Order Bounds: the absolute value of any order must not exceed its associated degree: |m_(i)| ≤ j_(i).
+
+If the selection rules are satisfied, the algorithm proceeds to compute the Wigner 3-j symbol using Racah’s summation over an intermetdiate variable k.
+
+Because the Wigner 3-j symbols are called from deep within the deepest nested loops of the translation matrix assembly, invoking standard library gamma functions to evaluate the factorials in Racah’s formula would be computationally prohibitive. To get peak performance, we eliminate runtime factorial evaluations almost entirely by generating a highly optimized static lookup table during the solver’s initialization phase.
+
+Gaunt Coefficients
+
+The Gaunt coefficient G, defined as G(l₁, m₁; l₂, m₂; l₃, m₃), is the core of all the translation operators. It represents the exact analytical integral of the product of three distinct spherical harmonics over the surface of a unit sphere:
+G(l₁, m₁; l₂, m₂; l₃, m₃) = ∫_(S²)Y_(l₁)^(m₁)(Ω)Y_(l₂)^(m₂)(Ω)Y_(l₃)^(m₃)(Ω)dΩ
+We evaluate the Gaunt coefficients using the computationally efficient Wigner 3-j symbols. Apart from the selection rules inherited from the Wigner 3-j symbols, the Gaunt integral enforces a rigid Parity Rule. The integral vanishes entirely if the sum of the degrees l₁ + l₂ + l₃ is an odd integer.
+
+Assumiing the selection rules are satisfied, the Gaunt coefficient is calculated as the product of two Wigner 3-j symbols scaled by a geometric normalization prefactor the arises from the orthonormal normalization convention of the spherical harmonics:
+$$\begin{equation}
+    G = \sqrt{\frac{(2l_1 + 1)(2l_2 + 1)(2l_3 + 1)}{4\pi}} \begin{pmatrix} l_1 & l_2 & l_3 \\ 0 & 0 & 0 \end{pmatrix} \begin{pmatrix} l_1 & l_2 & l_3 \\ m_1 & m_2 & m_3 \end{pmatrix}
+\end{equation}$$
+
 Building the Translation Matrices
 
-The core optimization of our FMM implementation is the precomputation of the translation matrices. These matrices are used to perform the various translations required by the FMM algorithm, such as P2M, M2M, M2L, L2L, and L2P. We compute the matrices once upfront and store them in the FMMNode data structure for each node in the Octree. This allows us to avoid expensive redundant calculations during the FMM algorithm, significantly improving the computational efficiency of our implementation.
-
-We group the discussion of the translation matrices by the stage of the tree traversal they are used in. This traversal process involves mathematically translating the source and destination points to the same coordinate system, which is then used to compute the translation matrices.
-
-[]
+With the foundational mathematics now defined, we can now construct the translation matrices that are the core of the FMM algorithm. These operators map the coefficients of an acoustic series expansion centered at one spatial location to an equivalent, physically identical series expansion centered at a new geometric origin.
+Using the broadband formulations described by (Gumerov and Duraiswami 2009), the FMM framework leverages addition theorems to generate structured dense matrices for all the necessary translations, including M2M, M2L, and L2L translations. These matrices are precomputed and stored for efficient reuse during the algorithm’s execution, significantly reducing the immense computational overhead associated with on-the-fly calculations.
 
 []
 
 []
+
+[]
+
+Point-to-Multipole (P2M) Translations
+
+The P2M translation is the first step in the upward pass of the FMM algorithm. It calculates the influence of the boundary elements within a leaf node and projects them into multipole coefficients relative to the geometric center of the leaf node.
+
+The Collocation method for the BEM that we use assigns both potential and flux distributions to boundary elements. This cause the mesh surfaces to act as continuous distributions of acoustic dipole. The multipole coefficients M_(n)^(m) for an expansion order P are accumulated in a flattened one-dimensional array of size (P + 1)², where the memory index is calculated optimally as n² + n + m, running linearly from n = 0...P and m = −n...n.
+
+We implement two methods compute the source projection, the first is an Analytical method which provides mathematically exact derivatives, and a FDM as fallback for numerical stability near singularities.
+
+The Analytical P2M
+
+The exact mathematical basis function that represents the outgoing acoustic expansion is given by the product of the regular spherical Bessel function and the complex conjugate of the spherical harmonic function like so:
+$$\begin{equation}
+    f_n^m(r, \theta, \phi) = j_n(kr) \overline{Y_n^m(\theta, \phi)}
+\end{equation}$$
+The surface dipole source representing the BEM double layer formulation requires an operator that is the directional derivative of this basis with respect to the continuous surface element’s Cartesian normal vector n = (n_(x), n_(y), n_(z)).
+
+To align with the spherical basis, the Cartesian normal is projected into the local spherical components (n_(r), n_(θ), n_(ϕ)) through the following standard coordinate transformation:
+$$\begin{align}
+    n_r &= n_x \sin\theta \cos\phi + n_y \sin\theta \sin\phi + n_z \cos\theta \\
+    n_\theta &= n_x \cos\theta \cos\phi + n_y \cos\theta \sin\phi - n_z \sin\theta \\
+    n_\phi &= -n_x \sin\phi + n_y \cos\phi
+\end{align}$$
+The required dipole basis can be constructed as the vector dot product of the spherical spatial gradient and the projected normal vector:
+$$\begin{equation}
+    \text{dipole\_basis} = \frac{\partial f_n^m}{\partial r} n_r + \frac{1}{r} \frac{\partial f_n^m}{\partial \theta} n_\theta + \frac{1}{r \sin\theta} \frac{\partial f_n^m}{\partial \phi} n_\phi
+\end{equation}$$
+The radial gradient component is derived using the derivative recurrence relation for spherical Bessel functions:
+$$\begin{align}
+    j'_0(kr) &= -k \cdot j_1(kr) \\
+    j'_n(kr) &= k\left( \frac{n \cdot j_n(kr)}{kr} - j_{n+1}(kr) \right) \text{ for }  n > 0
+\end{align}$$
+To get the angular gradient components, we need to evaluate the derivatives of the spherical harmonics. The polar derivative $\frac{\partial Y_n^m}{\partial \theta}$ is computed using specialized quantum mechanics ladder operators that link adjacent degree coefficients. The inclusion of the Condon-Shortley phase factor, (−1)^(m), in the definition of the spherical harmonics is what allows these raising and lowering operators to be applied, vastly improves speed over direct transcendental derivation. The azimuthal derivative $\frac{\partial Y_n^m}{\partial \phi}$ trivially evaluates to imY_(n)^(m).
+
+The FDM Fallback
+
+The analytical P2M method described in 3.4.1.1 while mathematically exact, can encounter numerical instability when the source point is very close to the expansion center or on its vertical polar axis, as it contains divisions by r and rsin θ. We have implemented safeguards to detect these edge cases and switch to a finite difference approximation of the normal derivative in these scenarios. The FDM implementation uses two infinitesimally offset target points, p₊ = center + ϵn and p⁻ = center − ϵn, and the analytical basis is evaluated at both these points to compute the derivative numerically via the central difference (f₊ = f⁻)/(2ϵ).
+
+Gaunt Addition Theorem for Acoustic Waves
+
+The M2L operators consolidate coefficients from smaller child nodes into large parent nodes, while the M2L operators convert the outgoing multipole signatures into incoming localized incident fields across the separated nodes of the interaction lists.
+The M2L and the M2M translations are fundamentally reliant on the exact formulations based on Gaunt addition theorems.
+The theorem defines the mechanism by which a target multipole coefficient is generated by multiplying the entire spectrum of source coefficients by a specific transformation matrix based on their spatial separation vector d.
+
+Let the displacement vector between the translation centers be defined in local spherical coordinates as (r, θ, ϕ). Following the analytical derivations laid out by Gumerov and Duraiswami (Gumerov and Duraiswami 2009), the specific scalar entry for the transformation matrix (T_(entry)), which links the (n^(′), m^(′)) source mode to the (n, m) target mode, requires an internal summation over a third intermediate index p. The bounds of p are strictly dictated by the Wigner triangle inequality |n − n^(′)| ≤ p ≤ n + n^(′) (Gumerov and Duraiswami 2004).
+
+The matrix entry T_(entry) is accumulated as:
+T_(entry) = ∑_(p)4πi^(n^(′) − n + p) ⋅ (−1)^(m^(′)) ⋅ G(n, m; n^(′), −m^(′); p) ⋅ z_(p)(kr) ⋅ Y_(p)^(m − m^(′))(θ, ϕ)
+
+Each component in this equation has a specific mathematical and physical significance:
+
+- Integration prefactor 4π scales the translation to the appropriate solid angle.
+
+- The complex exponential term i^(n^(′) − n + p) dictates the interference pattern of the translated wave. To avoid having to compute expensive complex exponentials, we leverage the fact that i^(k) cycles through the values {1, i, −1, −i} every four increments of k, allowing us to compute this term with a simple modulo operation and a small lookup table.
+
+- The parity selection rules embedded within the Gaunt coefficient G automatically skip all iterations where (n + n^(′) + p) is an odd integer. This effectively halves the number of required summation loops.
+
+- The term z_(p)(kr) represents the appropriate spherical radial function, dependent entirely on the operator type.
+
+Formulating the M2M, M2L, and L2L Translation Operators
+
+By simply varying the choice of the spherical radial function z_(p)(kr), the generic addition theorem described above in 3.4.2 can be used to construct the specific operators required for the FMM passes as shown in [tab:translation_operators].
+
+>L
+>L
+>L
+>L
+Operator Type & Application & Target Function z_(p)(kr) & Computational Characteristics
+M2M Matrix & Upward Pass
+(Child to Parent) & Regular Bessel j_(p)(kr) & Translates within a continuous, finite domain. Exact shift of geometric center.
+M2L Matrix & Horizontal Pass
+(Across lists) & Singular Hankel h_(p)⁽¹⁾(kr) & Translates across the void between well-separated nodes, modeling the required outward acoustic radiation.
+L2L Matrix & Downward Pass
+(Parent to Child) & Regular Bessel j_(p)(kr) & Translates the incident local field deeper into the spatial subdivision.
+
+Since we enforce a fixed uniform expansion order P across the entire tree, the dimensionality of all these translation matrices is locked to (P + 1)² × (P + 1)². All these matrices are precomputed once, cached in memory, and applied sequentially to the dynamically changing coefficient vectors during each GMRES iteration.
+
+Implementing the Upward, Horizontal, and Downward Passes
+
+With our octree generated, the near-field and far-field interaction lists populates, and the dense translation operators fully precomputed, we can now begin the hierarchical traversal of the octree to compute the far-field interactions.
+This traversal happens in every iteration of iterative solver used to solve the system.
+There are three distinct, sequential passes in the traversal: the upward pass, the horizontal pass, and the downward pass.
+
+Upward Pass: Aggregating Far-Field Signatures
+
+The traversal begins with the upward pass. It evaluates the initial acoustic influence of the boundary sources contained in the active solution vector(in our case, the ϕ estimated at the previous iteration) in all the leaf nodes. For each leaf node, the P2M operator is multiplied by the specific potential and flux (in our case the normal velocity from our Right-hand side) values assigned to the local boundary elements. This operation yields the multipole expansion coefficients for that leaf node.
+
+The algorithm then traverses up the octree, level by level, from the leaf nodes to the root node. For each parent node, its generalized multipole expansion coefficients are computed by translating the multipole expansions of its child nodes to its own geometric center. Because the M2M operator applies the addition theorem linearly, the parent’s total multipole expansion is evaluated as the algebraic sum of the shifted multipole expansions of its children.
+$$\begin{equation}
+    \mathbf{M}_{parent} = \sum_{c=1}^{\text{child\_count}} \mathbf{T}_{M2M}^{(c)} \cdot \mathbf{M}_{child}^{(c)}
+\end{equation}$$
+
+Horizontal Pass: Translating Multipole Expansions to Local Expansions
+
+The horizontal pass serves as the critical bridge of the FMM algorithm, converting the outgoing scattered radiation represented by the multipole expansions into incoming incident fields represented by the local expansions.
+For all valid nodes with depth d ≥ 2, the horizontal pass iterates through the far-field interaction list of the node. For each target-source pairing within the list, the source node’s multipole expansion is multiplied by the specific precomputed M2L translation operator associated with the relative displacement vector separating the source and target nodes.
+
+The resulting localized coefficients, which represent the acoustic contribution arriving from distant source nodes are algebraically accumulated into the target node’s local coefficient array:
+L_(target) +  = T_(M2L) ⋅ M_(source)
+Due to us enforcing a uniform truncation order P, the dimensions of all the vectors and matrices invovled line up, enabling the use of vectorized matrix-vector multiplication for a significant boost in computational efficiency.
+
+Downward Pass: Distributing Local Expansions to Leaf Nodes
+
+The downward pass cascades the accumulated incident local expansion from the higher levels of the octree down to the leaf nodes, where the final evaluation of the far-field contribution to the acoustic field at the boundary elements takes place.
+Starting from the nodes on level d = 2, and traversing downward, the parent node’s aggregated local coefficients are geometrically shifted to the centers of its child nodes using the precomputed L2L translation operator. These shifted coefficients represent the macroscopic background acoustic field, are added to the existing local coefficient the child node accumulated during its horizontal pass interactions. This recursive cascade ensures that when the traversal reaches the leaf nodes, they have a complete representation of the far-field influence from all distant sources.
+
+The final step of the downward pass occurs at the leaf nodes, where the L2P
+operator transforms the leaf node’s local coefficients into the physical acoustic potential and flux (normal velocity) at the specific Cartesian coordinates of the target boundary elements.
+
+Operating in local spherical coordinates relative to the leaf center, the acoustic potential at a target point can be obtained by a straightforward double summation like so:
+$$\begin{equation}
+    \text{potential} = \sum_{n=0}^{P} \sum_{m=-n}^{n} L_{coeffs}\left[n^2 + n + m \right] \cdot j_n(kr) \cdot Y_n^m(\theta, \phi)
+\end{equation}$$
+
+The normal derivative calculation follows precisely the inverse of the P2M logic.
+The radial derivative uses the exact stable recurrence $j_n' = k \frac{n j_{n-1}-j_{n+1}}{2n +1}$, and the angular gradients use the same quantum mechanical ladder operators. The final physical normal derivative is generated by the dot product of this resolved spherical gradient vector with the target element’s distinct surface normal vector.
+
+Similar to our P2M implementation, if the physical target point is too close to the leaf node center (r < 10⁻⁸), we fall back to a FDM approach to avoid the singularity. The final assembled physical basis vector output merges both the evaluated potential and the normal derivative, accurately scaled by the prefactor −ik associated with the 3D Helmholtz equation.
+
+Building the Near-Field Matrix
+
+While the hierarchical translation passes of the FMM efficiently approximate the far-field interactions, the near-field interactions must be computed with high precision to prevent the localized degradation of the solution.
+The near-field domain for any target node consist of the boundary elements in the node box itself, but also all the boundary elements in its geometrical neighbor boxes, and any coarser leaf boxes that are geometrically adjacent to the target node’s parent node.
+
+The acoustic interactions between the boundary elements in the near-field domain are computed directly with the P2P mathematical integration.
+This integration logic is exactly the same as the one used to generate the dense system matrix for the BEM.
 
 Software Architecture and HPC Optimizations
 
@@ -557,9 +732,9 @@ While iterative Krylov space solvers like GMRES are quite robust in their conver
 
 Performance Analysis and Validation
 
-We have thus far discussed the step-by-step implementation of an FMM-based solver for the BEM formulation of the acoustic scattering problem. In this chapter, we present the results of validating our implementation against analytical solutions, show the effect of using the Burton-Miller formulation, and analyze the performance of our implementation in terms of computational time compared with a traditional BEM solver.
+We have thus far discussed the step-by-step implementation of a FMM-based solver for the BEM formulation of the acoustic scattering problem. In this chapter, we present the results of validating our implementation against analytical solutions, show the effect of using the Burton-Miller formulation, and analyze the performance of our implementation in terms of computational time compared with a traditional BEM solver.
 
-Validation against Analytical Solution
+Validation vs. Analytical Solution
 
 When implementing a new solver, it is critical to validate it against known solutions to ensure it is correctly implemented and produces accurate results. The "acoustic scattering from sound-hard boundaries" problem that we have implemented our solver for has a known analytical solution for a single spherical scatterer in a medium excited by a plane wave.
 The plane wave is given by:
@@ -567,7 +742,6 @@ The plane wave is given by:
 $$\begin{equation*}
     p_{\mathrm{b}}\,=\,p_{0}e^{-i(\mathbf{k}\cdot\mathbf{x})}\,=\,p_{0}e^{-i k_{s}\left({\frac{\mathbf{x}\cdot\mathbf{e}_{k}}{\left|\left|\mathbf{e}_{k}\right|\right|}}\right)}
 \end{equation*}$$
-
 where p₀ is the amplitude of the plane wave, k is the wave vector with amplitude k_(s), e_(k) is the unit vector in the direction of wave propagation, and x is the position vector.
 
 The analytical solution for the scattered pressure field is given as a series expansion in terms of spherical harmonics and spherical Bessel functions, as follows:
@@ -575,14 +749,12 @@ The analytical solution for the scattered pressure field is given as a series ex
 $$\begin{equation*}
     p_{s}=p_{0}\left\{\sum_{n=0}^{\infty}\mathrm{i}^{n}(2n+1)\frac{j_{n}^{\prime}(k R)}{h_{n}^{\prime}(k R)}P_{n}(\cos\theta)h_{n}(k r)\right\}
 \end{equation*}$$
-
 where p₀ is the amplitude of the incident plane wave, j_(n) and h_(n) are the spherical Bessel and Hankel functions of the first kind, respectively, R is the radius of the spherical scatterer, P_(n) is the Legendre polynomial of degree n, θ is the angle between the direction of wave propagation and the position vector of the external point x we are computing the scattered field at, and r is defined as the distance r = |x − x₀|, with x₀ being the center of the spherical scatterer (Marburg 2016).
 
-While the series is infinite, in practice we can truncate it at a finite number of terms, N, to obtain an approximation of the scattered field. We use a slightly modified version of an empirical formula as shown by (Wiscombe 1980) to determine the number of terms we use:
+While the series is infinite, in practice we can truncate it at a finite number of terms, N, to obtain an approximation of the scattered field. Our implementation uses a slightly modified version of an empirical formula as shown by (Wiscombe 1980) to determine the number of terms we use:
 $$\begin{equation*}
     N_{\text{max}} = \left[r ka + 4(ka)^{\frac{1}{3}} + 10 \right]
 \end{equation*}$$
-
 where ka is the size parameter, defined as the product of the wavenumber k and the radius of the scatterer a.
 
 We compare the results of our implementation with the analytical solution using a Python script that computes the analytical solution at all collocation points on the scatterer’s surface, and then compares these analytical values with the numerical solution obtained from our FMM implementation.
@@ -605,7 +777,7 @@ This results in a size parameter of ka = 9.159162  ×  10⁻⁰¹, whi
   Surface          1.06 × 10⁻² (1.06%)          2.66 × 10⁻²               6.30 × 10⁻³
   Slice (z = 0)    5.61 × 10⁻⁴ (0.05%)          7.24 × 10⁻³               2.22 × 10⁻⁴
 
-  : Error metrics for scattering from a rigid sphere (a = 0.1 m, f = 500 Hz, ka ≈ 0.92).
+  : Error metrics vs. Analytical Solution for scattering from a rigid sphere (a = 0.1 m, f = 500 Hz, ka ≈ 0.92).
 
 []
 
@@ -617,7 +789,7 @@ This results in a size parameter of ka = 9.159162  ×  10⁻⁰¹, whi
 
 Effect of the Burton Miller Formulation
 
-As we have discussed in 2.3, the BM formulation is used to mitigate the non-existence of unique solutions at certain characteristic frequencies. To demonstrate the effect of using the BM formulation, we implemented it in our code and toggled it on and off via a command-line flag at runtime. We ran the solver for a sweep of frequencies from 100Hz to 3000Hz for a single spherical scatterer with the same parameters as in 5.1, and compared the results with the analytical solution. We especially include the characteristic frequencies, which for a sound-hard sphere are the Dirichlet Resonances, given by the roots of the spherical Bessel function of the first kind, j_(n)(ka) = 0. Our test script hardcodes the ka values corresponding to the resonances present within the range of our frequency sweep. These fictitious values lying within 100Hz to 3000Hz are:
+As we have discussed in 2.3, the BM formulation is used to mitigate the non-existence of unique solutions at certain characteristic frequencies. To demonstrate the effect of using the BM formulation, we implemented it in our code and toggled it on and off via a command-line flag at runtime. We ran the solver for a sweep of frequencies from 100Hz to 3000Hz for a single spherical scatterer with the same parameters as in 5.1, and compared the results with the analytical solution. We especially include the characteristic frequencies, which for a sound-hard sphere are the Dirichlet Resonances, given by the roots of the spherical Bessel function of the first kind, j_(n)(ka) = 0. Our test script has the ka values corresponding to the resonances present within the range of our frequency sweep hardcoded. These fictitious values lying within 100Hz to 3000Hz are:
 
 1.  f = 1715Hz, which corresponds to the first harmonic of a 0.1m radius sphere.
 
@@ -629,11 +801,13 @@ As we have discussed in 2.3, the BM formulation is used to mitigate the non-exis
 
 []
 
-The non BM frequency sweep 5.6 shows the spikes at the characteristic frequencies, while the one with BM 5.7 shows that the error at these frequencies is in line with errors at neighbouring frequencies, demonstrating the effectiveness of the BM formulation in eliminating the non-uniqueness issue at the characteristic frequencies. We can also see that the overall error with the BM formulation is slightly higher than without. This is expected, as the BM introduces the HBIE to the system. As the HBIE has a stronger singularity than the BIE, the numerical quadrature errors arising from the singularity of the HBIE kernel are higher than those arising from the CBIE kernel, leading to a higher overall error for the BM formulation compared to the non-BM formulation.
+The non BM frequency sweep 5.6 shows the spikes at the characteristic frequencies, while the one with BM 5.7 shows that the error at these frequencies is in line with errors at neighboring frequencies, demonstrating the effectiveness of the BM formulation in eliminating the non-uniqueness issue at the characteristic frequencies. We can also see that the overall error with the BM formulation is slightly higher than without. This is expected, as the BM introduces the HBIE to the system. As the HBIE has a stronger singularity than the BIE, the numerical quadrature errors arising from the singularity of the HBIE kernel are higher than those arising from the CBIE kernel, leading to a higher overall error for the BM formulation compared to the non-BM formulation.
 
 Performance Analysis
 
 The main motivation for implementing the FMM is that it offers much better scaling as compared to the traditional BEM approach. Traditional BEM with direct solvers has a computational complexity of 𝒪(N³). While the FMM has a computational complexity of $\mathcal{O}(N^{\frac{3}{2}})$ or even 𝒪(Nlog N) for a multilevel implementation with iterative solvers. This means that even with the additional overhead of managing the hierarchical structure, the FMM will break even with, and surpass the performance of the BEM. To test the scaling of our FMM implementation, we run both the FMM and a traditional BEM solver on a series of meshes with a grid of identical spherical scatterers, increasing the number of spheres from 1 to 169. We plot the time to set up the system matrix for the traditional BEM, compared with the time to set up the FMM data structures and precompute the translation operators. We compare the time taken by the direct solver for the traditional BEM with the time taken by the GMRES solver for the FMM. Lastly, we plot the total time taken by each method as a whole.
+
+[]
 
 []
 
@@ -800,6 +974,8 @@ Day, David, and Michael A. Heroux. 2001. “Solving Complex-Valued Linear System
 Fog, Agner. 2022. VCL C++ Vector Class Library Manual. August 7.
 
 Greengard, L, and V Rokhlin. 1987. “A Fast Algorithm for Particle Simulations.” Journal of Computational Physics 73 (2): 325–48. https://doi.org/10.1016/0021-9991(87)90140-9.
+
+Gumerov, Nail A., and Ramani Duraiswami. 2004. “Recursions for the Computation of Multipole Translation and Rotation Coefficients for the 3-D Helmholtz Equation.” SIAM Journal on Scientific Computing 25 (4): 1344–81. https://doi.org/10.1137/S1064827501399705.
 
 Gumerov, Nail A., and Ramani Duraiswami. 2009. “A Broadband Fast Multipole Accelerated Boundary Element Method for the Three Dimensional Helmholtz Equation.” The Journal of the Acoustical Society of America 125 (1): 191–205. https://doi.org/10.1121/1.3021297.
 
