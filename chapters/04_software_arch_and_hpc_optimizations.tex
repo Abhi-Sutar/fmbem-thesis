@@ -51,6 +51,14 @@ While a highly structured, uniform iteration workload would fit perfectly with O
 Using the \texttt{\#pragma omp parallel for schedule(dynamic)} directive is the perfect counter to this. Dynamic scheduling instructs the OpenMP runtime to initialize a centralized work queue, and as worker threads become idle, they pull the next available chunk of iterations from the queue. This dynamic load balancing ensures that no thread sits idle while the work queue is not empty \cite{kylekloberdanzsblog}.
 \subsection{SIMD Vectorization} \label{sec:simd-vectorization}
 
+\begin{figure}[htpb]
+    \centering
+    \input{figures/simd.tex}
+    \caption{A simplified representation of SIMD vectorization. The same operation is performed on multiple data points simultaneously using wide hardware registers and wide \ac{SIMD} functional units.}
+    \label{fig:simd-vectorization}
+    
+\end{figure}
+
 Leveraging thread-level parallelism with OpenMP is a great way to speed up the \ac{FMM} algorithm, but we can take this one step further with instruction-level parallelism. Modern \ac{CPU}s are equipped with \ac{SIMD} vector units that enable them to perform the same operation on multiple data points simultaneously \cite{xievectorizationprogrammingbased2023}. Instruction sets like the AVX-256 or AVX-512 (Advanced Vector Extensions) use large hardware registers, in the case of the AVX-512, 512 bits wide, which can hold four \texttt{std::complex\textless double\textgreater}(64 bits each for the real and imaginary parts) values at once. 
 OpenMP's \texttt{\#pragma omp simd} allows us to instruct the compiler to generate these specific hardware-level instructions needed to take advantage of these vector units. The general rule for where we can apply this directive is to look for innermost loops that perform simple, predictable arithmetic (especially reductions like \texttt{sum += ...}) without branching (\texttt{if/else}), function calls, or memory allocations. We use this directive in the innermost loops of the \texttt{compute\_upward\_pass}, \texttt{compute\_horizontal\_pass}, and \texttt{compute\_downward\_pass} functions, which perform the core arithmetic of the FMM algorithm. All these inner loops are of the type \texttt{sum += A[i] * B[i]}. These get compiled to the hardware-level \ac{FMA} instruction, which performs multiplication and addition in a single step, reducing latency and improving performance \cite{fogvclvectorclass}.
 

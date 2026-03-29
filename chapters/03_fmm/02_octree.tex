@@ -24,6 +24,12 @@ We define an \texttt{FMMNode} data structure to represent each node in the Octre
 \subsection{Splitting the domain to make an Octree} \label{subsec:octree_splitting}
 The underlying spatial data-structue sets the stage for the computational efficiency of the FMM algorithm. It dictates how the source-target interactions are categorized as either near-field, needing direct computation, or far-field, and thus suitable for approximation via multipole expansions. An adaptive, heirarchical Octree allows for a systematic way to manage these interactions.
 
+We start by defining the root node as cube the encompasses the entire geometry. 
+We  iterate over the vertices of all the mesh elements to find the minimum and maximum coordinates.
+We then add a 1\% padding to the bounding box as a safety margin to ensure that all elements are contained within the root node, and to avoid edge cases where elements lie exactly on the boundary of the node. 
+This safety margin can help guard against floating point precision issues occurring precisely at the boundary, which could lead to elements on or near the boundary being misclassified as outside the node.
+This root node is then subdivided into 8 child nodes, and the elements are assigned to the child nodes based on their centroids. This is repeated recursively for each child node until the number of elements left in a node are less than a predefined threshold, at which point the node is designated as a leaf node. This threshold is a critical parameter that can be manually set at runtime. 
+
 
 % The Octree is constructed by a top-down recursive subdivision of the spatial domain. 
 \subsubsection{Space-Filling Curves and Morton Encoding} \label{subsubsec:morton-encoding}
@@ -31,3 +37,8 @@ The underlying spatial data-structue sets the stage for the computational effici
 We map the geometric centers of the boundary elements from three-dimensional space into a one-dimensional array using a space-filling curve, specifically, the Morton Z-curve. Morton encoding converts the 3D coordinates of each mesh element into a single integer by interleaving the bits of the binary representations of the x, y, and z coordinates, generating that element's Morton key. This ordering assigns numerically adjacent Morton keys to spatially adjacent elements. This allows us to sort the elements into a linearly ordered array,  where adjacent elements get clustered together, improving cache locality. This cache locality helps reduce the overhead of assigning the elements to the Octree's nodes. While the Morton Z-order curve may not be the optimum space-filling curve for 3D problems, its simplicity of implementation via bitwise operations lends itself to efficient execution \cite{malhotrapvfmmparallelkernel2015}.
 
 
+\section{Building the Translation Matrices} \label{sec:translation-matrices}
+
+The core optimization of our FMM implementation is the precomputation of the translation matrices. These matrices are used to perform the various translations required by the FMM algorithm, such as \ac{P2M}, \ac{M2M}, \ac{M2L}, \ac{L2L}, and \ac{L2P}. We compute the matrices once upfront and store them in the \texttt{FMMNode} data structure for each node in the Octree. This allows us to avoid expensive redundant calculations during the FMM algorithm, significantly improving the computational efficiency of our implementation.
+
+We group the discussion of the translation matrices by the stage of the tree traversal they are used in. This traversal process involves mathematically translating the s
