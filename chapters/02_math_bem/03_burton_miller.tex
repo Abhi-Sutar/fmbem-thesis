@@ -12,6 +12,7 @@ There have been various approaches proposed in the literature to address this, s
 The \ac{CHIEF} method uses auxiliary collocation points within the interior to form an overdetermined system, which is then solved by a least-squares approach to eliminate the spurious solutions \cite{chieneffectivemethodsolving1990}. 
 However, the location of these auxiliary points is critical, and if they are placed on a nodal plane of an interior standing wave, the method can fail \cite{langrennesolvinghypersingularboundary2015}.
 By contrast, the formulation proposed by  Burton and Miller \cite{burtonapplicationintegralequation1971} is a mathematically robust method that ensures the uniqueness of the solution across all frequencies. 
+\newglossaryentry{n0}{keyvals}
 
 \subsection{The Hypersingular Boundary Integral Equation} \label{subsec:bm-hbie}
 The \ac{BM} formulation combines the \ac{CBIE} with its own normal derivative, which we will refer to as the \ac{HBIE}. We derive the \ac{HBIE} by applying the gradient operator to the \ac{CBIE} with respect to the collocation point $\mathbf{x_0}$, then taking the inner product with the local unit normal vector $\mathbf{\hat{n}_0}$.

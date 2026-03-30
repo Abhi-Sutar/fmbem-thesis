@@ -35,7 +35,7 @@ We run our solver for a single spherical scatterer with the following parameters
     \item \textbf{Wave direction $\mathbf{e}_k$:} [1, 0, 0],  i.e., the wave is propagating in the positive x-direction.
 \end{itemize}
 
-This results in a size parameter of $ka =\num{9.159162e-01}$, which gives us $N_{\text{max}} = 14$ using our particular empirical criterion. We find that the results from our implementation match the analytical solution with a relative $L_2$ error, calculated as $ \frac{\| p_{\mathrm{num}} - p_{\mathrm{ana}} \|_2}{\| p_{\mathrm{ana}} \|_2} $ of $\num{1.062840e-02}$ for the absolute pressure values at the collocation points.
+This results in a size parameter of $ka =\num{9.159162e-01}$, which gives us $N_{\text{max}} = 14$ using our particular empirical criterion. We find that the results from our implementation match the analytical solution with a relative $L_2$ error, calculated as $ \frac{\| p_{\mathrm{numerical}} - p_{\mathrm{analytical}} \|_2}{\| p_{\mathrm{analytical}} \|_2} $ of $\num{1.062840e-02}$ for the absolute pressure values at the collocation points.
 \begin{table}[htbp]
     \centering
     \caption{Error metrics vs. Analytical Solution for scattering from a rigid sphere ($a = 0.1$ m, $f = 500$ Hz, $ka \approx 0.92$).}
@@ -53,7 +53,7 @@ This results in a size parameter of $ka =\num{9.159162e-01}$, which gives us $N_
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=0.8\textwidth]{figures/validation/numerical_absolute_pressure_slice.png}
-    \caption{Numerical solution for the absolute pressure field on a slice  on the $z=0$ plane and on the scatterer itself.}
+    \caption{Numerical solution for the total absolute pressure field on a slice on the $z=0$ plane and on the scatterer itself. The spherical scatterer is excited by a plane wave traveling in the positive x-direction, with a frequency of $f = 500$ Hz.}
     \label{fig:sphere_scattering_comparison}
 \end{figure}
 
