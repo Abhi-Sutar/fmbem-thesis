@@ -1,25 +1,25 @@
 \section{Expansion Bases and Key building blocks of the \ac{FMM}} \label{sec:expansion-bases}
 
-Before we can derive the translation operators, we need to define the expansion bases used for the multipole and local expansions. The translations of the exterior acoustic Helmholtz equation requires the use of spherical coordinate bases, specifically spherical harmonics for angular resolution, and spherical Bessel and Hankel functions for radial propogation.
+Before we can derive the translation operators, we need to define the expansion bases used for the multipole and local expansions. The translations of the exterior acoustic Helmholtz equation requires the use of spherical coordinate bases, specifically spherical harmonics for angular resolution, and spherical Bessel and Hankel functions for radial propagation.
 
-\subsection{Fundmental Solution for the Helmholtz}
-The free-sapce Green's function for the 3D Helmholtz equation which charactesrizes the acoustic pressure at a target point $\mathbf{x}$ due to a unit point source at at $\mathbf{x_0}$ is given by:
+\subsection{Fundamental Solution for the Helmholtz Equation}
+The free-space Green's function for the 3D Helmholtz equation which characterizes the acoustic pressure at a target point $\mathbf{x}$ due to a unit point source at $\mathbf{x_0}$ is given by:
 \begin{equation}\label{green-function}
     G(\mathbf{x}, \mathbf{x_0}) = \frac{e^{ik|\mathbf{x} - \mathbf{x_0}|}}{4\pi |\mathbf{x} - \mathbf{x_0}|}
 \end{equation}
-For the \ac{FMM}, the Cartesian coordinates $(x, y, z)$ taken rlative to the center of the octree node are transformed to spherical coordinates $(r, \theta, \phi)$. The acoustic field is then represented as a linear combination of spherical wave functions, mapping the global Cartesian based interactions to a local spherical coordinate system.
+For the \ac{FMM}, the Cartesian coordinates $(x, y, z)$ taken relative to the center of the octree node are transformed to spherical coordinates $(r, \theta, \phi)$. The acoustic field is then represented as a linear combination of spherical wave functions, mapping the global Cartesian based interactions to a local spherical coordinate system.
 
 \subsection{Spherical Harmonics and Legendre Polynomials}
-Spherical Harmonics, denoted as $Y_n^m(\theta, \phi)$, are a set of orthogonal functions defined on the surface of a unit sphere, and act as the angular portion of the general solution to the vector Helmhholtz equation The integer $n \geq 0 $ is the degree of the harmonic, while the integer $m$ represents the order.
+Spherical Harmonics, denoted as $Y_n^m(\theta, \phi)$, are a set of orthogonal functions defined on the surface of a unit sphere, and act as the angular portion of the general solution to the vector Helmholtz equation. The integer $n \geq 0 $ is the degree of the harmonic, while the integer $m$ represents the order.
 
-Our \ac{FMM} framework uses an orthonomal normalization convention that rigorously ensures that the surface integral of the squared magnitude of the harmonic over the unit sphere evaluates to exactly unity. Uder this specific normalization regime, we can define the spherical harmonic in terms of the associated Legendre polynomials $P_n^m(\cos \theta)$ as:
+Our \ac{FMM} framework uses an orthonormal normalization convention that rigorously ensures that the surface integral of the squared magnitude of the harmonic over the unit sphere evaluates to exactly unity. Under this specific normalization regime, we can define the spherical harmonic in terms of the associated Legendre polynomials $P_n^m(\cos \theta)$ as:
 \begin{equation}\label{spherical-harmonic}
     Y_n^m(\theta, \phi) = \sqrt{\frac{(2n + 1)(n - m)!}{4\pi (n + m)!}} P_n^m(\cos \theta) e^{im\phi}
 \end{equation}
 
-The evaluation of the associated Legendre polynomials is performed using the numerically stable 3-term recurrence relation, maintaining bounding limits to prevent floating point underflow at high expansion degrees. Setting the evaluation parameter $x = \cos \theta$, the generalized non-diagonl terms $P_n^m(x)$ can be constructed as:
+The evaluation of the associated Legendre polynomials is performed using the numerically stable 3-term recurrence relation, maintaining bounding limits to prevent floating point underflow at high expansion degrees. Setting the evaluation parameter $x = \cos \theta$, the generalized non-diagonal terms $P_n^m(x)$ can be constructed as:
 \begin{equation}\label{legendre-recurrence}
-    P_n^m(x) = \frac{x(2n - 1)xP_{n-1}^m(x) - (n + m - 1)P_{n-2}^m(x)}{n - m}
+    P_n^m(x) = \frac{x(2n - 1)P_{n-1}^m(x) - (n + m - 1)P_{n-2}^m(x)}{n - m}
 \end{equation}
 
 
@@ -27,7 +27,7 @@ The evaluation of the associated Legendre polynomials is performed using the num
 The radial propagation of the acoustic wave is governed by the spherical Bessel differential equation. Depending on the topology of the translation pass, we need two distinct classes of solutions:
 \begin{enumerate}
     \item \textbf{Spherical Bessel functions of the First Kind ($j_n(kr)$):} These are regular (finite) at the origin $r = 0$. They are used to represent standing waves or incoming acoustic fields. In the context of the \ac{FMM}, they are used for the \ac{M2M} upward shifts and the \ac{L2L} downward shifts, where these operations occur strictly with the continuous domain of an octree node, and the field is nonsingular.
-    \item \textbf{Spherical Hankel functions of the First Kind ($h_n^{(1)}(kr)$):} These model outward-propagating, radiating waves that satisfy the Sommerfeld radiation condition. They have an intrinsic singularity at the origin, diverging towards complex infinity as $r \to 0$. They are used to the \ac{M2L} translations in the Horizontal passes, where the model the radiation of scattered energy across the far-field gap to a separated target cluster.
+    \item \textbf{Spherical Hankel functions of the First Kind ($h_n^{(1)}(kr)$):} These model outward-propagating, radiating waves that satisfy the Sommerfeld radiation condition. They have an intrinsic singularity at the origin, diverging towards complex infinity as $r \to 0$. They are used to construct the \ac{M2L} translations in the Horizontal passes, where the model the radiation of scattered energy across the far-field gap to a separated target cluster.
 \end{enumerate}
 
 \subsection{Wigner 3-j Symbols and Racah's Formula}
@@ -36,13 +36,13 @@ The mathematical translation of spherical wave expansions requires integrating t
 The Wigner 3-j symbols, denoted as $\begin{pmatrix} j_1 & j_2 & j_3 \\ m_1 & m_2 & m_3 \end{pmatrix}$, dictate the geometric probability amplitude of coupling three distinct spherical angular states. We evaluate this symbols using the exact, analytical Racah formula. To prevent unnecessary computations, the algorithm first enforces strict selection rules, and returns $0.0$ if any of the following physical limits are violated:
 \begin{enumerate}
     \item \textbf{Magnetic Conservation:} The sum of the order indices must be strictly zero, i.e., $m_1 + m_2 + m_3 = 0$. 
-    \item \textbf{Triangule Inequality:} The degrees must form a closed vector triangle, i.e., $|j_1 - j_2| \leq j_3 \leq j_1 + j_2$.
+    \item \textbf{Triangular Inequality:} The degrees must form a closed vector triangle, i.e., $|j_1 - j_2| \leq j_3 \leq j_1 + j_2$.
     \item \textbf{Order Bounds:} the absolute value of any order must not exceed its associated degree: $|m_i| \leq j_i$.
 \end{enumerate}
 
-If the selection rules are satisfied, the algorithm proceeds to compute the Wigner 3-j symbol using Racah's summation over an intermetdiate variable $k$.
+If the selection rules are satisfied, the algorithm proceeds to compute the Wigner 3-j symbol using Racah's summation over an intermediate variable $k$.
 
-\begin{insetBox}[title=Perfomance Optimization]
+\begin{insetBox}[title=Performance Optimization]
     Because the Wigner 3-j symbols are called from deep within the deepest nested loops of the translation matrix assembly, invoking standard library gamma functions to evaluate the factorials in Racah's formula would be computationally prohibitive. To get peak performance, we eliminate runtime factorial evaluations almost entirely by generating a highly optimized static lookup table during the solver's initialization phase.
 \end{insetBox}
 
@@ -53,7 +53,7 @@ The Gaunt coefficient G, defined as $G(l_1, m_1; l_2, m_2; l_3, m_3)$, is the co
 \end{equation}
 We evaluate the Gaunt coefficients using the computationally efficient Wigner 3-j symbols. Apart from the selection rules inherited from the Wigner 3-j symbols, the Gaunt integral enforces a rigid Parity Rule. The integral vanishes entirely if the sum of the degrees $l_1 + l_2 + l_3$ is an odd integer.
 
-Assumiing the selection rules are satisfied, the Gaunt coefficient is calculated as the product of two Wigner 3-j symbols scaled by a geometric normalization prefactor the arises from the orthonormal normalization convention of the spherical harmonics:
+Assuming the selection rules are satisfied, the Gaunt coefficient is calculated as the product of two Wigner 3-j symbols scaled by a geometric normalization prefactor that arises from the orthonormal normalization convention of the spherical harmonics:
 \begin{equation}
     G = \sqrt{\frac{(2l_1 + 1)(2l_2 + 1)(2l_3 + 1)}{4\pi}} \begin{pmatrix} l_1 & l_2 & l_3 \\ 0 & 0 & 0 \end{pmatrix} \begin{pmatrix} l_1 & l_2 & l_3 \\ m_1 & m_2 & m_3 \end{pmatrix}
 \end{equation}

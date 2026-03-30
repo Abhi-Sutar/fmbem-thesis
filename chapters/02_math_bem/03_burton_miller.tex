@@ -15,7 +15,7 @@ By contrast, the formulation proposed by  Burton and Miller \cite{burtonapplicat
 
 \subsection{The Hypersingular Boundary Integral Equation} \label{subsec:bm-hbie}
 The \ac{BM} formulation combines the \ac{CBIE} with its own normal derivative, which we will refer to as the \ac{HBIE}. We derive the \ac{HBIE} by applying the gradient operator to the \ac{CBIE} with respect to the collocation point $\mathbf{x_0}$, then taking the inner product with the local unit normal vector $\mathbf{\hat{n}_0}$.
-The normal opertaor can be represented as $ \frac{\partial}{\partial n_0} = \mathbf{\hat{n}_0} \cdot \nabla_{\mathbf{x_0}}$.
+The normal operator can be represented as $ \frac{\partial}{\partial n_0} = \mathbf{\hat{n}_0} \cdot \nabla_{\mathbf{x_0}}$.
 Applying this to the \ac{CBIE} yields :
 \begin{equation}
     c(\mathbf{x_0})\frac{\partial \phi(\mathbf{x_0})}{\partial n_0} + \int_S \phi(\mathbf{x}) \frac{\partial^2 G_k(\mathbf{x_0}, \mathbf{x})}{\partial n \partial n_0} dS(\mathbf{x}) = \int_S \frac{\partial \phi(\mathbf{x})}{\partial n} \frac{\partial G_k(\mathbf{x_0}, \mathbf{x})}{\partial n_0} dS(\mathbf{x}) + \frac{\partial \phi_{inc}(\mathbf{x_0})}{\partial n_0}
@@ -34,12 +34,12 @@ A unique solution is guaranteed for \eqref{eq:combined-integral-equation} as lon
 The theoretically optimal choice for this  coupling parameter is $\eta = i/k$  in the high frequency limit. 
 Terai\cite{teraicalculationsoundfields} explains this by framing the Burton-Miller formulation as the boundary condition for a virtual interior acoustic problem, and relating the coupling parameter as $\eta = \frac{-1}{i k A}$, where $A$ is specific admittance. 
 By setting $A = 1$ to maximize the absorption, we can eliminate the possibility of internal resonances. 
-At low frequencies, regularized variations such as $\eta = i k / \left( k^2 + \lambda \right) $in the limit $ k \to 0$ to prevent matrix ill-conditioning \cite{marburgburtonmillermethod2016}.
+At low frequencies, regularized variations such as $\eta = i k / \left( k^2 + \lambda \right) $ in the limit $ k \to 0$ to prevent matrix ill-conditioning \cite{marburgburtonmillermethod2016}.
 
-We can write the combine integral equation as:
+We can write the combined integral equation as:
 
 \begin{multline} \label{eq:bm-cbie-expanded}
-    c(\mathbf{x_0})\phi(\mathbf{x_0}) + \eta c(\mathbf{x_0})\frac{\partial \phi(\mathbf{x_0})}{\partial n_0} + \int_S \phi(\mathbf{x}) \frac{\partial G_k(\mathbf{x_0}, \mathbf{x})}{\partial n} dS(\mathbf{x}) + \eta \int_S \phi(\mathbf{x}) \frac{\partial^2 G_k(\mathbf{x_0}, \mathbf{x})}{\partial n \partial n_0} dS(\mathbf{x}) = \\ \int_S \frac{\partial \phi(\mathbf{x})}{\partial n} G_k(\mathbf{x_0}, \mathbf{x}) dS(\mathbf{x}) + \eta \int_S \frac{\partial \phi(\mathbf{x})}{\partial n} \frac{\partial G_k(\mathbf{x_0}, \mathbf{x})}{\partial n_0} dS(\mathbf{x}) + \phi_{inc}(\mathbf{x_0} + \eta \frac{\partial \phi_{inc}(\mathbf{x_0})}{\partial n_0})
+    c(\mathbf{x_0})\phi(\mathbf{x_0}) + \eta c(\mathbf{x_0})\frac{\partial \phi(\mathbf{x_0})}{\partial n_0} + \int_S \phi(\mathbf{x}) \frac{\partial G_k(\mathbf{x_0}, \mathbf{x})}{\partial n} dS(\mathbf{x}) + \eta \int_S \phi(\mathbf{x}) \frac{\partial^2 G_k(\mathbf{x_0}, \mathbf{x})}{\partial n \partial n_0} dS(\mathbf{x}) = \\ \int_S \frac{\partial \phi(\mathbf{x})}{\partial n} G_k(\mathbf{x_0}, \mathbf{x}) dS(\mathbf{x}) + \phi_{inc}(\mathbf{x_0}) + \eta \int_S \frac{\partial \phi(\mathbf{x})}{\partial n} \frac{\partial G_k(\mathbf{x_0}, \mathbf{x})}{\partial n_0} dS(\mathbf{x}) + \eta \frac{\partial \phi_{inc}(\mathbf{x_0})}{\partial n_0})
 \end{multline}
 
 While the \ac{BM} formulation guarantees uniqueness, it comes at the cost of having to evaluate an integral term with a highly divergent kernel $\frac{\partial^2 G_k(\mathbf{x_0}, \mathbf{x})}{\partial n \partial n_0}$. 
@@ -55,12 +55,12 @@ and let the distance vector be $\mathbf{\vec{r}} = \mathbf{x} - \mathbf{x_0}$, w
 We can then write the gradient of the distance with respect to the collocation point as $\nabla_{\mathbf{x_0}} r = -\frac{\mathbf{\vec{r}}}{r}$, and with respect to the field point as $\nabla_{\mathbf{x}} r = \frac{\mathbf{\vec{r}}}{r}$.
 
 \subsubsection{First Normal Derivative} \label{subsubsec:first-normal-derivative}
-The first normal derivative of the Green's function with respect to normal $n$ atthe field point $\mathbf{x}$ is then given by:
+The first normal derivative of the Green's function with respect to normal $n$ at the field point $\mathbf{x}$ is then given by:
 \begin{equation} \label{eq:first-deriv-greens}
     \frac{\partial G_k}{\partial n} = n \cdot \nabla_x \left( \frac{e^{ikr}}{4\pi r} \right) = \frac{e^{ikr}}{4\pi r^2}(ikr - 1) \frac{n \cdot (x - x_0)}{r}
 \end{equation}
 As $r \to 0$, i.e., when we get close to the collocation point, the term $e^{ikr} \to 1$. The functional behavior is dominated by the $1/r^2$ term. 
-However, for a smooth surface the, the normal vector $n$ becomes perpendicular to the distance vector as the points merge. 
+However, for a smooth surface, the normal vector $n$ becomes perpendicular to the distance vector as the points merge. 
 This means that the term $n \cdot (x - x_0)$ approaches zero at the rate of $\mathcal{O}(r^2)$, and this reduces the apparent $\mathcal{O}(1/r^2)$ singularity to a weak $\mathcal{O}(1/r)$ singularity. 
 Considering the fact that our mesh elements are locally smooth, this applies to our case as well.
 
@@ -106,7 +106,7 @@ Integrals diverging as $\mathcal{O}(1/r^3)$ are strictly hypersingular, and cann
     \end{tabularx}
 \end{table}
 
-\subsection{Flat Panel Simplification: Geometric Reduction} \label{subsec: flat-panel-simplification}
+\subsection{Flat Panel Simplification: Geometric Reduction} \label{subsec:flat-panel-simplification}
 
 If we use flat panels to discretize the boundary, whether flat triangles or flat quadrilaterals, we can leverage a geometric simplification that allows us to reduce mathematical complexity of the \ac{BM} formulation. 
 This arises from the fact that the normal vector will be constant across a flat element, and the distance vector will be always be perpendicular to the normal vector.
@@ -128,9 +128,9 @@ Using these constraints in the second normal derivative of the Green's function 
 
 The second term, which captured the curvature of the surface, collapses to zero. The hypersingular kernel collapses down to:
 \begin{equation}
-    \frac{\partial^2 G_k}{\partial n \partial n_0} \bigg|_{\text{on a single flat panel}} =  \frac{1}{4\pi} \left[\frac{1}{r^3}(1 - ikr)e^{ikr} \right]
+    \frac{\partial^2 G_k}{\partial n \partial n_0} \bigg|_{\text{single flat panel}} =  \frac{1}{4\pi} \left[\frac{1}{r^3}(1 - ikr)e^{ikr} \right]
 \end{equation}
-This particular simplification means that we don't have to compute the extra terms associated with the normals nd local tangents.
+This particular simplification means that we don't have to compute the extra terms associated with the normals and local tangents.
 
 \subsubsection{Decoupling Static and Dynamic Components} \label{subsubsec:decoupling-static-dynamic-components}
 While our flat panel geometry allows us to collapse the functional form of the kernel, the expression $ \frac{e^{ikr}}{r^3}(1 - ikr)$ is still hypersingular. To compute the term numerically, we split the integrand into a purely divergent, static singularity, and a regularized, weakly singular dynamic component \cite{sunnonsingularburtonmiller2023}.
@@ -139,7 +139,7 @@ Looking at the Taylor expansion of the kernel after the collapse:
     \frac{e^{ikr}}{r^3}(1 - ikr) &= \frac{1}{r^3} \left[ 1 + \frac{1}{2} k^2 r^2 + \mathcal{O}(r^3) \right] \\
     &= \frac{1}{r^3} + \frac{1}{2 r} k^2 + \mathcal{O}(1)
 \end{align}
-This expansion tells us something quite important about thekernel's frequency dependence. The dynamic term that depends on the wavenumber $k$ is only weakly singular, of the order of $\mathcal{O}(1/r)$. The remaining term, which is purely static and real, is the hypersingular term $1/r^3$.
+This expansion tells us something quite important about the kernel's frequency dependence. The dynamic term that depends on the wavenumber $k$ is only weakly singular, of the order of $\mathcal{O}(1/r)$. The remaining term, which is purely static and real, is the hypersingular term $1/r^3$.
 
 Sun and Klaseboer \cite{sunnonsingularburtonmiller2023} demonstrate that this isolated static term $1/r^3$ is the same as the hypersingular kernel of the Laplace equation, which we can consider as a special case of the Helmholtz equation where $k = 0$. 
 We can demonstrate this equivalence by taking the second normal derivative of the fundamental solution to the Laplace equation $G_0 = \frac{1}{4 \pi r}$, which is given by:
@@ -161,4 +161,4 @@ This lets us break down the acoustic Helmholtz hypersingular kernel perfectly in
 The isolated term in the brackets is completely regularized, and its limit as $r \to 0$  evaluates to $\frac{k^2}{2r}$. Since this term is only weakly singular, we can use standard numerical quadratures, such as the Gaussian quadrature, to integrate it over the flat panel without divergence.
 
 Through this geometric simplification and asymptotic decoupling, the highly complex Burton-Miller implementation problem on flat panels is reduced to a singular, specific mathematical goal: evaluating the finite part of the static Laplace hypersingular integral $\int_S \frac{1}{r^3} dS$ over a planar polygonal element.
-In our code we integrate it with a higher order quadrature to ensure accuracy.
+In our code we integrate itz with a higher order quadrature to ensure accuracy.

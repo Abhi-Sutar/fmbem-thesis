@@ -128,7 +128,7 @@ The main motivation for implementing the \ac{FMM} is that it offers much better 
 
 \begin{figure}[htpb]
     \centering
-    \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/OpenMP/timings_comparison_Build_openmp1_13.png}
+    \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/noOpenMP/timings_comparison_Build_(no_openmp).png}
     \caption{Time taken to set up the system matrix for the traditional \ac{BEM}, as compared to the time taken to set up the \ac{FMM} data structures and precompute the translation operators.}
     \label{fig:setup_time_comparison}
     
@@ -136,7 +136,7 @@ The main motivation for implementing the \ac{FMM} is that it offers much better 
 
 \begin{figure}[htpb]
     \centering
-    \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/OpenMP/timings_comparison_Solve_openmp1_13.png}
+    \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/noOpenMP/timings_comparison_Solve_(no_openmp).png}
     \caption{Time taken to solve the system for the traditional \ac{BEM}, as compared to the time taken to solve the \ac{FMM} system.}
     \label{fig:solve_time_comparison}
     
@@ -144,12 +144,36 @@ The main motivation for implementing the \ac{FMM} is that it offers much better 
 
 \begin{figure}[htpb]
     \centering
-    \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/OpenMP/timings_comparison_totals_openmp1_13.png}
+    \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/noOpenMP/timings_comparison_totals_(no_openmp).png}
     \caption{Total time taken by the traditional \ac{BEM}, as compared to the time taken by the \ac{FMM}.}
     \label{fig:total_time_comparison}
     
 \end{figure}
-\todo{Add the non OpenMP plots}
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/OpenMP/timings_comparison_Build_(with_openmp).png}
+    \caption{Time taken to set up the system matrix for the traditional \ac{BEM}, as compared to the time taken to set up the \ac{FMM} data structures and precompute the translation operators.}
+    \label{fig:setup_time_comparison}
+    
+\end{figure}
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/OpenMP/timings_comparison_Solve_(with_openmp).png}
+    \caption{Time taken to solve the system for the traditional \ac{BEM}, as compared to the time taken to solve the \ac{FMM} system.}
+    \label{fig:solve_time_comparison}
+    
+\end{figure}
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/OpenMP/timings_comparison_totals_(with_openmp).png}
+    \caption{Total time taken by the traditional \ac{BEM}, as compared to the time taken by the \ac{FMM}.}
+    \label{fig:total_time_comparison}
+    
+\end{figure}
+
 
 In all these timing plots \autoref{fig:setup_time_comparison}, \autoref{fig:solve_time_comparison}, and \autoref{fig:total_time_comparison}, we have included guidelines corresponding to the closest asymptotic complexity for each timing curve.
 Let us consider the traditional \ac{BEM} first. The time taken to set up the system matrix scales as $\mathcal{O}(N^2)$, as we have to compute the interaction between every pair of elements. The time taken to solve the system scales as $\mathcal{O}(N^3)$, but considering the solving time makes up the bulk of the total time needed for the traditional \ac{BEM}, the total time also scales as $\mathcal{O}(N^3)$.

@@ -1,18 +1,18 @@
 \section{Implementing the Upward, Horizontal, and Downward Passes}
 \label{sec:translation-passes}
 
-With our octree generated, the near-field and far-field interaction lists populates, and the dense translation operators fully precomputed, we can now begin the hierarchical traversal of the octree to compute the far-field interactions. 
+With our octree generated, the near-field and far-field interaction lists populated, and the dense translation operators fully precomputed, we can now begin the hierarchical traversal of the octree to compute the far-field interactions. 
 This traversal happens in every iteration of iterative solver used to solve the system.
 There are three distinct, sequential passes in the traversal: the upward pass, the horizontal pass, and the downward pass.
 
 \subsection{Upward Pass: Aggregating Far-Field Signatures} \label{upward-pass}
-The traversal begins with the upward pass. It evaluates the initial acoustic influence of the boundary sources contained in the active solution vector(in our case, the $\phi$ estimated at the previous iteration) in all the leaf nodes. For each leaf node, the \ac{P2M} operator is multiplied by the specific potential and flux (in our case the normal velocity from our Right-hand side) values assigned to the local boundary elements. This operation yields the multipole expansion coefficients for that leaf node.
+The traversal begins with the upward pass. It evaluates the initial acoustic influence of the boundary sources contained in the active solution vector (in our case, the $\phi$ estimated at the previous iteration) in all the leaf nodes. For each leaf node, the \ac{P2M} operator is multiplied by the specific potential and flux (in our case the normal velocity from our Right-hand side) values assigned to the local boundary elements. This operation yields the multipole expansion coefficients for that leaf node.
 
 The algorithm then traverses up the octree, level by level, from the leaf nodes to the root node. For each parent node, its generalized multipole expansion coefficients are computed by translating the multipole expansions of its child nodes to its own geometric center. Because the \ac{M2M} operator applies the addition theorem linearly, the parent's total multipole expansion is evaluated as the algebraic sum of the shifted multipole expansions of its children.
 \begin{equation}
-    \mathbf{M}_{parent} = \sum_{c=1}^{\text{child\_count}} \mathbf{T}_{M2M}^{(c)} \cdot \mathbf{M}_{child}^{(c)}
+    \mathbf{M}_{parent} = \sum_{c=1}^{c_n} \mathbf{T}_{M2M}^{(c)} \cdot \mathbf{M}_{child}^{(c)}
 \end{equation}
-
+where $c_n$ is the number of child nodes.
 \subsection{Horizontal Pass: Translating Multipole Expansions to Local Expansions} \label{horizontal-pass}
 
 The horizontal pass serves as the critical bridge of the \ac{FMM} algorithm, converting the outgoing scattered radiation represented by the multipole expansions into incoming incident fields represented by the local expansions.
@@ -22,7 +22,7 @@ The resulting localized coefficients, which represent the acoustic contribution 
 \begin{equation}
     \mathbf{L}_{target} \mathrel{+}= \mathbf{T}_{M2L} \cdot \mathbf{M}_{source}
 \end{equation}
-Due to us enforcing a uniform truncation order $P$, the dimensions of all the vectors and matrices invovled line up, enabling the use of vectorized matrix-vector multiplication for a significant boost in computational efficiency.
+Due to us enforcing a uniform truncation order $P$, the dimensions of all the vectors and matrices involved line up, enabling the use of vectorized matrix-vector multiplication for a significant boost in computational efficiency.
 
 \subsection{Downward Pass: Distributing Local Expansions to Leaf Nodes} \label{downward-pass}
 The downward pass cascades the accumulated incident local expansion from the higher levels of the octree down to the leaf nodes, where the final evaluation of the far-field contribution to the acoustic field at the boundary elements takes place. 
