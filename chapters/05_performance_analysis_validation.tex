@@ -102,14 +102,14 @@ As we have discussed in \autoref{sec:burton-miller}, the \ac{BM} formulation is 
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=0.8\textwidth]{figures/burton_miller/FMM_freq_sweep.png}
-    \caption{L2 error plot for the \ac{FMM} without \ac{BM} formulation.}
+    \caption[L2 error plot without \ac{BM}]{L2 error plot for the \ac{FMM} without \ac{BM} formulation. We can see the error spiking as we approach the characteristic frequencies.}
     \label{fig:frequency_sweep_no_bm}
 \end{figure}
 
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=0.8\textwidth]{figures/burton_miller/sweep_results_bm.png}
-    \caption{L2 error plot for the \ac{FMM} with \ac{BM} formulation.}
+    \caption[L2 error plot with \ac{BM}]{L2 error plot for the \ac{FMM} with \ac{BM} formulation. We can see that there are no spikes in the error at the characteristic frequencies, demonstrating the effectiveness of the \ac{BM} formulation. However, we can also see that the overall error is slightly higher than without the \ac{BM} formulation, which is expected due to the reasons explained in \ref{sec:effect-burton-miller}.}
     \label{fig:frequency_sweep_bm}
 \end{figure}
 
@@ -123,13 +123,13 @@ The main motivation for implementing the \ac{FMM} is that it offers much better 
 \begin{figure}
     \centering
     \includegraphics[width=0.8\textwidth]{figures/slice3x3.png}
-    \caption{A $3\times 3$ grid of spherical scatterers, in an incident plane wave of frequency $f = 500 Hz$. The plot shows the Total Absolute Pressure (Pa) field on the surface of the scatterers, as well as a slice of the field on the $z=0$ plane.}
+    \caption[A $3\times 3$ grid of spherical scatterers]{A $3\times 3$ grid of spherical scatterers, in an incident plane wave of frequency $f = 500 Hz$. The plot shows the Total Absolute Pressure (Pa) field on the surface of the scatterers, as well as a slice of the field on the $z=0$ plane.}
 \end{figure}
 
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/noOpenMP/timings_comparison_Build_(no_openmp).png}
-    \caption{Time taken to set up the system matrix for the traditional \ac{BEM}, as compared to the time taken to set up the \ac{FMM} data structures and precompute the translation operators.}
+    \caption[Time to set up the system matrix without OpenMP]{Time taken to set up the system matrix for the traditional \ac{BEM}, as compared to the time taken to set up the \ac{FMM} data structures and precompute the translation operators.}
     \label{fig:setup_time_comparison}
     
 \end{figure}
@@ -137,7 +137,7 @@ The main motivation for implementing the \ac{FMM} is that it offers much better 
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/noOpenMP/timings_comparison_Solve_(no_openmp).png}
-    \caption{Time taken to solve the system for the traditional \ac{BEM}, as compared to the time taken to solve the \ac{FMM} system.}
+    \caption[Time to solve the system without OpenMP]{Time taken to solve the system for the traditional \ac{BEM}, as compared to the time taken to solve the \ac{FMM} system.}
     \label{fig:solve_time_comparison}
     
 \end{figure}
@@ -145,37 +145,62 @@ The main motivation for implementing the \ac{FMM} is that it offers much better 
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/noOpenMP/timings_comparison_totals_(no_openmp).png}
-    \caption{Total time taken by the traditional \ac{BEM}, as compared to the time taken by the \ac{FMM}.}
+    \caption[Total time taken without OpenMP]{Total time taken by the traditional \ac{BEM}, as compared to the time taken by the \ac{FMM}.}
     \label{fig:total_time_comparison}
     
+\end{figure}
+
+
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/OpenMP/timings_comparison_totals_(with_openmp).png}
+    \caption[Total time taken with OpenMP]{Total time taken by the traditional \ac{BEM}, as compared to the time taken by the \ac{FMM} with OpenMP enabled. The log-log plot enables us to compare the scaling of the two methods. We can see that the \ac{FMM} scales as $\mathcal{O}(N\log N)$, while the traditional \ac{BEM} scales as $\mathcal{O}(N^3)$. The computed slope differs a bit from the theoretical slope, but we can see for the \ac{BEM} it matches the $\mathcal{O}(N^3)$ slope in the asymptote. Meanwhile, the \ac{FMM} may be closer to $\mathcal{O}(N)$ than $\mathcal{O}(N\log N)$}
+    \label{fig:total_time_comparison-with_openmp}
 \end{figure}
 
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/OpenMP/timings_comparison_Build_(with_openmp).png}
-    \caption{Time taken to set up the system matrix for the traditional \ac{BEM}, as compared to the time taken to set up the \ac{FMM} data structures and precompute the translation operators.}
-    \label{fig:setup_time_comparison}
+    \caption[Time to set up the system matrix with OpenMP]{Time taken to set up the system matrix for the traditional \ac{BEM}, as compared to the time taken to set up the \ac{FMM} data structures and precompute the translation operators. The Dense \ac{BEM} matrix assembly takes $\mathcal{O}(N^2)$ time, while the \ac{FMM} build time scales as $\mathcal{O}(N)$.}
+    \label{fig:setup_time_comparison-with_openmp}
     
 \end{figure}
 
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/OpenMP/timings_comparison_Solve_(with_openmp).png}
-    \caption{Time taken to solve the system for the traditional \ac{BEM}, as compared to the time taken to solve the \ac{FMM} system.}
-    \label{fig:solve_time_comparison}
+    \caption[Time to solve the system with OpenMP]{Time taken to solve the system for the traditional \ac{BEM}, as compared to the time taken to solve the \ac{FMM} system. The \ac{FMM} with its iterative \ac{GMRES} coupled with the fast matrix-vector products scales as $\mathcal{O}(N^{\frac{3}{2}})$, while the direct solver for the traditional \ac{BEM} scales as $\mathcal{O}(N^3)$. The Direct \ac{BEM} solver uses matrix inversion to solve the system, which is quite an expennsive operation.}
+    \label{fig:solve_time_comparison-with_openmp}
+    
+\end{figure}
+
+
+In all these timing plots \autoref{fig:setup_time_comparison-with_openmp}, \autoref{fig:solve_time_comparison-with_openmp}, and \autoref{fig:total_time_comparison-with_openmp}, we have included guidelines corresponding to the closest asymptotic complexity for each timing curve.
+Let us consider the traditional \ac{BEM} first. The time taken to set up the system matrix scales as $\mathcal{O}(N^2)$, as we have to compute the interaction between every pair of elements. The time taken to solve the system scales as $\mathcal{O}(N^3)$, but considering the solving time makes up the bulk of the total time needed for the traditional \ac{BEM}, the total time also scales as $\mathcal{O}(N^3)$.
+The \ac{FMM} build time scales as $\mathcal{O}(N)$. This time is dominated by the time spent computing the \ac{M2L} translation operators, the number of which scales somewhat linearly with $N$ elements. The solution time taken by the Real-Equivalent system with \ac{GMRES} scales as $\mathcal{O}(N^{\frac{3}{2}})$. As the amount of overhead needed to set up the \ac{FMM} data structures and precompute the translation operators goes down as a percentage of the total time taken as $N$ increases, the total time taken by the \ac{FMM} scales as $\mathcal{O}(N\log N)$.
+
+The plots \autoref{fig:setup_time_comparison-with_openmp}, \autoref{fig:solve_time_comparison-with_openmp}, and \autoref{fig:total_time_comparison-with_openmp}, were run with OpenMP on a system with 24 Threads. The \ac{BEM} parat of the code does not leverage OpenMP, so we also include plots with OpenMP disbled to show a fair comparison of the scaling of the two methods without the effect of parallelization. The plots with OpenMP disabled are \autoref{fig:setup_time_comparison-no_openmp}, \autoref{fig:solve_time_comparison-no_openmp}, and \autoref{fig:total_time_comparison-no_openmp}. We can see that the \ac{FMM} time complexity remains the same in the single-threaded case, just with higher absolute times. The \ac{BEM} times are unaffected as they did not leverage OpenMP in the first place. Both sets of plots demonstrate that as the problem size increases, the \ac{FMM} sooner or later breaks even with the \ac{BEM} and outperforms it.
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/noOpenMP/timings_comparison_Build_(no_openmp).png}
+    \caption[Time to set up the system matrix without OpenMP]{Time taken to set up the system matrix for the traditional \ac{BEM}, as compared to the time taken to set up the \ac{FMM} data structures and precompute the translation operators. The Dense \ac{BEM} assembly takes $\mathcal{O}(N^2)$ time, while the \ac{FMM} build time scales as $\mathcal{O}(N)$.}
+    \label{fig:setup_time_comparison-no_openmp}
     
 \end{figure}
 
 \begin{figure}[htpb]
     \centering
-    \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/OpenMP/timings_comparison_totals_(with_openmp).png}
-    \caption{Total time taken by the traditional \ac{BEM}, as compared to the time taken by the \ac{FMM}.}
-    \label{fig:total_time_comparison}
+    \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/noOpenMP/timings_comparison_Solve_(no_openmp).png}
+    \caption[Time to solve the system without OpenMP]{Time taken to solve the system for the traditional \ac{BEM}, as compared to the time taken to solve the \ac{FMM} system. The \ac{FMM} solution time scales as $\mathcal{O}(N^{\frac{3}{2}})$ with the direct \ac{BEM} solver scaling as $\mathcal{O}(N^3)$.}
+    \label{fig:solve_time_comparison-no_openmp}
     
 \end{figure}
 
-
-In all these timing plots \autoref{fig:setup_time_comparison}, \autoref{fig:solve_time_comparison}, and \autoref{fig:total_time_comparison}, we have included guidelines corresponding to the closest asymptotic complexity for each timing curve.
-Let us consider the traditional \ac{BEM} first. The time taken to set up the system matrix scales as $\mathcal{O}(N^2)$, as we have to compute the interaction between every pair of elements. The time taken to solve the system scales as $\mathcal{O}(N^3)$, but considering the solving time makes up the bulk of the total time needed for the traditional \ac{BEM}, the total time also scales as $\mathcal{O}(N^3)$.
-The \ac{FMM} build time scales as $\mathcal{O}(N)$. This time is dominated by the time spent computing the \ac{M2L} translation operators, the number of which scales somewhat linearly with $N$ elements. The solution time taken by the Real-Equivalent system with \ac{GMRES} scales as $\mathcal{O}(N^{\frac{3}{2}})$. As the amount of overhead needed to set up the \ac{FMM} data structures and precompute the translation operators goes down as a percentage of the total time taken as $N$ increases, the total time taken by the \ac{FMM} scales as $\mathcal{O}(N\log N)$.
-% TODO: ADD Explanation of FMM scaling
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/Timing_Compare_Plots/noOpenMP/timings_comparison_totals_(no_openmp).png}
+    \caption[Total time taken without OpenMP]{Total time taken by the traditional \ac{BEM}, as compared to the time taken by the \ac{FMM}. The \ac{FMM} time complexity remains the same $\mathcal{O}(N\log N)$ in the single-threaded case, just with higher absolute times. The \ac{BEM} complexity remains $\mathcal{O}(N^3)$.}
+    \label{fig:total_time_comparison-no_openmp}
+    
+\end{figure}

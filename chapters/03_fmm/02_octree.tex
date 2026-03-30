@@ -30,8 +30,8 @@ We define an \texttt{FMMNode} data structure to represent each node in the Octre
 The underlying spatial data-structure sets the stage for the computational efficiency of the FMM algorithm. It dictates how the source-target interactions are categorized as either near-field, needing direct computation, or far-field, and thus suitable for approximation via multipole expansions. An adaptive, hierarchical Octree allows for a systematic way to manage these interactions. The Octree is constructed by a top-down recursive subdivision of the spatial domain.
 
 We start by defining the root node as a cube that encompasses the entire geometry. 
-We  iterate over the vertices of all the mesh elements to find the minimum and maximum coordinates.
-We then add a 1\% padding to the bounding box as a safety margin to ensure that all elements are contained within the root node, and to avoid edge cases where elements lie exactly on the boundary of the node. 
+The algorithm then iterates over the vertices of all the mesh elements to find the minimum and maximum coordinates.
+It then adds a 1\% padding to the bounding box as a safety margin to ensure that all elements are contained within the root node, and to avoid edge cases where elements lie exactly on the boundary of the node. 
 This safety margin can help guard against floating point precision issues occurring precisely at the boundary, which could lead to elements on or near the boundary being misclassified as outside the node.
 This root node is then subdivided into 8 child nodes, and the elements are assigned to the child nodes based on their centroids. This is repeated recursively for each child node until the number of elements left in a node are less than a predefined threshold, or a set maximum depth is reached, at which point the node is designated as a leaf node. This threshold is a critical parameter that can be manually set at runtime. 
 When subdividing the domain for a multi-object mesh, we can see that there will be empty interstitial space. The tree adapts to this by pruning empty branches, that is branches that do not contain any boundary elements.
@@ -53,9 +53,22 @@ The core of the \ac{FMM} logic revolves around the interaction lists of each nod
 \end{figure}
 \subsubsection{Space-Filling Curves and Morton Encoding} \label{subsubsec:morton-encoding}
 
-We map the geometric centers of the boundary elements from three-dimensional space into a one-dimensional array using a space-filling curve, specifically, the Morton Z-curve. Morton encoding converts the 3D coordinates of each mesh element into a single integer by interleaving the bits of the binary representations of the x, y, and z coordinates, generating that element's Morton key. This ordering assigns numerically adjacent Morton keys to spatially adjacent elements. This allows us to sort the elements into a linearly ordered array,  where adjacent elements get clustered together, improving cache locality. This cache locality helps reduce the overhead of assigning the elements to the Octree's nodes. While the Morton Z-order curve may not be the optimum space-filling curve for 3D problems, its simplicity of implementation via bitwise operations lends itself to efficient execution \cite{malhotrapvfmmparallelkernel2015}.
+We map the geometric centers of the boundary elements from three-dimensional space into a one-dimensional array using a space-filling curve, specifically, the Morton Z-curve. Morton encoding converts the 3D coordinates of each mesh element into a single integer by interleaving the bits of the binary representations of the $x$, $y$, and $z$ coordinates, generating that element's Morton key. This ordering assigns numerically adjacent Morton keys to spatially adjacent elements. This allows us to sort the elements into a linearly ordered array,  where adjacent elements get clustered together, improving cache locality. This cache locality helps reduce the overhead of assigning the elements to the Octree's nodes. While the Morton Z-order curve may not be the optimum space-filling curve for 3D problems, its simplicity of implementation via bitwise operations lends itself to efficient execution \cite{malhotrapvfmmparallelkernel2015}.
 
 \subsection{Admissibility Criterion and the Interaction Lists} \label{subsec:interaction-lists}
+\newglossaryentry{dx}{
+    name={$dx$},
+    description={Difference in relative grid x-coordinates between the target node and a candidate cousin node}
+}
+\newglossaryentry{dy}{
+    name={$dy$},
+    description={Difference in relative grid y-coordinates between the target node and a candidate cousin node}
+}
+\newglossaryentry{dz}{
+    name={$dz$},
+    description={Difference in relative grid z-coordinates between the target node and a candidate cousin node}
+}
+
 We use a strict geometric admissibility criterion to determine whether a candidate ``cousin'' node goes into the target node's \texttt{neighbor\_list} or the \texttt{interaction\_list}. 
 We use the Chebyshev distance, which is the maximum of the absolute differences of their Cartesian coordinates, to evaluate spatial separation. Given a pair of target node and candidate cousin node at the same hierarchical level, we extract their relative integer grid coordinates \texttt{grid\_x, grid\_y, grid\_z}, and compute the spatial dimension differences: $dx$, $dy$, and $dz$. The admission criterion is then evaluated as follows:
 \begin{itemize}
@@ -67,9 +80,29 @@ There is one topological edge case that we must take care of. This arises when t
 
 
 \subsection{Wiscombe's Criterion for the Truncation Order}
+\newglossaryentry{P}{
+    name={$P$},
+    description={Truncation order of the multipole expansion}
+}
+\newglossaryentry{Ncoeffs}{
+    name={$N_{\text{coeff}}$},
+    description={Number of complex-valued coefficients in the multipole expansion}
+}
 The theoretical basis of the \ac{FMM} lies on the infinite series expansion of the Green's function. However, in practice, we must truncate this expansion to a finite number of terms, denoted as $P$. The choice of $P$ is a critical trade-off between accuracy and computational cost. The number of complex-valued coefficients required to represent the acoustic field scales quadratically with $P$ as $N_{coeff} = (P + 1)^2$ for a 3D problem.
 
 Unlike the Laplace equation, where the truncation error decays geometrically with distance, the Helmholtz equation displays oscillatory phase behaviors that complicate the choice of the truncation order. If the physical size of a node, in this case its diameter is large relative to the acoustic wavelength, then the expansion needs to contain sufficient terms to capture the spatial oscillations, otherwise, the translated field will experience severe aliasing and phase destruction. To ensure accuracy across the whole domain, we calculate a uniform truncation order for all the nodes in the tree based on the largest node diameter and the wavenumber, using Wiscombe's criterion, which is formalized in the context of the \ac{FMM} as the Excess Bandwidth Formula by Song and Chew \cite{chewfastefficientalgorithms2001}. The algorithm of the methods that determines the truncation order is as follows:
+\newglossaryentry{epsilon}{
+    name={$\epsilon$},
+    description={User-defined tolerance}
+}
+\newglossaryentry{d0}{
+    name={$d_0$},
+    description={Precision metric derived from the user-defined tolerance}
+}
+\newglossaryentry{D}{
+    name={$D$},
+    description={Absolute maximum diameter among all the leaf nodes}
+}
 \begin{enumerate}
     \item \textbf{Initialize Precision:} The function accepts the acoustic wavenumber $k$, and a user define tolerance $\epsilon$. This tolerance is converted to a precision metric $d_0$ using the formula $d_0 = -\log_{10}(\epsilon)$, which represents the number of significant digits required.
     \item \textbf{Calculate the Size Parameter:} A non-dimensional size parameter, $kD$, is calculated where $D$ is the absolute maximum diameter among all the leaf nodes. $kD$ represents the physical diameter of the node normalized by the acoustic wavenumber.

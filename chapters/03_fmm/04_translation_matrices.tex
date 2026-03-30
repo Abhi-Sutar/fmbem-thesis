@@ -30,12 +30,20 @@ Using the broadband formulations described by \cite{gumerovbroadbandfastmultipol
 \subsection{Point-to-Multipole (P2M) Translations}
 The \ac{P2M} translation is the first step in the upward pass of the \ac{FMM} algorithm. It calculates the influence of the boundary elements within a leaf node and projects them into multipole coefficients relative to the geometric center of the leaf node. 
 
+\newglossaryentry{Multipole Expansion Coefficient}{
+    name={$M_{n}^m$},
+    description={Specific multipole expansion coefficient for degree $n$ and order $m$}
+}
 The Collocation method for the \ac{BEM} that we use assigns both potential and flux distributions to boundary elements. This causes the mesh surfaces to act as continuous distributions of acoustic dipole. The multipole coefficients $M_{n}^m$  for an expansion order $P$ are accumulated in a flattened one-dimensional array of size $(P+1)^2$, where the memory index is calculated optimally as $n^2 + n + m$, running linearly from $n=0...P$ and $m=-n...n$.
 
 We implement two methods to compute the source projection, the first is an Analytical method which provides mathematically exact derivatives, and a \ac{FDM} as fallback for numerical stability near singularities.
 
 \subsubsection{The Analytical \ac{P2M}} \label{analytical-p2m}
 
+\newglossaryentry{fnm}{
+    name={$f_n^m(r, \theta, \phi)$},
+    description={Outgoing multipole basis function for degree $n$ and order $m$}
+}
 The exact mathematical basis function that represents the outgoing acoustic expansion is given by the product of the regular spherical Bessel function and the complex conjugate of the spherical harmonic function like so:
 \begin{equation}
     f_n^m(r, \theta, \phi) = j_n(kr) \overline{Y_n^m(\theta, \phi)}
@@ -57,7 +65,7 @@ The radial gradient component is derived using the derivative recurrence relatio
     j'_0(kr) &= -k \cdot j_1(kr) \\
     j'_n(kr) &= k\left( \frac{n \cdot j_n(kr)}{kr} - j_{n+1}(kr) \right) \text{ for }  n > 0
 \end{align}
-To get the angular gradient components, we need to evaluate the derivatives of the spherical harmonics. The polar derivative $\frac{\partial Y_n^m}{\partial \theta}$  is computed using specialized quantum mechanics ladder operators that link adjacent degree coefficients. The inclusion of the Condon-Shortley phase factor, $(-1)^m$, in the definition of the spherical harmonics is what allows these raising and lowering operators to be applied, vastly improves speed over direct transcendental derivation. The azimuthal derivative $\frac{\partial Y_n^m}{\partial \phi}$ trivially evaluates to $i m Y_n^m$.
+To get the angular gradient components, we need to evaluate the derivatives of the spherical harmonics. The polar derivative $\frac{\partial Y_n^m}{\partial \theta}$  is computed using specialized quantum mechanics ladder operators that link adjacent degree coefficients. The inclusion of the Condon-Shortley phase factor, $(-1)^m$, in the definition of the spherical harmonics is what allows these raising and lowering operators to be applied, vastly improves speed over direct transcendental derivation. The azimuthal derivative $\frac{\partial Y_n^m}{\partial \phi}$ trivially evaluates to $i m Y_n^m$. \cite{eptonmultipoletranslationtheory1995} \cite{}
 
 \subsubsection{The \ac{FDM} Fallback} \label{subsubsec:fdm-fallback}
 
