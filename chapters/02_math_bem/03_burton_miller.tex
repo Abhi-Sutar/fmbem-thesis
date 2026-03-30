@@ -12,7 +12,11 @@ There have been various approaches proposed in the literature to address this, s
 The \ac{CHIEF} method uses auxiliary collocation points within the interior to form an overdetermined system, which is then solved by a least-squares approach to eliminate the spurious solutions \cite{chieneffectivemethodsolving1990}. 
 However, the location of these auxiliary points is critical, and if they are placed on a nodal plane of an interior standing wave, the method can fail \cite{langrennesolvinghypersingularboundary2015}.
 By contrast, the formulation proposed by  Burton and Miller \cite{burtonapplicationintegralequation1971} is a mathematically robust method that ensures the uniqueness of the solution across all frequencies. 
-\newglossaryentry{n0}{keyvals}
+\newglossaryentry{n0}{
+    name={$n_0$ or $\hat{n_0}$},
+    description={Local unit normal vector at the collocation point $\mathbf{x_0}$, pointing outward from the surface.}
+}
+
 
 \subsection{The Hypersingular Boundary Integral Equation} \label{subsec:bm-hbie}
 The \ac{BM} formulation combines the \ac{CBIE} with its own normal derivative, which we will refer to as the \ac{HBIE}. We derive the \ac{HBIE} by applying the gradient operator to the \ac{CBIE} with respect to the collocation point $\mathbf{x_0}$, then taking the inner product with the local unit normal vector $\mathbf{\hat{n}_0}$.
@@ -26,13 +30,25 @@ where $n$ is the unit normal at the field point $\mathbf{x}$.
 Like the \ac{CBIE} suffers from non-uniqueness at the characteristic frequencies of the interior Dirichlet problem, the \ac{HBIE} also suffers from non-uniqueness, but at the characteristic frequencies of the interior Neumann problem. As the eigenvalues of the interior Neumann problem do not coincide with those of the interior Dirichlet problem, the combination of the two equations ensures that their union has only one valid solution across all frequencies.
 
 \subsection{The Combined Equation and the Coupling parameter} \label{subsec:bm-combined}
+\newglossaryentry{eta}{
+    name={$\eta$},
+    description={Complex coupling parameter used to linearly combine the \acs{CBIE} and \acs{HBIE} in the Burton-Miller formulation}
+}
+\newglossaryentry{A}{
+    name={$A$},
+    description={Specific admittance used to define the virtual interior acoustic problem when calculating the optimal coupling parameter}
+}
+\newglossaryentry{lambda}{
+    name={$\lambda$},
+    description={Regularization parameter used to prevent matrix ill-conditioning in the Burton-Miller formulation at low frequencies, used as $\eta = i k / \left( k^2 + \lambda \right) $}
+}
 
 The \ac{BM} formulation is a linear combination of the \ac{CBIE} and the \ac{HBIE}, with the \ac{HBIE} scaled by a complex coupling parameter $\eta$:
 \begin{equation} \label{eq:combined-integral-equation}
-    \mathbf{\ac{CBIE}} + \eta \mathbf{\ac{HBIE}} = 0
+    \mathbf{\acs{CBIE}} + \eta \mathbf{\acs{HBIE}} = 0
 \end{equation}
 A unique solution is guaranteed for \eqref{eq:combined-integral-equation} as long as $\eta$ has a non-zero imaginary part. 
-The theoretically optimal choice for this  coupling parameter is $\eta = i/k$  in the high frequency limit. 
+The theoretically optimal choice for this  coupling parameter is $\eta = i/k$  in the high frequency limit \cite{chappellchoicecouplingparameter2009}. 
 Terai\cite{teraicalculationsoundfields} explains this by framing the Burton-Miller formulation as the boundary condition for a virtual interior acoustic problem, and relating the coupling parameter as $\eta = \frac{-1}{i k A}$, where $A$ is specific admittance. 
 By setting $A = 1$ to maximize the absorption, we can eliminate the possibility of internal resonances. 
 At low frequencies, regularized variations such as $\eta = i k / \left( k^2 + \lambda \right) $ in the limit $ k \to 0$ to prevent matrix ill-conditioning \cite{marburgburtonmillermethod2016}.
@@ -45,6 +61,10 @@ We can write the combined integral equation as:
 
 While the \ac{BM} formulation guarantees uniqueness, it comes at the cost of having to evaluate an integral term with a highly divergent kernel $\frac{\partial^2 G_k(\mathbf{x_0}, \mathbf{x})}{\partial n \partial n_0}$. 
 This integral will diverge and collapse the system, if not treated with specialized analytical techniques. 
+\newglossaryentry{rvec}{
+    name={$\mathbf{\vec{r}}$},
+    description={Distance vector from the collocation point to the field point, calculated as $\mathbf{x} - \mathbf{x_0}$}
+}
 
 \subsection{Characterizing the Boundary Integral Singularities}\label{subsec:bm-singularities}
 To understand the mathematics of the hypersingularity, and subsequently the techniques to regularize it, we first need to explicitly derive the derivatives of the Green's function and characterize their behavior.
@@ -89,7 +109,7 @@ Substituting these expansions back into \eqref{eq:second-deriv-greens}, we get
 \end{equation} \cite{sunnonsingularburtonmiller2023}
 
 This reveals that the singularity is fundamentally dominated by the $1/r^3$ term.
-Integrals diverging as $\mathcal{O}(1/r^3)$ are strictly hypersingular, and cannot be evaluated using Cauchy Principal Value theorems. Standard numerical quadratures like the Gauss-Legendre quadrature will fail to converge for such integrals without applying analytical regularization.
+Integrals diverging as $\mathcal{O}(1/r^3)$ are strictly hypersingular, and cannot be evaluated using Cauchy Principal Value theorems. This necessitates the rigorous application of \ac{HFP} integration \cite{martinhypersingularintegralshow1996}. Standard numerical quadratures like the Gauss-Legendre quadrature will fail to converge for such integrals without applying analytical regularization.
 
 \begin{table}
     \centering
@@ -141,6 +161,10 @@ Looking at the Taylor expansion of the kernel after the collapse:
     &= \frac{1}{r^3} + \frac{1}{2 r} k^2 + \mathcal{O}(1)
 \end{align}
 This expansion tells us something quite important about the kernel's frequency dependence. The dynamic term that depends on the wavenumber $k$ is only weakly singular, of the order of $\mathcal{O}(1/r)$. The remaining term, which is purely static and real, is the hypersingular term $1/r^3$.
+\newglossaryentry{G0}{
+    name={$G_0$},
+    description={Fundamental solution to the Laplace equation}
+}
 
 Sun and Klaseboer \cite{sunnonsingularburtonmiller2023} demonstrate that this isolated static term $1/r^3$ is the same as the hypersingular kernel of the Laplace equation, which we can consider as a special case of the Helmholtz equation where $k = 0$. 
 We can demonstrate this equivalence by taking the second normal derivative of the fundamental solution to the Laplace equation $G_0 = \frac{1}{4 \pi r}$, which is given by:
