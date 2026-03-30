@@ -2,12 +2,45 @@
 
 The propagation of acoustic waves in a homogeneous, inviscid fluid medium is governed by the linear wave equation for the acoustic pressure $p(\mathbf{x}, t)$:
 
+\newglossaryentry{pxt}{
+    name={$p(x, t)$},
+    description = {Time dependent acoustic pressure}
+}
 \begin{equation}
     \nabla^2 p(\mathbf{x}, t) - \frac{1}{c^2} \frac{\partial^2 p(\mathbf{x}, t)}{\partial t^2} = 0
     \label{eq:wave_equation}
 \end{equation}
 
+\newglossaryentry{x}{
+    name={$\mathbf{x}$},
+    description = {Position vector (field point)}
+}
+
+\newglossaryentry{t}{
+    name={$t$},
+    description = {Time}
+}
+\newglossaryentry{c}{
+    name={$c$},
+    description = {Speed of sound in the medium}
+}
+
 where $\mathbf{x}$ is the position vector, $t$ is time, and $c$ is the speed of sound in the medium.
+
+\newglossaryentry{P}{
+    name={$P(\mathbf{x})$},
+    description = {Spatial component of the acoustic pressure (phasor)}
+}
+
+\newglossaryentry{smallomega}{
+    name={$\omega$},
+    description = {Angular frequency}
+}
+\newglossaryentry{i}{
+    name={$i$},
+    description = {Imaginary unit, $\sqrt{-1}$}
+}
+
 
 To derive the Helmholtz equation, we consider a time-harmonic acoustic field. We assume the pressure can be represented as a complex function oscillating with angular frequency $\omega$:
 
@@ -42,12 +75,22 @@ Dividing by the common time factor $e^{-i \omega t}$ (which is non-zero) and rea
     \nabla^2 P(\mathbf{x}) + \frac{\omega^2}{c^2} P(\mathbf{x}) = 0
 \end{equation}
 
+\newglossaryentry{k}{
+    name={$k$},
+    description = {Wavenumber, defined as $k = \omega / c$}
+}
+
 Introducing the wavenumber $k = \omega / c$, we arrive at the homogeneous Helmholtz equation:
 
 \begin{equation}
     \nabla^2 P(\mathbf{x}) + k^2 P(\mathbf{x}) = 0
     \label{eq:helmholtz}
 \end{equation}
+
+\newglossaryentry{phi}{
+    name={$\phi(\mathbf{x})$},
+    description = {Acoustic potential, represents the acoustic pressure in the BEM formulation}
+}
 
 Since we use the symbol $\phi$ to represent the acoustic potential in our BEM formulation, we can rewrite the Helmholtz equation as:
 \begin{equation}

@@ -101,19 +101,12 @@ As we have discussed in \autoref{sec:burton-miller}, the \ac{BM} formulation is 
 
 \begin{figure}[htpb]
     \centering
-    \includegraphics[width=0.8\textwidth]{figures/burton_miller/FMM_freq_sweep.png}
-    \caption[L2 error plot without \ac{BM}]{L2 error plot for the \ac{FMM} without \ac{BM} formulation. We can see the error spiking as we approach the characteristic frequencies.}
-    \label{fig:frequency_sweep_no_bm}
+    \includegraphics[width=0.8\textwidth]{figures/burton_miller/bem_sweep.png}
+    \caption[Frequency sweep Burton-Miller]{Relative $L_2$ error of the numerical solution compared to the analytical solution for a frequency sweep from $100 Hz$ to $3000 Hz$, both with, and without using the \ac{BM} formulation. The spikes is the error of the \ac{CBIE} at the characteristic frequencies (1715 Hz and 2453 Hz) demonstrate the non-uniqueness issue at these frequencies. While the \ac{BM} displays nosuch spikes, its overall error is higher than the \ac{CBIE} formulation, due to the stronger singularity of the \ac{HBIE} kernel compared to the \ac{CBIE} kernel.\ref{sec:effect-burton-miller}}
+    \label{fig:frequency_sweep}
 \end{figure}
 
-\begin{figure}[htpb]
-    \centering
-    \includegraphics[width=0.8\textwidth]{figures/burton_miller/sweep_results_bm.png}
-    \caption[L2 error plot with \ac{BM}]{L2 error plot for the \ac{FMM} with \ac{BM} formulation. We can see that there are no spikes in the error at the characteristic frequencies, demonstrating the effectiveness of the \ac{BM} formulation. However, we can also see that the overall error is slightly higher than without the \ac{BM} formulation, which is expected due to the reasons explained in \ref{sec:effect-burton-miller}.}
-    \label{fig:frequency_sweep_bm}
-\end{figure}
-
-The non \ac{BM} frequency sweep \autoref{fig:frequency_sweep_no_bm} shows the spikes at the characteristic frequencies, while the one with \ac{BM} \autoref{fig:frequency_sweep_bm} shows that the error at these frequencies is in line with errors at neighboring frequencies, demonstrating the effectiveness of the \ac{BM} formulation in eliminating the non-uniqueness issue at the characteristic frequencies. We can also see that the overall error with the \ac{BM} formulation is slightly higher than without. This is expected, as the \ac{BM} introduces the \ac{HBIE} to the system. As the \ac{HBIE} has a stronger singularity than the \ac{BIE}, the numerical quadrature errors arising from the singularity of the \ac{HBIE} kernel are higher than those arising from the \ac{CBIE} kernel, leading to a higher overall error for the \ac{BM} formulation compared to the non-\ac{BM} formulation.
+The non \ac{BM} frequency sweep \autoref{fig:frequency_sweep} shows the spikes at the characteristic frequencies, while the one with \ac{BM} \autoref{fig:frequency_sweep_bm} shows that the error at these frequencies is in line with errors at neighboring frequencies, demonstrating the effectiveness of the \ac{BM} formulation in eliminating the non-uniqueness issue at the characteristic frequencies. We can also see that the overall error with the \ac{BM} formulation is slightly higher than without. This is expected, as the \ac{BM} introduces the \ac{HBIE} to the system. As the \ac{HBIE} has a stronger singularity than the \ac{BIE}, the numerical quadrature errors arising from the singularity of the \ac{HBIE} kernel are higher than those arising from the \ac{CBIE} kernel, leading to a higher overall error for the \ac{BM} formulation compared to the non-\ac{BM} formulation.
 
 \section{Performance Analysis} \label{sec:performance-analysis}
 
@@ -124,6 +117,7 @@ The main motivation for implementing the \ac{FMM} is that it offers much better 
     \centering
     \includegraphics[width=0.8\textwidth]{figures/slice3x3.png}
     \caption[A $3\times 3$ grid of spherical scatterers]{A $3\times 3$ grid of spherical scatterers, in an incident plane wave of frequency $f = 500 Hz$. The plot shows the Total Absolute Pressure (Pa) field on the surface of the scatterers, as well as a slice of the field on the $z=0$ plane.}
+    \label{fig:slice3x3}
 \end{figure}
 
 \begin{figure}[htpb]
