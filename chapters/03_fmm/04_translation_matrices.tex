@@ -65,7 +65,7 @@ The radial gradient component is derived using the derivative recurrence relatio
     j'_0(kr) &= -k \cdot j_1(kr) \\
     j'_n(kr) &= k\left( \frac{n \cdot j_n(kr)}{kr} - j_{n+1}(kr) \right) \text{ for }  n > 0
 \end{align}
-To get the angular gradient components, we need to evaluate the derivatives of the spherical harmonics. The polar derivative $\frac{\partial Y_n^m}{\partial \theta}$  is computed using specialized quantum mechanics ladder operators that link adjacent degree coefficients. The inclusion of the Condon-Shortley phase factor, $(-1)^m$, in the definition of the spherical harmonics is what allows these raising and lowering operators to be applied, vastly improves speed over direct transcendental derivation. The azimuthal derivative $\frac{\partial Y_n^m}{\partial \phi}$ trivially evaluates to $i m Y_n^m$. \cite{eptonmultipoletranslationtheory1995} \cite{}
+To get the angular gradient components, we need to evaluate the derivatives of the spherical harmonics. The polar derivative $\frac{\partial Y_n^m}{\partial \theta}$  is computed using specialized quantum mechanics ladder operators that link adjacent degree coefficients. The inclusion of the Condon-Shortley phase factor, $(-1)^m$, in the definition of the spherical harmonics is what allows these raising and lowering operators to be applied, vastly improves speed over direct transcendental derivation. The azimuthal derivative $\frac{\partial Y_n^m}{\partial \phi}$ trivially evaluates to $i m Y_n^m$. \cite{eptonmultipoletranslationtheory1995}\cite{messiah1961quantum}
 
 \subsubsection{The \ac{FDM} Fallback} \label{subsubsec:fdm-fallback}
 
@@ -78,11 +78,20 @@ The theorem defines the mechanism by which a target multipole coefficient is gen
 
 Let the displacement vector between the translation centers be defined in local spherical coordinates as $(r, \theta, \phi)$. Following the analytical derivations laid out by Gumerov and Duraiswami \cite{gumerovbroadbandfastmultipole2009}, the specific scalar entry for the transformation matrix ($T_{entry}$), which links the $(n', m')$ source mode to the $(n, m)$ target mode, requires an internal summation over a third intermediate index $p$. The bounds of $p$ are strictly dictated by the Wigner triangle inequality $|n-n'| \leq p \leq n+n'$ \cite{gumerovrecursionscomputationmultipole2004}.
 
+\newglossaryentry{Tentry}{
+    name={$T_{entry}$},
+    description={Specific scalar entry in a translation matrix linking source and target multipole coefficients}
+}
+
 The matrix entry $T_{entry}$ is accumulated as:
 \begin{equation}
     T_{entry} = \sum_{p} 4\pi i^{n' - n + p} \cdot (-1)^{m'} \cdot G(n, m; n', -m'; p) \cdot z_p(kr) \cdot Y_p^{m-m'}(\theta, \phi)
 \end{equation}
 
+\newglossaryentry{Zp}{
+    name={$z_p(kr)$},
+    description={Generalized target spherical radial function for degree $p$ and wavenumber $k$ used in the addition theorems (can be a Bessel or Hankel function depending on the operator type)}
+}
 Each component in this equation has a specific mathematical and physical significance:
 \begin{itemize}
     \item Integration prefactor $4\pi$ scales the translation to the appropriate solid angle.

@@ -14,6 +14,18 @@ The algorithm then traverses up the octree, level by level, from the leaf nodes 
   name={$\mathbf{M}_{\mathrm{parent}}$},
   description={Multipole expansion coefficient vector of the parent node}
 }
+\newglossaryentry{Tm2m}{
+    name={$\mathbf{T_{M2M}}$},
+    description={Dense translation matrix for Multipole-to-Multipole operator}
+}
+\newglossaryentry{Mchild}{
+    name={$\mathbf{M}_{\mathrm{child}}$},
+    description={Multipole expansion coefficient vector of a child node}
+}
+\newglossaryentry{cn}{
+    name={$c_n$},
+    description={Number of child nodes of a parent node}
+}
 
 \begin{equation}
     \mathbf{M}_{parent} = \sum_{c=1}^{c_n} \mathbf{T}_{M2M}^{(c)} \cdot \mathbf{M}_{child}^{(c)}
@@ -23,6 +35,20 @@ where $c_n$ is the number of child nodes.
 
 The horizontal pass serves as the critical bridge of the \ac{FMM} algorithm, converting the outgoing scattered radiation represented by the multipole expansions into incoming incident fields represented by the local expansions.
 For all valid nodes with depth $d\geq 2$, the horizontal pass iterates through the far-field interaction list of the node. For each target-source pairing within the list, the source node's multipole expansion is multiplied by the specific precomputed \ac{M2L} translation operator associated with the relative displacement vector separating the source and target nodes. 
+
+\newglossaryentry{Ltarget}{
+    name={$L_{target}$},
+    description={Local expansion coefficient vector of the target node}
+}
+\newglossaryentry{Tm2l}{
+    name={$\mathbf{T}_{M2L}$},
+    description={Dense translation matrix for Multipole-to-Local operator}
+}
+\newglossaryentry{Msource}{
+    name={$\mathbf{M}_{source}$},
+    description={Multipole expansion coefficient vector of the source node}
+}
+
 
 The resulting localized coefficients, which represent the acoustic contribution arriving from distant source nodes are algebraically accumulated into the target node's local coefficient array:
 \begin{equation}

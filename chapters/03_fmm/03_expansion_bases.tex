@@ -4,8 +4,8 @@ Before we can derive the translation operators, we need to define the expansion 
 
 \subsection{Fundamental Solution for the Helmholtz Equation}
 The free-space Green's function for the 3D Helmholtz equation which characterizes the acoustic pressure at a target point $\mathbf{x}$ due to a unit point source at $\mathbf{x_0}$ is given by:
-\newglossaryentry{G}{
-    name={$G$},
+\newglossaryentry{Gxx0}{
+    name={$G(\mathbf{x}, \mathbf{x_0})$},
     description={Free-space Green's function for the 3D Helmholtz equation}
 }
 \begin{equation}\label{green-function}
@@ -15,7 +15,7 @@ For the \ac{FMM}, the Cartesian coordinates $(x, y, z)$ taken relative to the ce
 
 \subsection{Spherical Harmonics and Legendre Polynomials}
 \newglossaryentry{Ynm}{
-    name={$Y_n^m$},
+    name={$Y_n^m(\theta, \phi)$},
     description={Spherical Harmonic function of degree $n$ and order $m$}
 }
 Spherical Harmonics, denoted as $Y_n^m(\theta, \phi)$, are a set of orthogonal functions defined on the surface of a unit sphere, and act as the angular portion of the general solution to the vector Helmholtz equation. The integer $n \geq 0 $ is the degree of the harmonic, while the integer $m$ represents the order.
@@ -26,7 +26,7 @@ Our \ac{FMM} framework uses an orthonormal normalization convention that rigorou
 \end{equation}
 
 \newglossaryentry{Pnm}{
-    name={$P_n^m$},
+    name={$P_n^m(\cos \theta)$},
     description={Associated Legendre polynomial of degree $n$ and order $m$}
 }
 The evaluation of the associated Legendre polynomials is performed using the numerically stable 3-term recurrence relation, maintaining bounding limits to prevent floating point underflow at high expansion degrees. Setting the evaluation parameter $x = \cos \theta$, the generalized non-diagonal terms $P_n^m(x)$ can be constructed as:
@@ -38,11 +38,11 @@ The evaluation of the associated Legendre polynomials is performed using the num
 \subsection{Spherical Bessel and Hankel Functions}
 The radial propagation of the acoustic wave is governed by the spherical Bessel differential equation. Depending on the topology of the translation pass, we need two distinct classes of solutions:
 \newglossaryentry{jn}{
-    name={$j_n$},
+    name={$j_n(kr)$},
     description={Spherical Bessel function of the first kind and order $n$}
 }
 \newglossaryentry{hn}{
-    name={$h_n^{(1)}$},
+    name={$h_n^{(1)}(kr)$},
     description={Spherical Hankel function of the first kind and order $n$}
 }
 
