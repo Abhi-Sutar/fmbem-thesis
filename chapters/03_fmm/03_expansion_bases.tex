@@ -56,7 +56,7 @@ The mathematical translation of spherical wave expansions requires integrating t
     description={Wigner 3-j symbol representing the coupling of three spherical angular momenta}
 }
 
-The Wigner 3-j symbols, denoted as $\begin{pmatrix} j_1 & j_2 & j_3 \\ m_1 & m_2 & m_3 \end{pmatrix}$, dictate the geometric probability amplitude of coupling three distinct spherical angular states. We evaluate this symbols using the exact, analytical Racah formula. To prevent unnecessary computations, the algorithm first enforces strict selection rules, and returns $0.0$ if any of the following physical limits are violated:
+The Wigner 3-j symbols, denoted as $\begin{pmatrix} j_1 & j_2 & j_3 \\ m_1 & m_2 & m_3 \end{pmatrix}$ \cite{messiah1961quantum}, dictate the geometric probability amplitude of coupling three distinct spherical angular states. We evaluate this symbols using the exact, analytical Racah formula. To prevent unnecessary computations, the algorithm first enforces strict selection rules, and returns $0.0$ if any of the following physical limits are violated:
 \begin{enumerate}
     \item \textbf{Magnetic Conservation:} The sum of the order indices must be strictly zero, i.e., $m_1 + m_2 + m_3 = 0$. 
     \item \textbf{Triangular Inequality:} The degrees must form a closed vector triangle, i.e., $|j_1 - j_2| \leq j_3 \leq j_1 + j_2$.

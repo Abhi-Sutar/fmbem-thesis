@@ -25,6 +25,22 @@
   urldate = {2025-10-17}
 }
 
+@article{barneshierarchicallogforcecalculation1986,
+  title = {A Hierarchical {{O}}({{N}} Log {{N}}) Force-Calculation Algorithm},
+  author = {Barnes, Josh and Hut, Piet},
+  date = {1986-12},
+  journaltitle = {Nature},
+  shortjournal = {Nature},
+  volume = {324},
+  number = {6096},
+  pages = {446--449},
+  issn = {0028-0836, 1476-4687},
+  doi = {10.1038/324446a0},
+  url = {https://www.nature.com/articles/324446a0},
+  urldate = {2026-03-30},
+  langid = {english}
+}
+
 @article{beatsonshortcoursefast1997,
   title = {A Short Course on Fast Multipole Methods},
   author = {Beatson, Rick and Greengard, Leslie},
@@ -254,6 +270,26 @@
   langid = {english}
 }
 
+@article{colesoptimizingsymbolicalgebra2020,
+  title = {An {{Optimizing Symbolic Algebra Approach}} for {{Generating Fast Multipole Method Operators}}},
+  author = {Coles, Jonathan P. and Bieri, Rebekka},
+  date = {2020-06},
+  journaltitle = {Computer Physics Communications},
+  shortjournal = {Computer Physics Communications},
+  volume = {251},
+  eprint = {1811.06332},
+  eprinttype = {arXiv},
+  eprintclass = {physics},
+  pages = {107081},
+  issn = {00104655},
+  doi = {10.1016/j.cpc.2019.107081},
+  url = {http://arxiv.org/abs/1811.06332},
+  urldate = {2026-03-30},
+  abstract = {We present efficient operators for the fast multipole method (FMM) based on totally symmetric and traceless Cartesian multipole tensors, which have been designed to translate well into computer code. Using the traceless tensor form significantly reduces memory usage and network communication traffic for large-scale applications in molecular dynamics and astrophysics. We have also developed a software generator that symbolically produces, verifies, and optimizes code for the FMM operators. The generator can easily produce different forms of the operators more suitable to specific applications. In realistic tests of biophysical simulations we observe a 20\% speed-up, demonstrating the efficiency and improved performance of these routines compared to non-traceless tensor operators.},
+  langid = {english},
+  keywords = {Astrophysics - Instrumentation and Methods for Astrophysics,Physics - Computational Physics}
+}
+
 @misc{comsolacousticsmoduleusers,
   type = {Manual},
   title = {The {{Acoustics Module User}}’s {{Guide}}},
@@ -273,6 +309,21 @@
   date = {2011-11-01},
   langid = {english},
   venue = {Boston University}
+}
+
+@book{cottetvortexmethodstheory2000,
+  title = {Vortex {{Methods}}: {{Theory}} and {{Practice}}},
+  shorttitle = {Vortex {{Methods}}},
+  author = {Cottet, Georges-Henri and Koumoutsakos, Petros D.},
+  date = {2000-03-13},
+  edition = {1},
+  publisher = {Cambridge University Press},
+  doi = {10.1017/CBO9780511526442},
+  url = {https://www.cambridge.org/core/product/identifier/9780511526442/type/book},
+  urldate = {2026-03-30},
+  abstract = {This book presents and analyses vortex methods as a tool for the direct numerical simulation of incompressible viscous flows. Vortex methods have matured, offering an interesting alternative to finite difference and spectral methods for high-resolution numerical solutions of the Navier–Stokes equations. Research in the numerical analysis aspects of vortex methods has provided a solid mathematical background for understanding the accuracy and stability of the method. At the same time vortex methods retain their appealing physical character that was the motivation for their introduction. Scientists working in the areas of numerical analysis and fluid mechanics will benefit from this book, which may serve both communities as both a reference monograph and a textbook for computational fluid dynamics courses.},
+  isbn = {978-0-521-62186-1 978-0-521-06170-4 978-0-511-52644-2},
+  langid = {english}
 }
 
 @article{csankyfastparallelmatrix1976,
@@ -306,6 +357,24 @@
   urldate = {2026-03-23},
   abstract = {At its most elemental level, OpenMP is a set of compiler directives and callable runtime library routines that extend Fortran (and separately, C and C++ to express shared memory parallelism. It leaves the base language unspecified, and vendors can implement OpenMP in any Fortran compiler. Naturally, to support pointers and allocatables, Fortran 90 and Fortran 95 require the OpenMP implementation to include additional semantics over Fortran 77. OpenMP leverages many of the X3H5 concepts while extending them to support coarse grain parallelism. The standard also includes a callable runtime library with accompanying environment variables.},
   keywords = {ANSI standards,Coherence,Computer architecture,Hardware,Message passing,Parallel processing,Parallel programming,Power system modeling,Scalability,Software systems}
+}
+
+@article{darvefastmultipolemethod2000,
+  title = {The {{Fast Multipole Method I}}: {{Error Analysis}} and {{Asymptotic Complexity}}},
+  shorttitle = {The {{Fast Multipole Method I}}},
+  author = {Darve, Eric},
+  date = {2000-01},
+  journaltitle = {SIAM Journal on Numerical Analysis},
+  shortjournal = {SIAM J. Numer. Anal.},
+  volume = {38},
+  number = {1},
+  pages = {98--128},
+  issn = {0036-1429, 1095-7170},
+  doi = {10.1137/S0036142999330379},
+  url = {http://epubs.siam.org/doi/10.1137/S0036142999330379},
+  urldate = {2026-03-30},
+  abstract = {This paper is concerned with the application of the fast multipole method (FMM) to the Maxwell equations.This application differs in many aspects from other applications such as the N-body problem, Laplace equation, and quantum chemistry, etc.The FMM leads to a significant speed-up in CPU time with a major reduction in the amount of computer memory needed when performing matrix-vector products.This leads to faster resolution of scattering of harmonic plane waves from perfectly conducting obstacles.Emphasis here is on a rigorous mathematical approach to the problem.We focus on the estimation of the error introduced by the FMM and a rigorous analysis of the complexity (O(n log n)) of the algorithm.We show that error estimates reported previously are not entirely satisfactory and provide sharper and more precise estimates.},
+  langid = {english}
 }
 
 @article{daysolvingcomplexvaluedlinear2001,
@@ -396,6 +465,22 @@
   url = {https://www.frontiersin.org/articles/10.3389/feart.2022.883160/full},
   urldate = {2026-03-30},
   abstract = {The perfectly matched layer (PML) is one of the most popular absorbing boundary conditions for simulating seismic waves. In theory, the PML can absorb incident waves at any incident angle and any frequency in a medium. However, numerical reflections will be generated after the PML has been discretized. Therefore, how to reduce the reflections of discrete PML has been a research topic for more than 2 decades. In this paper, we adopt the reflectionless discrete PML (RD-PML) for seismic wave and implement the RD-PML based on the acoustic wave equation, and then compare its absorbing performance with that of the conventional discrete PML. Our numerical experiments show that the RD-PML has advantages over the conventional discrete PML. In homogeneous model, a thick enough RD-PML can effectively eliminate reflections. In heterogeneous model, a thin-layer RD-PML can obtain better absorbing performance even than the thick-layer conventional discrete PML. The absorbing performance of the RD-PML can be improved by using the periodic boundary without increasing the amount of computation and memory. RD-PML provides a new perspective to understand the discretization of PML, and may play an important role in promoting the development of PML technology.},
+  langid = {english}
+}
+
+@article{gauntivtripletshelium1929,
+  title = {{{IV}}. {{The}} Triplets of Helium},
+  author = {Gaunt, J. A.},
+  date = {1929-01-01},
+  journaltitle = {Philosophical Transactions of the Royal Society of London. Series A, Containing Papers of a Mathematical or Physical Character},
+  volume = {228},
+  number = {659--669},
+  pages = {151--196},
+  issn = {0264-3952, 2053-9258},
+  doi = {10.1098/rsta.1929.0004},
+  url = {https://royalsocietypublishing.org/rsta/article/228/659-669/151/9073/IV-The-triplets-of-helium},
+  urldate = {2026-03-30},
+  abstract = {Abstract             Heisenberg’s theory of the helium atom, following his famous principle of “resonance,” accounted satisfactorily for the ortho- and para- states. His more detailed treatment of the triplets, besides giving ground for minor criticisms, necessarily had to be derived from Schrödinger’s equation , with a somewhat incongruous electronic “spin” grafted upon it. The present work uses Dirac’s recent theory, in which the spin effects grow more naturally from the fundamental equations. Calculations which are in dependent of the spin, such as the approximate energy-levels and the ortho-para separations, are the same on either theory. We deal here with spin effects, such as the fine structure of the triplets and intercombinations between ortho- and para- states. The fundamental equations, the perturbation theory which is used, and the perturbing spin energy, have been discussed fully elsewhere. The present paper, after a short recapitulation of the general theory, gives in detail the calculations whose results alone were quoted in the other. §§ 4–7 work out the structure of the helium triplets with one excited election. The resulting spin separations are different from Heisenberg’s, but in equally good agreement with experiment. At the same time, the correct first approximations to the wave-functions are found, and they are used in § 8 to verify the ordinary classification and selection rules.},
   langid = {english}
 }
 
@@ -552,6 +637,22 @@
 @unpublished{hildenbrandnaipy,
   title = {{{NaiPy}}},
   author = {Hildenbrand, Arne and Dogu, Mert and Preuss, Simone and Mostafa Shaaban Mohamed, Ahmed and , Steffen}
+}
+
+@online{ibeidmatrixfreepreconditionerhelmholtz2016,
+  title = {A {{Matrix-free Preconditioner}} for the {{Helmholtz Equation}} Based on the {{Fast Multipole Method}}},
+  author = {Ibeid, Huda and Yokota, Rio and Keyes, David},
+  date = {2016-08-08},
+  eprint = {1608.02461},
+  eprinttype = {arXiv},
+  eprintclass = {math},
+  doi = {10.48550/arXiv.1608.02461},
+  url = {http://arxiv.org/abs/1608.02461},
+  urldate = {2026-03-30},
+  abstract = {Fast multipole methods (FMM) were originally developed for accelerating N body problems for particle-based methods. FMM is more than an N -body solver, however. Recent efforts to view the FMM as an elliptic Partial Differential Equation (PDE) solver have opened the possibility to use it as a preconditioner for a broader range of applications. FMM can solve Helmholtz problems with optimal O(N log N ) complexity, has compute-bound inner kernels, and highly asynchronous communication patterns. The combination of these features makes FMM an interesting candidate as a preconditioner for sparse solvers on architectures of the future. The use of FMM as a preconditioner allows us to use lower order multipole expansions than would be required as a solver because individual solves need not be accurate. This reduces the amount of computation and communication significantly and makes the time-to-solution competitive with state-of-the-art preconditioners. Furthermore, the high asynchronicity of FMM allows it to scale to much larger core counts than factorization-based and multilevel methods. We describe our tests in reproducible details with freely available codes.},
+  langid = {english},
+  pubstate = {prepublished},
+  keywords = {Mathematics - Numerical Analysis}
 }
 
 @article{jeanscomparisonnumericalcollocation1992,
@@ -1419,6 +1520,13 @@
   url = {https://www.mdpi.com/2079-9292/12/13/2922},
   urldate = {2026-03-24},
   abstract = {Single instruction multiple data (SIMD) vector extension has become an essential feature of high-performance processors. Architectures such as x86, ARM, MIPS, and PowerPC have specific vector extension instruction sets and SIMD micro-architectures. Using SIMD vectorization programming can significantly improve the performance of application algorithms while keeping the hardware overhead low. In addition, other methods can enhance algorithm performance, such as selecting the best SIMD vectorization model for algorithms, ensuring sufficient instruction streams, implementing reasonable and effective cache data prefetching, and aligning data access and storage addresses according to instruction characteristics. The goal of this paper is three-fold. First, we introduce the basic structural characteristics of a general RISC processor, Hua Rui (HR) DSP, with a custom vector instruction set based on compatibility with an MIPS64 fixed-point and floating-point instruction set, as well as a Fei Teng (FT) processor compatible with an ARMv8 instruction set. Second, we summarize the fundamental principles of SIMD vectorization programming design for the HR DSP, which provides ideas for other scholars or engineering and technical personnel to study the algorithm performance using SIMD vectorization optimization. Third, we implement representative typical algorithms based on the HR and FT platforms and obtain experimental results that show improvement in algorithm SIMD vectorization optimization according to the vector programming design principles summarized in this article can improve the single-core performance of scalar implementation without vectorization, instruction streams, and cache data prefetching by 4–22 times for mean filter, accumulation, and matrix–matrix multiplication, which is significantly better than the performance improvement of 3–13 times for the FT platform. Moreover, the performance of matrix–matrix multiplication using the best vectorization model on the HR platform is about 84\% higher than that of the common SIMD vectorization model.},
+  langid = {english}
+}
+
+@article{xufastevaluationgaunt,
+  title = {{{FAST EVALUATION OF THE GAUNT COEFFICIENTS}}},
+  author = {Xu, Yu-Lin},
+  abstract = {Addition theorems for vector spherical harmonics require the determination of the Gaunt coefficients that appear in a linearization expansion of the product of two associated Legendre functions. This paper presents an algorithm for the efficient calculation of these coefficients through solving the most appropriate (lower triangular) linear system and derives all relevant recurrence relations needed in the calculation. This algorithm is also applicable to the calculation of the Clebsch-Gordan coefficients that are closely related to the Gaunt coefficients and are frequently encountered in the quantum theory of angular momentum. The new method described in this paper reduces the computing time to ∼ 1\%, compared to the existing formulation that is widely used. This new method can be applied to the calculation of both low- and high-degree coefficients, while the existing formulation works well only for low degrees.},
   langid = {english}
 }
 
